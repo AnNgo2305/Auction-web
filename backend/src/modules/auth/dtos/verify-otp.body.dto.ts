@@ -1,4 +1,4 @@
-import { OtpType } from '@prisma/client';
+import { OtpType } from '@generated/prisma/enums';
 import { IsEnum, IsString } from 'class-validator';
 
 export class VerifyOtpDto {

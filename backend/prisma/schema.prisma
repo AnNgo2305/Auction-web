@@ -5,12 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -20,17 +20,19 @@ enum Role {
 }
 
 model User {
-  userId     String   @id @default(uuid()) @map("user_id") @db.Char(36)
-  email      String   @unique @db.VarChar(255)
-  username   String   @unique @db.VarChar(255)
-  password   String   @db.VarChar(255)
-  role       Role
-  isBanned   Boolean  @default(false) @map("is_banned")
-  isVerified Boolean  @default(false) @map("is_verified")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  userId              String    @id @default(uuid()) @map("user_id") @db.Char(36)
+  email               String    @unique @db.VarChar(255)
+  username            String    @unique @db.VarChar(255)
+  password            String    @db.VarChar(255)
+  role                Role
+  isBanned            Boolean   @default(false) @map("is_banned")
+  isVerified          Boolean   @default(false) @map("is_verified")
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  refreshToken RefreshToken[] @relation("User_Has_Tokens")
+  refreshTokens RefreshToken[] @relation("User_Has_Tokens")
 
   profile Profile? @relation("User_Has_Profile")
 
@@ -47,14 +49,15 @@ model User {
   issuedWarnings   Warning[] @relation("User_Issued_Warnings")
   warningCount     Int       @default(0) @map("warning_count")
 
-  wonAuctions    Auction[] @relation("User_Wins_Auctions")
-  createdAuction Auction[] @relation("Seller_Creates_Auctions")
+  wonAuctions     Auction[] @relation("User_Wins_Auctions")
+  createdAuctions Auction[] @relation("Seller_Creates_Auctions")
 
-  bid Bid[] @relation("User_Has_Bids")
+  bids Bid[] @relation("User_Has_Bids")
 
-  watchlist Watchlist[] @relation("User_Has_Watchlist")
+  watchlists Watchlist[] @relation("User_Has_Watchlist")
 
-  productComments ProductComment[] @relation("User_Has_ProductComments")
+  productComments     ProductComment[]     @relation("User_Has_ProductComments")
+  passwordResetTokens PasswordResetToken[] @relation("User_Has_PasswordResetTokens")
 
   @@map("users")
 }
@@ -82,16 +85,34 @@ model RefreshToken {
   userId String @map("user_id")
   user   User   @relation("User_Has_Tokens", fields: [userId], references: [userId], onDelete: Cascade)
 
-  ip         String?  @db.VarChar(45)
-  userAgent  String?  @db.Text
-  provider   String?  @default("local") @db.VarChar(50)
-  isRevoked  Boolean  @default(false) @map("is_revoked")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  lastUsedAt DateTime @default(now()) @map("last_used_at") @db.Timestamp(0)
+  ip         String?   @db.VarChar(45)
+  userAgent  String?   @map("user_agent") @db.Text
+  deviceId   String?   @map("device_id") @db.VarChar(150)
+  provider   String    @default("local") @db.VarChar(50)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamp(0)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamp(0)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  lastUsedAt DateTime  @default(now()) @map("last_used_at") @db.Timestamp(0)
 
-  @@unique([userId, provider], name: "userId_provider")
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id    String @id @default(uuid()) @db.Char(36)
+  token String @unique @db.VarChar(255)
+
+  userId String @map("user_id")
+  user   User   @relation("User_Has_PasswordResetTokens", fields: [userId], references: [userId], onDelete: Cascade)
+
+  expiresAt DateTime @map("expires_at") @db.Timestamp(0)
+
+  usedAt    DateTime? @map("used_at") @db.Timestamp(0)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@index([userId])
+  @@index([token])
+  @@map("password_reset_tokens")
 }
 
 model Profile {

@@ -5,7 +5,7 @@ import { ERROR_PROFILE_NOT_FOUND } from '@modules/profile/profile.constant';
 import { UpdateProfileDto } from '@modules/profile/dtos/update-profile.body.dto';
 import { FileService } from '@common/services/file.service';
 import { UpdateProfileResponseDto } from '@modules/profile/dtos/update-profile.response.dto';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/prisma/enums';
 import { FollowService } from '@modules/follow/follow.service';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class ProfileService {
       | 'ACTIVE'
       | 'UNKNOWN'
       | 'BLOCKED' = 'UNKNOWN';
-    if (currentUserId) {
+    if (currentUserId && currentUserId !== userId) {
       followStatus = await this.followService.getFollowStatus(
         currentUserId,
         userId,

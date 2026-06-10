@@ -9,7 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { AuctionStatus, CategoryType } from '@prisma/client';
+import { AuctionStatus, CategoryType } from '@generated/prisma/enums';
 
 export class SearchAuctionQueryDto {
   @IsOptional()

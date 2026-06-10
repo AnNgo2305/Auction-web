@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommonModule } from '@common/common.module';
 import { LoggerMiddleware } from '@common/middlewares/logger.middleware';
+import { RequestIdMiddleware } from '@common/middlewares/request-id.middleware';
 import { UserModule } from '@modules/user/user.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { RefreshTokenModule } from '@modules/refresh-token/refresh-token.module';
@@ -35,7 +36,7 @@ import { AuctionModule } from '@modules/auction/auction.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
-      .apply(LoggerMiddleware)
+      .apply(RequestIdMiddleware, LoggerMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

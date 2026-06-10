@@ -12,11 +12,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailService } from '@common/services/mail.service';
 import path from 'path';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { JwtGuard } from '@common/guards/jwt.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { UserService } from '@modules/user/user.service';
 import { FileService } from '@common/services/file.service';
+import { jwtConfig } from '@common/config/jwt.config';
+import { passwordConfig } from '@common/config/password.config';
+import { MailConfig, mailConfig } from '@common/config/mail.config';
 
 const service = [
   LoggerService,
@@ -30,32 +33,39 @@ const service = [
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [jwtConfig, passwordConfig, mailConfig],
+    }),
     JwtModule,
-    ConfigModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('MAIL_HOST'),
-          port: configService.get<number>('MAIL_PORT'),
-          secure: configService.get<string>('MAIL_SECURE') === 'true',
-          auth: {
-            user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASSWORD'),
+      useFactory: (configService: ConfigService) => {
+        const mailConfig = configService.getOrThrow<MailConfig['mail']>('mail');
+
+        return {
+          transport: {
+            host: mailConfig.host,
+            port: mailConfig.port,
+            secure: mailConfig.secure,
+            auth: {
+              user: mailConfig.user,
+              pass: mailConfig.password,
+            },
           },
-        },
-        defaults: {
-          from: `"Bid Market" <${configService.get<string>('MAIL_FROM')}>`,
-        },
-        template: {
-          dir: path.join(process.cwd(), 'src/common/templates'),
-          adapter: new HandlebarsAdapter(),
-          options: {
-            strict: true,
+          defaults: {
+            from: `"Bid Market" <${mailConfig.from}>`,
           },
-        },
-      }),
+          template: {
+            dir: path.join(process.cwd(), 'src/common/templates'),
+            adapter: new HandlebarsAdapter(),
+            options: {
+              strict: true,
+            },
+          },
+        };
+      },
     }),
   ],
   providers: [

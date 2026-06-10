@@ -13,19 +13,18 @@ import {
 import { UserInfoResponseDto } from '@modules/user/dtos/user-info.response.dto';
 import { CreateUserResponseDto } from '@modules/user/dtos/create-user.response.dto';
 import { UserQueryDto } from '@modules/user/dtos/get-users.query.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../../generated/prisma/client';
 import { PaginationResult } from '@common/types/pagination.interface';
 import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 import { BanUserResponseDto } from '@modules/user/dtos/ban-user.response.dto';
 import { UserWarningStatusDto } from '@modules/user/dtos/get-warning.response.dto';
-import { ERROR_USER_NOT_FOUND } from '@modules/auth/auth.constant';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findUser(email: string): Promise<UserInfoResponseDto> {
-    const user = await this.prisma.user.findUnique({
+  async findUser(email: string): Promise<UserInfoResponseDto | null> {
+    return this.prisma.user.findUnique({
       where: { email: email },
       select: {
         userId: true,
@@ -35,11 +34,10 @@ export class UserService {
         role: true,
         isVerified: true,
         isBanned: true,
+        failedLoginAttempts: true,
+        lockedUntil: true,
       },
     });
-
-    if (!user) throw new NotFoundException(ERROR_USER_NOT_FOUND);
-    return user;
   }
 
   async createUser(
@@ -82,7 +80,12 @@ export class UserService {
 
   async findUserById(
     userId: string,
-  ): Promise<Omit<UserInfoResponseDto, 'password'>> {
+  ): Promise<
+    Omit<
+      UserInfoResponseDto,
+      'password' | 'failedLoginAttempts' | 'lockedUntil'
+    >
+  > {
     const user = await this.prisma.user.findUnique({
       where: { userId },
       select: {
@@ -160,6 +163,8 @@ export class UserService {
           username: true,
           role: true,
           isVerified: true,
+          failedLoginAttempts: true,
+          lockedUntil: true,
           isBanned: true,
           createdAt: true,
           updatedAt: true,
@@ -363,5 +368,41 @@ export class UserService {
         createdAt: w.createdAt,
       })),
     };
+  }
+
+  async incrementFailedLoginAttempts(userId: string): Promise<number> {
+    const user = await this.prisma.user.update({
+      where: { userId },
+      data: {
+        failedLoginAttempts: {
+          increment: 1,
+        },
+      },
+      select: {
+        failedLoginAttempts: true,
+      },
+    });
+
+    return user.failedLoginAttempts;
+  }
+
+  async lockUser(userId: string, lockedUntil: Date): Promise<void> {
+    await this.prisma.user.update({
+      where: { userId },
+      data: {
+        lockedUntil,
+        failedLoginAttempts: 0,
+      },
+    });
+  }
+
+  async resetLoginAttempts(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { userId },
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
   }
 }

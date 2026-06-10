@@ -8,7 +8,7 @@ import {
   ArrayNotEmpty,
   IsUUID,
 } from 'class-validator';
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus } from '@generated/prisma/enums';
 import { Transform } from 'class-transformer';
 
 export class UpdateProductDto {

@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { OtpType } from '@prisma/client';
+import { OtpType } from '@generated/prisma/enums';
 import { PrismaService } from '@common/services/prisma.service';
 import { randomInt } from 'crypto';
 import { EXPIRES_IN_MINUTES } from '@common/constants/mail.constant';
@@ -46,9 +46,11 @@ export class OtpService {
     const otp = await this.prisma.otp.findFirst({
       where: { userId, type, code },
     });
+
     if (!otp) {
       throw new UnauthorizedException(ERROR_OTP_NOT_FOUND);
     }
+
     if (otp.expiresAt && otp.expiresAt < new Date()) {
       throw new UnauthorizedException(ERROR_OTP_EXPIRED);
     }

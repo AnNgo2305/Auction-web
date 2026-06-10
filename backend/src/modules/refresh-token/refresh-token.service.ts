@@ -9,20 +9,48 @@ export class RefreshTokenService {
   async saveRefreshToken(
     userId: string,
     token: string,
+    deviceId?: string,
     provider = 'local',
     ip?: string,
     userAgent?: string,
   ): Promise<void> {
-    await this.prisma.refreshToken.upsert({
-      where: { userId_provider: { userId, provider } },
-      update: {
+    const existingSession = await this.prisma.refreshToken.findFirst({
+      where: {
+        userId,
+        deviceId,
+        provider,
+      },
+    });
+
+    if (existingSession) {
+      await this.prisma.refreshToken.update({
+        where: {
+          id: existingSession.id,
+        },
+        data: {
+          token,
+          ip,
+          userAgent,
+          lastUsedAt: new Date(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          revokedAt: null,
+        },
+      });
+
+      return;
+    }
+
+    await this.prisma.refreshToken.create({
+      data: {
+        userId,
+        deviceId,
+        provider,
         token,
         ip,
         userAgent,
-        isRevoked: false,
         lastUsedAt: new Date(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
-      create: { token, userId, provider, ip, userAgent },
     });
   }
 
@@ -36,7 +64,10 @@ export class RefreshTokenService {
         userId: userId,
         token: token,
         provider: provider,
-        isRevoked: false,
+        revokedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
       },
     });
     return !!tokenRecord;
@@ -52,7 +83,7 @@ export class RefreshTokenService {
         userId,
         token,
         provider,
-        isRevoked: false,
+        revokedAt: null,
       },
     });
 
@@ -63,7 +94,20 @@ export class RefreshTokenService {
     await this.prisma.refreshToken.update({
       where: { id: tokenRecord.id },
       data: {
-        isRevoked: true,
+        revokedAt: new Date(),
+        lastUsedAt: new Date(),
+      },
+    });
+  }
+
+  async revokeAllRefreshTokens(userId: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
         lastUsedAt: new Date(),
       },
     });

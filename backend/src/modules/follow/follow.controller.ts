@@ -13,7 +13,7 @@ import { FollowService } from './follow.service';
 import { Roles } from '@common/decorators/roles.decorator';
 import { Auth } from '@common/decorators/auth.decorator';
 import { AuthType } from '@common/types/auth-type.enum';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/prisma/enums';
 import { Request } from 'express';
 import { ResponsePayload } from '@common/types/response.interface';
 import { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';

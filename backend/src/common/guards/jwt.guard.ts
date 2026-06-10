@@ -10,7 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { AuthType } from '@common/types/auth-type.enum';
 import { Request } from 'express';
 import {
-  ERROR_MISSING_AUTH_HEADER,
+  ERROR_MISSING_ACCESS_TOKEN,
   ERROR_USER_BANNED,
   ERROR_USER_UNVERIFIED,
 } from '@common/constants/error.constant';
@@ -33,18 +33,12 @@ export class JwtGuard implements CanActivate {
     if (authType === AuthType.NONE) return true;
 
     const request: Request = context.switchToHttp().getRequest<Request>();
-    const authHeader = request.headers['authorization'];
-
-    if (!authHeader) {
+    const token = request.cookies?.access_token;
+    if (!token) {
       if (authType === AuthType.OPTIONAL) return true;
-      throw new UnauthorizedException(ERROR_MISSING_AUTH_HEADER);
+      throw new UnauthorizedException(ERROR_MISSING_ACCESS_TOKEN);
     }
 
-    if (!authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException(ERROR_MISSING_AUTH_HEADER);
-    }
-
-    const token = authHeader.split(' ')[1];
     try {
       const payload = await this.tokenService.verifyAccessToken(token);
       const user = await this.userService.findUserById(payload.userId);

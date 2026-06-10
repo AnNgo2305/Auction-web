@@ -21,7 +21,8 @@ import {
   ERROR_INVALID_AUCTION_TIME,
   ERROR_INVALID_NEW_END_TIME,
 } from '@modules/auction/auction.constant';
-import { AuctionStatus, Prisma, Role } from '@prisma/client';
+import { AuctionStatus, Role } from '@generated/prisma/enums';
+import { Prisma } from '@generated/prisma/client';
 import {
   AuctionProductDetailDto,
   GetAuctionDetailResponseDto,

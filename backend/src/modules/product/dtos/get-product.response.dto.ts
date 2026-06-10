@@ -1,4 +1,4 @@
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus } from '@generated/prisma/enums';
 
 export class ProductImageDto {
   imageId!: string;

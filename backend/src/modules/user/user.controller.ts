@@ -17,7 +17,7 @@ import { ResponsePayload } from '@common/types/response.interface';
 import { Auth } from '@common/decorators/auth.decorator';
 import { AuthType } from '@common/types/auth-type.enum';
 import { Roles } from '@common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/prisma/enums';
 import { UserQueryDto } from '@modules/user/dtos/get-users.query.dto';
 import { Request } from 'express';
 import { UpdatePasswordDto } from '@modules/user/dtos/update-password.body.dto';

@@ -24,7 +24,7 @@ import { Request } from 'express';
 import { AuthType } from '@common/types/auth-type.enum';
 import { Auth } from '@common/decorators/auth.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/prisma/enums';
 import { ResponsePayload } from '@common/types/response.interface';
 import { ExtendAuctionDto } from '@modules/auction/dtos/extend-auction.body.dto';
 

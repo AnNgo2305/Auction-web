@@ -16,6 +16,7 @@ import {
   ERROR_UNKNOWN_ACCESS_TOKEN,
   ERROR_UNKNOWN_REFRESH_TOKEN,
 } from '@common/constants/error.constant';
+import { JwtConfig } from '@common/config/jwt.config';
 
 @Injectable()
 export class TokenService {
@@ -28,16 +29,11 @@ export class TokenService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    this.accessTokenKey =
-      this.configService.getOrThrow<string>('ACCESS_TOKEN_KEY');
-    this.refreshTokenKey =
-      this.configService.getOrThrow<string>('REFRESH_TOKEN_KEY');
-    this.accessTokenExpiresIn = this.configService.getOrThrow<string>(
-      'ACCESS_TOKEN_EXPIRES_IN',
-    );
-    this.refreshTokenExpiresIn = this.configService.getOrThrow<string>(
-      'REFRESH_TOKEN_EXPIRES_IN',
-    );
+    const jwtConfig = this.configService.getOrThrow<JwtConfig['jwt']>('jwt');
+    this.accessTokenKey = jwtConfig.accessTokenKey;
+    this.refreshTokenKey = jwtConfig.refreshTokenKey;
+    this.accessTokenExpiresIn = jwtConfig.accessTokenExpiresIn;
+    this.refreshTokenExpiresIn = jwtConfig.refreshTokenExpiresIn;
   }
 
   async generateAccessToken(payload: AccessTokenPayloadInput): Promise<string> {

@@ -23,6 +23,7 @@
     "paths": {
       "@modules/*": ["src/modules/*"],
       "@common/*": ["src/common/*"],
+      "@generated/prisma/*" : ["generated/prisma/*"]
     }
   }
 }

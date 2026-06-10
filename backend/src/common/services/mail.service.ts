@@ -8,32 +8,46 @@ import {
   MailTemplates,
 } from '@common/constants/mail.constant';
 import { ConfigService } from '@nestjs/config';
+import { MailConfig } from '@common/config/mail.config';
 
 @Injectable()
 export class MailService {
+  private readonly from: string;
+
   constructor(
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    const mailConfig =
+      this.configService.getOrThrow<MailConfig['mail']>('mail');
+
+    this.from = mailConfig.from;
+  }
 
   async sendMail(to: string, otpCode: string, type: MailType): Promise<void> {
-    const from = this.configService.get<string>('MAIL_FROM');
-    const subject = MailSubjects[type];
-    const title = MailTitles[type];
-    const template = MailTemplates[type];
+    try {
+      const subject = MailSubjects[type];
+      const title = MailTitles[type];
+      const template = MailTemplates[type];
 
-    const context = {
-      title,
-      otpCode,
-      expireMinutes: EXPIRES_IN_MINUTES,
-    };
+      const context = {
+        title,
+        otpCode,
+        expireMinutes: EXPIRES_IN_MINUTES,
+      };
 
-    await this.mailerService.sendMail({
-      from,
-      to,
-      subject,
-      template,
-      context,
-    });
+      await this.mailerService.sendMail({
+        from: this.from,
+        to,
+        subject,
+        template,
+        context,
+      });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      throw new Error(`Failed to send email: ${errorMessage}`);
+    }
   }
 }

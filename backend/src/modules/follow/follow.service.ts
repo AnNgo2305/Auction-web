@@ -22,7 +22,7 @@ import {
   ERROR_SELLER_NOT_FOUND,
   ERROR_UNFOLLOW_BLOCKED,
 } from '@modules/follow/follow.constant';
-import { FollowStatus, Role } from '@prisma/client';
+import { FollowStatus, Role } from '@generated/prisma/enums';
 import { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';
 
 @Injectable()

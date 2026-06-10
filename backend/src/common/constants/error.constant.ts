@@ -46,10 +46,10 @@ export const ERROR_UNKNOWN_REFRESH_TOKEN = {
   message: 'Unknown error occurred while verifying refresh token',
 };
 
-export const ERROR_MISSING_AUTH_HEADER = {
+export const ERROR_MISSING_ACCESS_TOKEN = {
   statusCode: 401,
-  errorCode: 'MISSING_AUTH_HEADER',
-  message: 'Authorization header is missing or malformed',
+  errorCode: 'MISSING_ACCESS_TOKEN',
+  message: 'Access token is missing',
 };
 
 export const ERROR_USER_BANNED = {

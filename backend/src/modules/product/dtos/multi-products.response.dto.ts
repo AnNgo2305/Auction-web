@@ -1,5 +1,5 @@
 import { IsString, IsInt, IsOptional, IsArray } from 'class-validator';
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus } from '@generated/prisma/enums';
 
 export class ProductCategoryDto {
   @IsString()

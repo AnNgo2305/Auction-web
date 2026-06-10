@@ -1,8 +1,8 @@
-import { IsString, IsUUID, MinLength } from 'class-validator';
+import { IsString, MinLength } from 'class-validator';
 
 export class ResetPasswordDto {
-  @IsUUID()
-  userId!: string;
+  @IsString()
+  resetPasswordToken!: string;
 
   @IsString()
   @MinLength(6)

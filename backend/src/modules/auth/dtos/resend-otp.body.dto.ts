@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum } from 'class-validator';
-import { OtpType } from '@prisma/client';
+import { OtpType } from '@generated/prisma/enums';
 
 export class ResendOtpEmailDto {
   @IsEmail({}, { message: 'Invalid email format' })

@@ -16,7 +16,8 @@ import {
   ERROR_PRODUCT_NOT_FOUND,
   ERROR_PRODUCT_STOCK_INSUFFICIENT,
 } from '@modules/product/product.constant';
-import { Prisma, ProductStatus } from '@prisma/client';
+import { Prisma } from '@generated/prisma/client';
+import { ProductStatus } from '@generated/prisma/enums';
 import { ProductDto } from '@modules/product/dtos/multi-products.response.dto';
 import { ProductImageService } from '@modules/product-image/product-image.service';
 import { ProductCategoryService } from '@modules/product-category/product-category.service';
@@ -287,7 +288,7 @@ export class ProductService {
     products: { productId: string; quantity: number }[],
     action: 'decrement' | 'increment' = 'decrement',
   ): Promise<void> {
-    const productIds = products.map(p => p.productId);
+    const productIds = products.map((p) => p.productId);
 
     const foundProducts = await tx.product.findMany({
       where: { productId: { in: productIds } },
@@ -297,20 +298,23 @@ export class ProductService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    const productMap = new Map(foundProducts.map(p => [p.productId, p]));
+    const productMap = new Map(foundProducts.map((p) => [p.productId, p]));
 
     for (const { productId, quantity } of products) {
       const product = productMap.get(productId);
       if (!product) continue;
 
       if (product.status !== 'ACTIVE') {
-        const { statusCode, message, errorCode } = ERROR_PRODUCT_NOT_AVAILABLE(product.name);
+        const { statusCode, message, errorCode } = ERROR_PRODUCT_NOT_AVAILABLE(
+          product.name,
+        );
         throw new BadRequestException({ statusCode, message, errorCode });
       }
 
       if (action === 'decrement') {
         if (product.stockQuantity < quantity) {
-          const { statusCode, message, errorCode } = ERROR_PRODUCT_STOCK_INSUFFICIENT(productId);
+          const { statusCode, message, errorCode } =
+            ERROR_PRODUCT_STOCK_INSUFFICIENT(productId);
           throw new BadRequestException({ statusCode, message, errorCode });
         }
         await tx.product.update({

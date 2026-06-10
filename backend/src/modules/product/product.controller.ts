@@ -14,7 +14,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { ProductService } from '@modules/product/product.service';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/prisma/enums';
 import { Auth } from '@common/decorators/auth.decorator';
 import { AuthType } from '@common/types/auth-type.enum';
 import { Roles } from '@common/decorators/roles.decorator';

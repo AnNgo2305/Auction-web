@@ -9,10 +9,14 @@ export class LoggerMiddleware implements NestMiddleware {
   );
 
   use(req: Request, res: Response, next: NextFunction): void {
-    this.logger.log(`Incoming Request: [${req.method}] ${req.originalUrl}`);
+    const { method, originalUrl, ip, requestId } = req;
+    this.logger.log(
+      `Incoming Request: [${requestId}] ${method} ${originalUrl} - IP: ${ip}`,
+    );
+
     res.on('finish', () => {
       this.logger.log(
-        `Response: [${req.method}] ${req.originalUrl} - Status: ${res.statusCode}`,
+        `Response: [${requestId}] ${method} ${originalUrl} - Status: ${res.statusCode}`,
       );
     });
 

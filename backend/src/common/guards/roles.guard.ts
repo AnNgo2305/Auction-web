@@ -5,7 +5,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/prisma/enums';
 import { ROLES_KEY } from '@common/decorators/roles.decorator';
 import { Request } from 'express';
 import { ERROR_USER_FORBIDDEN } from '@common/constants/error.constant';

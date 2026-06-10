@@ -12,4 +12,8 @@ export class UserInfoResponseDto {
   isVerified!: boolean;
 
   isBanned!: boolean;
+
+  failedLoginAttempts!: number;
+
+  lockedUntil!: Date | null;
 }
