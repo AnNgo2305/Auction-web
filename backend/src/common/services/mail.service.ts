@@ -44,6 +44,7 @@ export class MailService {
         context,
       });
     } catch (error: unknown) {
+      console.error('MAIL ERROR:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 

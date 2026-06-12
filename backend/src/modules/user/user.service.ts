@@ -7,7 +7,7 @@ import { PrismaService } from '@common/services/prisma.service';
 import {
   ERROR_USER_ALREADY_BANNED,
   ERROR_USER_NOT_BANNED,
-  ERROR_USER_NOT_EXIST,
+  ERROR_USER_NOT_FOUND,
   ERROR_WARNING_NOT_FOUND,
 } from '@modules/user/user.constant';
 import { UserInfoResponseDto } from '@modules/user/dtos/user-info.response.dto';
@@ -80,13 +80,11 @@ export class UserService {
 
   async findUserById(
     userId: string,
-  ): Promise<
-    Omit<
-      UserInfoResponseDto,
-      'password' | 'failedLoginAttempts' | 'lockedUntil'
-    >
-  > {
-    const user = await this.prisma.user.findUnique({
+  ): Promise<Omit<
+    UserInfoResponseDto,
+    'password' | 'failedLoginAttempts' | 'lockedUntil'
+  > | null> {
+    return this.prisma.user.findUnique({
       where: { userId },
       select: {
         userId: true,
@@ -99,9 +97,6 @@ export class UserService {
         updatedAt: true,
       },
     });
-
-    if (!user) throw new NotFoundException(ERROR_USER_NOT_EXIST);
-    return user;
   }
 
   async updatePassword(
@@ -114,7 +109,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
     await this.prisma.user.update({
@@ -198,7 +193,7 @@ export class UserService {
       where: { userId: userId },
     });
 
-    if (!user) throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    if (!user) throw new NotFoundException(ERROR_USER_NOT_FOUND);
     if (user.isBanned) throw new ConflictException(ERROR_USER_ALREADY_BANNED);
 
     return this.prisma.$transaction(async (prisma) => {
@@ -250,7 +245,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
     if (user.isBanned) {
@@ -277,7 +272,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
     if (!user.isBanned) {
@@ -306,7 +301,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
     return {

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { LoggerService } from '@common/services/logger.service';
+import cookieParser from 'cookie-parser';
 
 const bootstrapLogger = new LoggerService('Bootstrap');
 
@@ -18,6 +19,8 @@ async function bootstrap(): Promise<{
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });
+
+  app.use(cookieParser());
 
   const port = process.env.PORT || 3000;
   const host = process.env.HOST || 'localhost';

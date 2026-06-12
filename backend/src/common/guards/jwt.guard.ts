@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { TokenService } from '@common/services/token.service';
 import { Reflector } from '@nestjs/core';
@@ -12,6 +13,7 @@ import { Request } from 'express';
 import {
   ERROR_MISSING_ACCESS_TOKEN,
   ERROR_USER_BANNED,
+  ERROR_USER_NOT_EXIST,
   ERROR_USER_UNVERIFIED,
 } from '@common/constants/error.constant';
 import { UserService } from '@modules/user/user.service';
@@ -42,9 +44,14 @@ export class JwtGuard implements CanActivate {
     try {
       const payload = await this.tokenService.verifyAccessToken(token);
       const user = await this.userService.findUserById(payload.userId);
+      if (!user) {
+        throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      }
+
       if (!user.isVerified) {
         throw new UnauthorizedException(ERROR_USER_UNVERIFIED);
       }
+
       if (user.isBanned) {
         throw new ForbiddenException(ERROR_USER_BANNED);
       }

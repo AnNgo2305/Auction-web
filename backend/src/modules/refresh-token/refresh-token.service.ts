@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { ERROR_REFRESH_TOKEN_NOT_FOUND_OR_REVOKED } from '@modules/refresh-token/refresh-token.constant';
 
@@ -88,7 +91,7 @@ export class RefreshTokenService {
     });
 
     if (!tokenRecord) {
-      throw new NotFoundException(ERROR_REFRESH_TOKEN_NOT_FOUND_OR_REVOKED);
+      throw new UnauthorizedException(ERROR_REFRESH_TOKEN_NOT_FOUND_OR_REVOKED);
     }
 
     await this.prisma.refreshToken.update({

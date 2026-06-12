@@ -1,13 +1,15 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class LoginBodyDto {
-  @IsEmail()
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail({}, { message: 'Invalid email address' })
   email!: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Password is required' })
+  @IsString({ message: 'Password must be a string' })
   password!: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: 'Provider must be a string' })
   provider?: string;
 }

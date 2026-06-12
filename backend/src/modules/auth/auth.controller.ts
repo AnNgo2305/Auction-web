@@ -16,11 +16,9 @@ import { RegisterResponseDto } from '@modules/auth/dtos/register.response.dto';
 import { ResponsePayload } from '@common/types/response.interface';
 import { ResetPasswordDto } from '@modules/auth/dtos/reset-password.body.dto';
 import { VerifyOtpDto } from '@modules/auth/dtos/verify-otp.body.dto';
-import { LogoutBodyDto } from '@modules/auth/dtos/logout.body.dto';
 import { ForgotPasswordResponseDto } from '@modules/auth/dtos/forgot-password.response.dto';
 import { ForgotPasswordBodyDto } from '@modules/auth/dtos/forgot-password.body.dto';
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp.body.dto';
-import { LogoutAllBodyDto } from '@modules/auth/dtos/logout-all.body.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -95,10 +93,10 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
-    @Body() dto: LogoutBodyDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponsePayload> {
-    await this.authService.logout(dto, res);
+    await this.authService.logout(req, res);
     return {
       message: 'Logout successfully',
       data: {},
@@ -108,10 +106,10 @@ export class AuthController {
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
   async logoutAll(
-    @Body() dto: LogoutAllBodyDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponsePayload> {
-    await this.authService.logoutAll(dto, res);
+    await this.authService.logoutAll(req, res);
 
     return {
       message: 'Logout all devices successfully',
@@ -145,10 +143,10 @@ export class AuthController {
     };
   }
 
-  @Post('send-otp')
+  @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
-  async sendOtp(@Body() dto: ResendOtpEmailDto): Promise<ResponsePayload> {
-    await this.authService.sendOtpEmail(dto);
+  async resendOtp(@Body() dto: ResendOtpEmailDto): Promise<ResponsePayload> {
+    await this.authService.resendOtpEmail(dto);
     return {
       message: 'OTP has been sent successfully',
       data: {},

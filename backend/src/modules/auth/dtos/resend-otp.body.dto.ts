@@ -1,10 +1,14 @@
-import { IsEmail, IsEnum } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty } from 'class-validator';
 import { OtpType } from '@generated/prisma/enums';
 
 export class ResendOtpEmailDto {
-  @IsEmail({}, { message: 'Invalid email format' })
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail({}, { message: 'Invalid email address' })
   email!: string;
 
-  @IsEnum(OtpType, { message: 'Invalid OTP type' })
+  @IsNotEmpty({ message: 'OTP type is required' })
+  @IsEnum(OtpType, {
+    message: 'OTP type must be a valid value',
+  })
   type!: OtpType;
 }

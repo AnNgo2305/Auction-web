@@ -1,7 +1,7 @@
-export const ERROR_USER_NOT_EXIST = {
+export const ERROR_USER_NOT_FOUND = {
   statusCode: 404,
-  errorCode: 'USER_NOT_EXIST',
-  message: 'User does not exist',
+  errorCode: 'USER_NOT_FOUND',
+  message: 'User not found',
 };
 
 export const ERROR_USER_ALREADY_BANNED = {

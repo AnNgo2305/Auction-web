@@ -13,7 +13,6 @@ import {
   ERROR_EMAIL_ALREADY_EXISTS,
   ERROR_EMAIL_ALREADY_VERIFIED,
   ERROR_USER_NOT_FOUND,
-  ERROR_INVALID_LOGOUT_TOKEN,
   ERROR_INVALID_PASSWORD,
   ERROR_PASSWORD_CONFIRM_MISMATCH,
   ERROR_REFRESH_TOKEN_NOT_FOUND,
@@ -25,7 +24,7 @@ import {
   ERROR_RESET_TOKEN_EXPIRED,
   ERROR_RESET_TOKEN_ALREADY_USED,
   ERROR_MISSING_REFRESH_TOKEN,
-  ERROR_EMAIL_NOT_VERIFIED,
+  ERROR_EMAIL_NEED_VERIFIED,
 } from '@modules/auth/auth.constant';
 import {
   AccessTokenPayloadInput,
@@ -43,12 +42,10 @@ import { VerifyOtpDto } from '@modules/auth/dtos/verify-otp.body.dto';
 import { ForgotPasswordBodyDto } from '@modules/auth/dtos/forgot-password.body.dto';
 import { ForgotPasswordResponseDto } from '@modules/auth/dtos/forgot-password.response.dto';
 import { ResetPasswordDto } from '@modules/auth/dtos/reset-password.body.dto';
-import { LogoutBodyDto } from '@modules/auth/dtos/logout.body.dto';
 import { MailService } from '@common/services/mail.service';
 import { MailType } from '@common/constants/mail.constant';
 import { LoggerService } from '@common/services/logger.service';
 import { Request, Response } from 'express';
-import { LogoutAllBodyDto } from '@modules/auth/dtos/logout-all.body.dto';
 import { VerifyResetPasswordOtpResponseDto } from '@modules/auth/dtos/verify-reset-password-otp.body.response';
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp.body.dto';
 
@@ -87,7 +84,7 @@ export class AuthService {
 
     if (!user.isVerified) {
       this.logger.error(`Login blocked - email not verified: ${user.email}`);
-      throw new ForbiddenException(ERROR_EMAIL_NOT_VERIFIED);
+      throw new ForbiddenException(ERROR_EMAIL_NEED_VERIFIED);
     }
 
     if (user.isBanned) {
@@ -262,7 +259,7 @@ export class AuthService {
   }
 
   async refreshToken(req: Request, res: Response): Promise<void> {
-    const refreshToken: string = req.cookies?.refresh_token;
+    const refreshToken: string | null = req.cookies?.refresh_token;
 
     if (!refreshToken) {
       this.logger.error('Refresh token missing');
@@ -291,12 +288,6 @@ export class AuthService {
       this.logger.error(`User not found during refresh | userId=${userId}`);
       throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
-
-    if (user.isBanned) {
-      this.logger.error(`Blocked user attempted refresh | userId=${userId}`);
-      throw new ForbiddenException(ERROR_USER_BLOCKED);
-    }
-    this.logger.log(`Refresh token validation passed | userId=${userId}`);
 
     const { accessToken, refreshToken: newRefreshToken } =
       await this.generateTokens(
@@ -395,18 +386,6 @@ export class AuthService {
       throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
-    if (user.isBanned) {
-      this.logger.warn(`Reset Password OTP failed - user banned: ${userId}`);
-      throw new ForbiddenException(ERROR_USER_BLOCKED);
-    }
-
-    if (!user.isVerified) {
-      this.logger.warn(
-        `Reset Password OTP failed - email not verified: ${userId}`,
-      );
-      throw new ForbiddenException(ERROR_EMAIL_NOT_VERIFIED);
-    }
-
     await this.otpService.checkOtp(userId, type, code);
 
     const token = crypto.randomUUID();
@@ -444,20 +423,6 @@ export class AuthService {
 
     this.logger.log(`CheckEmail user found | userId=${user.userId}`);
 
-    if (!user.isVerified) {
-      this.logger.warn(
-        `CheckEmail blocked - email not verified | userId=${user.userId}`,
-      );
-      throw new ForbiddenException(ERROR_EMAIL_NOT_VERIFIED);
-    }
-
-    if (user.isBanned) {
-      this.logger.warn(
-        `CheckEmail blocked - user banned | userId=${user.userId}`,
-      );
-      throw new ForbiddenException(ERROR_USER_BLOCKED);
-    }
-
     const otpCode = await this.otpService.createOrUpdateOtp(
       user.userId,
       OtpType.RESET_PASSWORD,
@@ -488,21 +453,21 @@ export class AuthService {
 
     if (!resetRecord) {
       this.logger.error(`Invalid reset password token`);
-      throw new BadRequestException(ERROR_INVALID_RESET_TOKEN);
+      throw new UnauthorizedException(ERROR_INVALID_RESET_TOKEN);
     }
 
     if (resetRecord.usedAt) {
       this.logger.error(
         `Reset password token already used | userId=${resetRecord.userId}`,
       );
-      throw new BadRequestException(ERROR_RESET_TOKEN_ALREADY_USED);
+      throw new UnauthorizedException(ERROR_RESET_TOKEN_ALREADY_USED);
     }
 
     if (resetRecord.expiresAt < new Date()) {
       this.logger.warn(
         `Reset password token expired | userId=${resetRecord.userId}`,
       );
-      throw new BadRequestException(ERROR_RESET_TOKEN_EXPIRED);
+      throw new UnauthorizedException(ERROR_RESET_TOKEN_EXPIRED);
     }
 
     this.logger.log(
@@ -547,12 +512,28 @@ export class AuthService {
     );
   }
 
-  async logout(dto: LogoutBodyDto, res: Response): Promise<void> {
-    const { userId, refreshToken, provider = 'local' } = dto;
-    const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+  async logout(req: Request, res: Response): Promise<void> {
+    const refreshToken: string | null = req.cookies?.refresh_token;
 
-    if (payload.userId !== userId || payload.provider !== provider) {
-      throw new UnauthorizedException(ERROR_INVALID_LOGOUT_TOKEN);
+    if (!refreshToken) {
+      this.logger.error('Refresh token missing');
+      throw new UnauthorizedException(ERROR_MISSING_REFRESH_TOKEN);
+    }
+
+    const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+    const { userId, provider } = payload;
+
+    const tokenExists = await this.refreshTokenService.findRefreshToken(
+      userId,
+      refreshToken,
+      provider,
+    );
+
+    if (!tokenExists) {
+      this.logger.error(
+        `Refresh token not found | userId=${userId} | provider=${provider}`,
+      );
+      throw new UnauthorizedException(ERROR_REFRESH_TOKEN_NOT_FOUND);
     }
 
     await this.refreshTokenService.revokeRefreshToken(
@@ -578,13 +559,31 @@ export class AuthService {
     this.logger.log('Logout successfully');
   }
 
-  async logoutAll(dto: LogoutAllBodyDto, res: Response): Promise<void> {
-    const { userId, refreshToken } = dto;
+  async logoutAll(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    const refreshToken: string | null = req.cookies?.refresh_token;
+
+    if (!refreshToken) {
+      this.logger.error('Refresh token missing');
+      throw new UnauthorizedException(ERROR_MISSING_REFRESH_TOKEN);
+    }
 
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+    const { userId, provider } = payload;
 
-    if (payload.userId !== userId) {
-      throw new UnauthorizedException(ERROR_INVALID_LOGOUT_TOKEN);
+    const tokenExists = await this.refreshTokenService.findRefreshToken(
+      userId,
+      refreshToken,
+      provider,
+    );
+
+    if (!tokenExists) {
+      this.logger.error(
+        `Refresh token not found | userId=${userId} | provider=${provider}`,
+      );
+      throw new UnauthorizedException(ERROR_REFRESH_TOKEN_NOT_FOUND);
     }
 
     await this.refreshTokenService.revokeAllRefreshTokens(userId);
@@ -606,7 +605,7 @@ export class AuthService {
     this.logger.log(`Logout ALL devices successfully: ${userId}`);
   }
 
-  async sendOtpEmail(dto: ResendOtpEmailDto): Promise<void> {
+  async resendOtpEmail(dto: ResendOtpEmailDto): Promise<void> {
     const { email, type } = dto;
     const user = await this.userService.findUser(email);
 
@@ -615,21 +614,11 @@ export class AuthService {
       throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
-    if (user.isBanned) {
-      this.logger.warn(`OTP send blocked - user banned: ${user.userId}`);
-      throw new ForbiddenException(ERROR_USER_BLOCKED);
-    }
-
     if (type === OtpType.VERIFY_EMAIL && user.isVerified) {
       this.logger.warn(
         `OTP send blocked - email already verified: ${user.userId}`,
       );
       throw new ConflictException(ERROR_EMAIL_ALREADY_VERIFIED);
-    }
-
-    if (type === OtpType.RESET_PASSWORD && !user.isVerified) {
-      this.logger.warn(`OTP send blocked - email not verified: ${user.userId}`);
-      throw new ForbiddenException(ERROR_EMAIL_NOT_VERIFIED);
     }
 
     const otpCode = await this.otpService.createOrUpdateOtp(user.userId, type);

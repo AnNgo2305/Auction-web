@@ -1,11 +1,11 @@
 export const ERROR_OTP_NOT_FOUND = {
-  statusCode: 404,
+  statusCode: 401,
   errorCode: 'OTP_NOT_FOUND',
-  message: 'OTP code not found or expired',
+  message: 'OTP code invalid',
 };
 
 export const ERROR_OTP_EXPIRED = {
-  statusCode: 410,
+  statusCode: 401,
   errorCode: 'OTP_EXPIRED',
   message: 'OTP code has expired',
 };
