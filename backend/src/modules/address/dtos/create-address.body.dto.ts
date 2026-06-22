@@ -1,4 +1,4 @@
-import { AddressType } from '@generated/prisma/enums';
+import type { AddressType } from '@generated/prisma/enums';
 
 export class CreateAddressDto {
   streetAddress!: string;

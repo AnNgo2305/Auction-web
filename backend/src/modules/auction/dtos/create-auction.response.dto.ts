@@ -1,4 +1,4 @@
-import { AuctionStatus } from '@generated/prisma/enums';
+import type { AuctionStatus } from '@generated/prisma/enums';
 
 class AuctionProductItemDto {
   productId!: string;

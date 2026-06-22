@@ -14,4 +14,6 @@ export class LoginResponseDto {
 
     provider: string;
   };
+
+  otpRequired?: boolean;
 }

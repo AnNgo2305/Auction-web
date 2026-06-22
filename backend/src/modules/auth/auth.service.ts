@@ -24,7 +24,7 @@ import {
   ERROR_RESET_TOKEN_EXPIRED,
   ERROR_RESET_TOKEN_ALREADY_USED,
   ERROR_MISSING_REFRESH_TOKEN,
-  ERROR_EMAIL_NEED_VERIFIED,
+  ERROR_INVALID_REFRESH_TOKEN,
 } from '@modules/auth/auth.constant';
 import {
   AccessTokenPayloadInput,
@@ -46,8 +46,8 @@ import { MailService } from '@common/services/mail.service';
 import { MailType } from '@common/constants/mail.constant';
 import { LoggerService } from '@common/services/logger.service';
 import { Request, Response } from 'express';
-import { VerifyResetPasswordOtpResponseDto } from '@modules/auth/dtos/verify-reset-password-otp.body.response';
-import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp.body.dto';
+import { VerifyResetPasswordOtpResponseDto } from '@modules/auth/dtos/verify-reset-password-otp.response';
+import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
 
 @Injectable()
 export class AuthService {
@@ -84,7 +84,18 @@ export class AuthService {
 
     if (!user.isVerified) {
       this.logger.error(`Login blocked - email not verified: ${user.email}`);
-      throw new ForbiddenException(ERROR_EMAIL_NEED_VERIFIED);
+      return {
+        user: {
+          userId: user.userId,
+          email: user.email,
+          role: user.role,
+          username: user.username,
+          isVerified: user.isVerified,
+          isBanned: user.isBanned,
+          provider,
+        },
+        otpRequired: true,
+      };
     }
 
     if (user.isBanned) {
@@ -199,13 +210,13 @@ export class AuthService {
   async register(
     registerBodyDto: RegisterBodyDto,
   ): Promise<RegisterResponseDto> {
-    const { email, username, password, isSeller } = registerBodyDto;
+    const { email, username, password, confirmPassword, role } =
+      registerBodyDto;
     this.logger.log(`Register attempt: ${email}`);
 
-    const emailExists = await this.userService.checkEmailExists(email);
-    if (emailExists) {
-      this.logger.error(`Register failed - email already exists: ${email}`);
-      throw new ConflictException(ERROR_EMAIL_ALREADY_EXISTS);
+    if (password !== confirmPassword) {
+      this.logger.error(`Register failed - password mismatch: ${email}`);
+      throw new BadRequestException(ERROR_PASSWORD_CONFIRM_MISMATCH);
     }
 
     const usernameExists = await this.userService.checkUsernameExists(username);
@@ -216,12 +227,18 @@ export class AuthService {
       throw new ConflictException(ERROR_USERNAME_ALREADY_EXISTS);
     }
 
+    const emailExists = await this.userService.checkEmailExists(email);
+    if (emailExists) {
+      this.logger.error(`Register failed - email already exists: ${email}`);
+      throw new ConflictException(ERROR_EMAIL_ALREADY_EXISTS);
+    }
+
     const hashedPassword = await this.passwordService.hashPassword(password);
     const newUser = await this.userService.createUser(
       email,
       username,
       hashedPassword,
-      isSeller,
+      role,
     );
     this.logger.log(`User created successfully: ${newUser.userId}`);
 
@@ -286,7 +303,7 @@ export class AuthService {
     const user = await this.userService.findUserById(payload.userId);
     if (!user) {
       this.logger.error(`User not found during refresh | userId=${userId}`);
-      throw new NotFoundException(ERROR_USER_NOT_FOUND);
+      throw new UnauthorizedException(ERROR_INVALID_REFRESH_TOKEN);
     }
 
     const { accessToken, refreshToken: newRefreshToken } =
@@ -559,10 +576,7 @@ export class AuthService {
     this.logger.log('Logout successfully');
   }
 
-  async logoutAll(
-    req: Request,
-    res: Response,
-  ): Promise<void> {
+  async logoutAll(req: Request, res: Response): Promise<void> {
     const refreshToken: string | null = req.cookies?.refresh_token;
 
     if (!refreshToken) {

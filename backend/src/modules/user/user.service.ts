@@ -13,7 +13,7 @@ import {
 import { UserInfoResponseDto } from '@modules/user/dtos/user-info.response.dto';
 import { CreateUserResponseDto } from '@modules/user/dtos/create-user.response.dto';
 import { UserQueryDto } from '@modules/user/dtos/get-users.query.dto';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma, Role } from '../../../generated/prisma/client';
 import { PaginationResult } from '@common/types/pagination.interface';
 import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 import { BanUserResponseDto } from '@modules/user/dtos/ban-user.response.dto';
@@ -44,14 +44,14 @@ export class UserService {
     email: string,
     username: string,
     password: string,
-    isSeller: boolean,
+    role: Role,
   ): Promise<CreateUserResponseDto> {
     return this.prisma.user.create({
       data: {
         email,
         username,
         password,
-        role: isSeller ? 'SELLER' : 'BIDDER',
+        role,
         isVerified: false,
         isBanned: false,
       },

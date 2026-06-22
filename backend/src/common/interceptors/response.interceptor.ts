@@ -1,8 +1,16 @@
-import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import type {
+  CallHandler,
+  ExecutionContext,
+  NestInterceptor,
+} from '@nestjs/common';
+import type { Observable } from 'rxjs';
+import { catchError, map, throwError } from 'rxjs';
 import { LoggerService } from '@common/services/logger.service';
-import { Response, ResponsePayload } from '@common/types/response.interface';
-import { Request } from 'express';
+import type {
+  Response,
+  ResponsePayload,
+} from '@common/types/response.interface';
+import type { Request } from 'express';
 
 export class ResponseInterceptor<T extends ResponsePayload>
   implements NestInterceptor<T, Response<T>>

@@ -18,7 +18,7 @@ import { ResetPasswordDto } from '@modules/auth/dtos/reset-password.body.dto';
 import { VerifyOtpDto } from '@modules/auth/dtos/verify-otp.body.dto';
 import { ForgotPasswordResponseDto } from '@modules/auth/dtos/forgot-password.response.dto';
 import { ForgotPasswordBodyDto } from '@modules/auth/dtos/forgot-password.body.dto';
-import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp.body.dto';
+import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -39,7 +39,7 @@ export class AuthController {
 
     return {
       message: 'Login successfully',
-      data: loginResponse.user,
+      data: loginResponse,
     };
   }
 

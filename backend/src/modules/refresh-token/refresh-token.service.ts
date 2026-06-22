@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { ERROR_REFRESH_TOKEN_NOT_FOUND_OR_REVOKED } from '@modules/refresh-token/refresh-token.constant';
 

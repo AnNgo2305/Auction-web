@@ -1,29 +1,37 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
+    "moduleResolution": "node",
+    "target": "ES2023",
+
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
-    "sourceMap": true,
+
     "outDir": "./dist",
-    "baseUrl": "./",
+    "declaration": true,
+    "sourceMap": true,
+    "removeComments": true,
+
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
+
     "strict": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
+
+    "baseUrl": "./",
     "typeRoots": ["./node_modules/@types", "src/common/types/express.d.ts"],
     "paths": {
       "@modules/*": ["src/modules/*"],
       "@common/*": ["src/common/*"],
-      "@generated/prisma/*" : ["generated/prisma/*"]
+      "@generated/prisma/*": ["generated/prisma/*"]
     }
   }
 }

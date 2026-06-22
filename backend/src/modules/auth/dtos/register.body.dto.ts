@@ -1,12 +1,13 @@
 import {
-  IsBoolean,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsString,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { Role } from '@generated/prisma/enums';
 
 export class RegisterBodyDto {
   @IsNotEmpty({ message: 'Email is required' })
@@ -45,7 +46,13 @@ export class RegisterBodyDto {
   })
   password!: string;
 
-  @IsNotEmpty({ message: 'Seller status is required' })
-  @IsBoolean({ message: 'Seller status must be true or false' })
-  isSeller!: boolean;
+  @IsNotEmpty({ message: 'Confirm password is required' })
+  @IsString({ message: 'Confirm password must be a string' })
+  confirmPassword!: string;
+
+  @IsNotEmpty({ message: 'Role is required' })
+  @IsEnum(Role, {
+    message: 'Role must be either bidder or seller',
+  })
+  role!: Role;
 }
