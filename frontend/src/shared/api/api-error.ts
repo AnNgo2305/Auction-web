@@ -29,74 +29,54 @@ const errorMessage = {
   UNKNOWN_ERROR: 'Something went wrong. Please try again.',
 };
 
-const normalizeValidationMessage = (
-  message: Record<string, string[]>,
-): Record<string, string> => {
-  return Object.fromEntries(
-    Object.entries(message).map(([field, values]) => [
-      field,
-      values?.[0] ?? 'Invalid value',
-    ]),
-  );
-};
-
 export class ApiError extends Error {
   statusCode: number;
   errorCode: string;
-  fieldErrors?: Record<string, string>;
 
   constructor(
     message: string,
     statusCode: number,
     errorCode: string,
-    fieldErrors?: Record<string, string>,
   ) {
     super(message);
     this.name = 'ApiError';
     this.statusCode = statusCode;
     this.errorCode = errorCode;
-    this.fieldErrors = fieldErrors;
 
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
 
 export const toApiError = (error: unknown): ApiError => {
-  console.log(123);
-  console.log(error);
-  console.log(456)
   if (!axios.isAxiosError<ApiResponseError>(error)) {
-    console.log(1);
-    console.log(error);
     return new ApiError(errorMessage.UNKNOWN_ERROR, 500, 'UNKNOWN_ERROR');
   }
   const axiosError = error as AxiosError<ApiResponseError>;
-  const data = axiosError.response?.data;
+  if (axiosError.code === 'ECONNABORTED') {
+    return new ApiError(
+      'The request took too long. Please try again.',
+      408,
+      'REQUEST_TIMEOUT',
+    );
+  }
+
+  if (!axiosError.response) {
+    return new ApiError(
+      'Unable to connect to the server. Please check your internet connection.',
+      0,
+      'NETWORK_ERROR',
+    );
+  }
+
+  const data = axiosError.response.data;
   const errorCode = data?.errorCode ?? 'UNKNOWN_ERROR';
   const statusCode = data?.statusCode ?? axiosError.response?.status ?? 500;
 
-  console.log(7);
-  let message: string;
-  let fieldErrors: Record<string, string> | undefined;
+  const message =
+    errorMessage[errorCode as keyof typeof errorMessage] ??
+    data?.message ??
+    axiosError.message ??
+    errorMessage.UNKNOWN_ERROR;
 
-  console.log(8);
-  if (
-    statusCode === 400 &&
-    errorCode === 'CLASS_VALIDATION_FAILED' &&
-    typeof data?.message === 'object'
-  ) {
-    fieldErrors = normalizeValidationMessage(
-      data?.message as Record<string, string[]>,
-    );
-    message = 'Validation failed';
-  } else {
-    message =
-      errorMessage[errorCode as keyof typeof errorMessage] ??
-      data?.message ??
-      axiosError.message ??
-      errorMessage.UNKNOWN_ERROR;
-  }
-
-  console.log(9)
-  return new ApiError(message, statusCode, errorCode, fieldErrors);
+  return new ApiError(message, statusCode, errorCode);
 };

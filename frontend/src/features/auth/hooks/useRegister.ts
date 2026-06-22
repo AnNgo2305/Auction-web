@@ -11,13 +11,11 @@ export function useRegister(onSuccessCallback?: (res: RegisterResponse) => void)
     mutationFn: authApi.register,
 
     onSuccess: (res: RegisterResponse) => {
-      console.log(res);
       toast.success(res.data.message);
       onSuccessCallback?.(res);
     },
 
     onError: (err: ApiResponseError) => {
-      console.log(err);
       const code = err?.errorCode;
 
       const message =
