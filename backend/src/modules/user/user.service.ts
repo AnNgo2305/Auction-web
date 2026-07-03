@@ -99,25 +99,6 @@ export class UserService {
     });
   }
 
-  async updatePassword(
-    userId: string,
-    newHashedPassword: string,
-  ): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { userId },
-      select: { userId: true },
-    });
-
-    if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_FOUND);
-    }
-
-    await this.prisma.user.update({
-      where: { userId },
-      data: { password: newHashedPassword },
-    });
-  }
-
   async findUsers(
     filter: UserQueryDto,
   ): Promise<PaginationResult<Omit<UserInfoResponseDto, 'password'>>> {

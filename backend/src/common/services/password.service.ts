@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
-import { PasswordConfig } from '@common/config/password.config';
+import passwordConfig from '@common/config/password.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class PasswordService {
   private readonly saltRounds: number;
 
-  constructor(private readonly configService: ConfigService) {
-    const passwordConfig =
-      this.configService.getOrThrow<PasswordConfig['password']>('password');
-
-    this.saltRounds = passwordConfig.saltRounds;
+  constructor(
+    @Inject(passwordConfig.KEY)
+    private readonly passwordConfigValue: ConfigType<typeof passwordConfig>,
+  ) {
+    this.saltRounds = this.passwordConfigValue.saltRounds;
   }
 
   async hashPassword(password: string): Promise<string> {

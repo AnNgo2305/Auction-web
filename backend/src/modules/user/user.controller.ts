@@ -1,6 +1,5 @@
 import {
   Body,
-  BadRequestException,
   Controller,
   Get,
   HttpCode,
@@ -20,8 +19,6 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { Role } from '@generated/prisma/enums';
 import { UserQueryDto } from '@modules/user/dtos/get-users.query.dto';
 import { Request } from 'express';
-import { UpdatePasswordDto } from '@modules/user/dtos/update-password.body.dto';
-import { ERROR_PASSWORD_CONFIRM_MISMATCH } from '@modules/auth/auth.constant';
 import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 
 @Controller('users')
@@ -40,25 +37,6 @@ export class UserController {
         users: result.data,
         meta: result.meta,
       },
-    };
-  }
-
-  @Patch('password')
-  @Auth(AuthType.ACCESS_TOKEN)
-  @HttpCode(HttpStatus.OK)
-  async updatePassword(
-    @Req() req: Request,
-    @Body() dto: UpdatePasswordDto,
-  ): Promise<ResponsePayload> {
-    const userId = req.user?.userId;
-    const { newPassword, confirmNewPassword } = dto;
-    if (newPassword !== confirmNewPassword) {
-      throw new BadRequestException(ERROR_PASSWORD_CONFIRM_MISMATCH);
-    }
-    await this.userService.updatePassword(userId as string, newPassword);
-    return {
-      message: 'Update password successfully',
-      data: {},
     };
   }
 

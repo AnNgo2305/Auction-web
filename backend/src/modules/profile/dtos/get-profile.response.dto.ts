@@ -1,4 +1,5 @@
 import type { Role } from '@generated/prisma/enums';
+import type { RelationshipStatus } from '@modules/follow/follow.constant';
 
 export class GetProfileResponseDto {
   userId!: string;
@@ -17,11 +18,25 @@ export class GetProfileResponseDto {
 
   phoneNumber?: string | null;
 
+  bio?: string | null;
+
   profileImageUrl?: string | null;
+
+  dateOfBirth?: Date | null;
+
+  gender?: string | null;
+
+  coverImageUrl?: string | null;
 
   followerCount?: number;
 
   followingCount?: number;
 
-  followStatus!: 'UNFOLLOWING' | 'PENDING' | 'ACTIVE' | 'UNKNOWN';
+  mutualFollowedSellerCount?: number;
+
+  relationship!: {
+    status: RelationshipStatus;
+
+    friendshipId?: string;
+  };
 }

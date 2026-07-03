@@ -1,67 +1,121 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  HeadObjectCommandOutput,
   PutObjectCommand,
   S3Client,
-  DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
-import { ConfigService } from '@nestjs/config';
+import { ConfigType } from '@nestjs/config';
+import s3Config from '@common/config/s3.config';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
+import {
+  FileMetadata,
+  PresignedUrlResult,
+  UploadPurpose,
+} from '@common/types/upload-file';
 
 @Injectable()
 export class FileService {
   private readonly s3Client: S3Client;
-  private readonly bucketName: string;
 
-  constructor(private readonly configService: ConfigService) {
-    const region = this.configService.get<string>('AWS_S3_REGION');
-    const accessKeyId = this.configService.get<string>('AWS_S3_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>(
-      'AWS_S3_SECRET_ACCESS_KEY',
-    );
-    this.bucketName =
-      this.configService.get<string>('AWS_S3_PUBLIC_BUCKET') || '';
-
-    if (!region || !accessKeyId || !secretAccessKey) {
-      throw new Error(
-        'Missing AWS S3 configuration. Please check environment variables.',
-      );
-    }
-
+  constructor(
+    @Inject(s3Config.KEY)
+    private readonly config: ConfigType<typeof s3Config>,
+  ) {
     this.s3Client = new S3Client({
-      region,
+      region: this.config.region,
       credentials: {
-        accessKeyId,
-        secretAccessKey,
+        accessKeyId: this.config.accessKeyId,
+        secretAccessKey: this.config.secretAccessKey,
       },
     });
   }
 
-  async uploadFile(path: string, file: Express.Multer.File): Promise<string> {
-    const key = `${path}/${randomUUID()}-${file.originalname}`;
+  private getExtension(mimeType: string): string {
+    const map: Record<string, string> = {
+      'image/jpeg': 'jpeg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/jpg': 'jpg',
+    };
 
-    await this.s3Client.send(
-      new PutObjectCommand({
-        Bucket: this.bucketName,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-        ContentLength: file.size,
-      }),
-    );
-
-    return key;
+    return map[mimeType] ?? '';
   }
 
-  getFileUrl(key: string): string {
-    return `https://${this.bucketName}.s3.amazonaws.com/${key}`;
+  private buildKey(
+    userId: string,
+    purpose: UploadPurpose,
+    mimeType: string,
+  ): string {
+    const uuid = randomUUID();
+    const ext = this.getExtension(mimeType);
+
+    switch (purpose) {
+      case 'avatar':
+        return `public/users/${userId}/avatar/${uuid}.${ext}`;
+
+      case 'cover':
+        return `public/users/${userId}/cover/${uuid}.${ext}`;
+
+      default:
+        return '';
+    }
   }
 
-  async deleteFile(key: string): Promise<void> {
-    await this.s3Client.send(
-      new DeleteObjectCommand({
-        Bucket: this.bucketName,
-        Key: key,
+  getPublicUrl(key: string): string {
+    return `https://${this.config.bucketName}.s3.${this.config.region}.amazonaws.com/${key}`;
+  }
+
+  async createPresignedUploadUrl(
+    userId: string,
+    files: FileMetadata[],
+    purpose: UploadPurpose,
+  ): Promise<PresignedUrlResult[]> {
+    return Promise.all(
+      files.map(async (file) => {
+        const key = this.buildKey(userId, purpose, file.mimeType);
+
+        const command = new PutObjectCommand({
+          Bucket: this.config.bucketName,
+          Key: key,
+          ContentType: file.mimeType,
+          Metadata: {
+            originalName: file.originalFileName,
+            size: String(file.size),
+            mimeType: file.mimeType,
+            uploadedBy: userId,
+          },
+        });
+
+        const uploadUrl = await getSignedUrl(this.s3Client, command, {
+          expiresIn: this.config.presignedUrlExpiresIn,
+        });
+
+        return {
+          uploadUrl,
+          key,
+        };
       }),
     );
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    const command = new DeleteObjectCommand({
+      Bucket: this.config.bucketName,
+      Key: key,
+    });
+
+    await this.s3Client.send(command);
+  }
+
+  async headObject(key: string): Promise<HeadObjectCommandOutput> {
+    const command = new HeadObjectCommand({
+      Bucket: this.config.bucketName,
+      Key: key,
+    });
+
+    return await this.s3Client.send(command);
   }
 }

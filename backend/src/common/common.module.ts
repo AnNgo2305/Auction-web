@@ -8,7 +8,7 @@ import { TokenService } from '@common/services/token.service';
 import { PasswordService } from '@common/services/password.service';
 import { PrismaService } from '@common/services/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailService } from '@common/services/mail.service';
 import path from 'path';
@@ -17,9 +17,10 @@ import { JwtGuard } from '@common/guards/jwt.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { UserService } from '@modules/user/user.service';
 import { FileService } from '@common/services/file.service';
-import { jwtConfig } from '@common/config/jwt.config';
-import { passwordConfig } from '@common/config/password.config';
-import { MailConfig, mailConfig } from '@common/config/mail.config';
+import jwtConfig from '@common/config/jwt.config';
+import passwordConfig from '@common/config/password.config';
+import mailConfig from '@common/config/mail.config';
+import s3Config from '@common/config/s3.config';
 
 const service = [
   LoggerService,
@@ -35,27 +36,24 @@ const service = [
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [jwtConfig, passwordConfig, mailConfig],
+      load: [jwtConfig, passwordConfig, mailConfig, s3Config],
     }),
     JwtModule,
     MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const mailConfig = configService.getOrThrow<MailConfig['mail']>('mail');
-
+      inject: [mailConfig.KEY],
+      useFactory: (mail: ConfigType<typeof mailConfig>) => {
         return {
           transport: {
-            host: mailConfig.host,
-            port: mailConfig.port,
-            secure: mailConfig.secure,
+            host: mail.host,
+            port: mail.port,
+            secure: mail.secure,
             auth: {
-              user: mailConfig.user,
-              pass: mailConfig.password,
+              user: mail.user,
+              pass: mail.password,
             },
           },
           defaults: {
-            from: `"Bid Market" <${mailConfig.from}>`,
+            from: `"Bid Market" <${mail.from}>`,
           },
           template: {
             dir: path.join(process.cwd(), 'src/common/templates'),

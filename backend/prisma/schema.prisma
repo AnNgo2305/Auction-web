@@ -115,15 +115,27 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model Profile {
   userId String @id @map("user_id") @db.Char(36)
   user   User   @relation("User_Has_Profile", fields: [userId], references: [userId], onDelete: Cascade)
 
-  fullName        String?   @map("full_name") @db.VarChar(255)
-  phoneNumber     String?   @map("phone_number") @db.VarChar(255)
-  profileImageUrl String?   @map("profile_image_url") @db.VarChar(255)
-  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
+  fullName        String? @map("full_name") @db.VarChar(255)
+  phoneNumber     String? @map("phone_number") @db.VarChar(255)
+  profileImageUrl String? @map("profile_image_url") @db.VarChar(255)
+
+  bio           String?   @db.VarChar(500)
+  dateOfBirth   DateTime? @map("date_of_birth")
+  gender        Gender?
+  coverImageUrl String?   @map("cover_image_url")
+
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("profiles")
 }
@@ -177,7 +189,7 @@ enum FollowStatus {
   PENDING
   ACTIVE
   BLOCKED
-  UNFOLLOWED
+  INACTIVE
   DECLINED
 }
 

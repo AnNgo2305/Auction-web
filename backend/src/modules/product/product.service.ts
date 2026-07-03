@@ -101,11 +101,11 @@ export class ProductService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    for (const product of existingProducts) {
-      for (const img of product.images) {
-        await this.fileService.deleteFile(img.imageUrl);
-      }
-    }
+    // for (const product of existingProducts) {
+    //   for (const img of product.images) {
+    //     await this.fileService.deleteFile(img.imageUrl);
+    //   }
+    // }
 
     await this.prisma.product.deleteMany({
       where: {
@@ -154,8 +154,8 @@ export class ProductService {
             'Invalid file type. Only JPEG, PNG, GIF, WEBP are allowed.',
           );
 
-        const imageUrl = await this.fileService.uploadFile('products', file);
-        imagesData.push({ imageUrl, isPrimary: index === 0 });
+        // const imageUrl = await this.fileService.uploadFile('products', file);
+        // imagesData.push({ imageUrl, isPrimary: index === 0 });
       }
     }
 
@@ -213,9 +213,9 @@ export class ProductService {
       );
     }
 
-    if (files && files.length > 0) {
-      await this.productImageService.updateProductImages(dto.productId, files);
-    }
+    // if (files && files.length > 0) {
+    //   await this.productImageService.updateProductImages(dto.productId, files);
+    // }
   }
 
   async getProductsByUserId(

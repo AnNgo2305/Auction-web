@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import {
   EXPIRES_IN_MINUTES,
@@ -7,8 +7,8 @@ import {
   MailType,
   MailTemplates,
 } from '@common/constants/mail.constant';
-import { ConfigService } from '@nestjs/config';
-import { MailConfig } from '@common/config/mail.config';
+import mailConfig from '@common/config/mail.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class MailService {
@@ -16,12 +16,11 @@ export class MailService {
 
   constructor(
     private readonly mailerService: MailerService,
-    private readonly configService: ConfigService,
-  ) {
-    const mailConfig =
-      this.configService.getOrThrow<MailConfig['mail']>('mail');
 
-    this.from = mailConfig.from;
+    @Inject(mailConfig.KEY)
+    mail: ConfigType<typeof mailConfig>,
+  ) {
+    this.from = mail.from;
   }
 
   async sendMail(to: string, otpCode: string, type: MailType): Promise<void> {

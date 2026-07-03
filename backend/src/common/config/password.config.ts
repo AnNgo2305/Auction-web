@@ -1,11 +1,5 @@
-export type PasswordConfig = {
-  password: {
-    saltRounds: number;
-  };
-};
+import { registerAs } from '@nestjs/config';
 
-export const passwordConfig = (): PasswordConfig => ({
-  password: {
-    saltRounds: parseInt(process.env.SALT_ROUNDS ?? '10', 10),
-  },
-});
+export default registerAs('password', () => ({
+  saltRounds: parseInt(process.env.SALT_ROUNDS ?? '10', 10),
+}));

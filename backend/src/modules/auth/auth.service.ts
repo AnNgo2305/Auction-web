@@ -48,6 +48,7 @@ import { LoggerService } from '@common/services/logger.service';
 import { Request, Response } from 'express';
 import { VerifyResetPasswordOtpResponseDto } from '@modules/auth/dtos/verify-reset-password-otp.response';
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
+import { ProfileService } from '@modules/profile/profile.service';
 
 @Injectable()
 export class AuthService {
@@ -65,6 +66,7 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
+    private readonly profileService: ProfileService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -240,6 +242,7 @@ export class AuthService {
       hashedPassword,
       role,
     );
+    await this.profileService.createProfile(newUser.userId);
     this.logger.log(`User created successfully: ${newUser.userId}`);
 
     const otpCode = await this.otpService.createOrUpdateOtp(
@@ -248,23 +251,23 @@ export class AuthService {
     );
     this.logger.log(`Verification OTP generated for ${newUser.email}`);
 
-    try {
-      await this.mailService.sendMail(
-        newUser.email,
-        otpCode,
-        MailType.VERIFY_EMAIL,
-      );
-    } catch {
-      this.logger.error(
-        `Failed to send verification email to ${newUser.email}`,
-      );
-      return {
-        userId: newUser.userId,
-        email: newUser.email,
-        message:
-          'Registration was successful, but we could not send the verification email. Please use the resend verification email option.',
-      };
-    }
+    // try {
+    //   await this.mailService.sendMail(
+    //     newUser.email,
+    //     otpCode,
+    //     MailType.VERIFY_EMAIL,
+    //   );
+    // } catch {
+    //   this.logger.error(
+    //     `Failed to send verification email to ${newUser.email}`,
+    //   );
+    //   return {
+    //     userId: newUser.userId,
+    //     email: newUser.email,
+    //     message:
+    //       'Registration was successful, but we could not send the verification email. Please use the resend verification email option.',
+    //   };
+    // }
 
     this.logger.log(`User ${username} registered successfully`);
     return {

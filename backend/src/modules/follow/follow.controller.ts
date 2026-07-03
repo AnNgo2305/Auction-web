@@ -1,7 +1,6 @@
 import {
   Controller,
   Post,
-  Patch,
   Param,
   Req,
   HttpCode,
@@ -16,7 +15,6 @@ import { AuthType } from '@common/types/auth-type.enum';
 import { Role } from '@generated/prisma/enums';
 import { Request } from 'express';
 import { ResponsePayload } from '@common/types/response.interface';
-import { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';
 
 @Controller('follows')
 export class FollowController {
@@ -30,15 +28,15 @@ export class FollowController {
     @Req() req: Request,
     @Param('sellerId') sellerId: string,
   ): Promise<ResponsePayload> {
-    const userId = req.user?.userId;
-    await this.followService.follow(userId as string, sellerId);
+    const bidderId = req.user?.userId;
+    await this.followService.follow(bidderId as string, sellerId);
     return {
       message: 'Follow request sent successfully',
       data: {},
     };
   }
 
-  @Patch('unfollow/:sellerId')
+  @Post('unfollow/:sellerId')
   @Roles(Role.BIDDER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
@@ -46,24 +44,24 @@ export class FollowController {
     @Req() req: Request,
     @Param('sellerId') sellerId: string,
   ): Promise<ResponsePayload> {
-    const userId = req.user?.userId;
-    await this.followService.unfollow(userId as string, sellerId);
+    const bidderId = req.user?.userId;
+    await this.followService.unfollow(bidderId as string, sellerId);
     return {
       message: 'Unfollow successful',
       data: {},
     };
   }
 
-  @Patch('accept/:userId')
+  @Post('accept/:bidderId')
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async accept(
     @Req() req: Request,
-    @Param('userId') userId: string,
+    @Param('bidderId') bidderId: string,
   ): Promise<ResponsePayload> {
     const sellerId = req.user?.userId;
-    await this.followService.accept(sellerId as string, userId);
+    await this.followService.accept(sellerId as string, bidderId);
 
     return {
       message: 'Follow request accepted successfully',
@@ -71,73 +69,119 @@ export class FollowController {
     };
   }
 
-  @Patch('decline/:userId')
+  @Post('decline/:bidderId')
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async decline(
     @Req() req: Request,
-    @Param('userId') userId: string,
+    @Param('bidderId') bidderId: string,
   ): Promise<ResponsePayload> {
     const sellerId = req.user?.userId;
-    await this.followService.decline(sellerId as string, userId);
+    await this.followService.decline(sellerId as string, bidderId);
     return {
       message: 'Decline successful',
       data: {},
     };
   }
 
-  @Patch('block/:userId')
+  @Post('cancel/:sellerId')
+  @Roles(Role.BIDDER)
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async cancel(
+    @Req() req: Request,
+    @Param('sellerId') sellerId: string,
+  ): Promise<ResponsePayload> {
+    const bidderId = req.user?.userId;
+
+    await this.followService.cancel(bidderId as string, sellerId);
+
+    return {
+      message: 'Cancel follow request successful',
+      data: {},
+    };
+  }
+
+  @Post('block/:bidderId')
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async block(
     @Req() req: Request,
-    @Param('userId') userId: string,
+    @Param('bidderId') bidderId: string,
   ): Promise<ResponsePayload> {
     const sellerId = req.user?.userId;
-    await this.followService.block(sellerId as string, userId);
+    await this.followService.block(sellerId as string, bidderId);
     return {
       message: 'Block successful',
       data: {},
     };
   }
 
-  @Get('followers/:userId')
+  @Post('unblock/:bidderId')
+  @Roles(Role.SELLER)
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async unblock(
+    @Req() req: Request,
+    @Param('bidderId') bidderId: string,
+  ): Promise<ResponsePayload> {
+    const sellerId = req.user?.userId;
+
+    await this.followService.unblock(sellerId as string, bidderId);
+
+    return {
+      message: 'Unblock successful',
+      data: {},
+    };
+  }
+
+  @Get('followers/:sellerId')
+  @Auth(AuthType.OPTIONAL)
   @HttpCode(HttpStatus.OK)
   async getFollowers(
-    @Param('userId') userId: string,
+    @Req() req: Request,
+    @Param('sellerId') sellerId: string,
     @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query('cursor') cursor?: string,
   ): Promise<ResponsePayload> {
-    const followers: FollowUserDto[] = await this.followService.getFollowers(
-      userId,
+    const viewerId = req.user?.userId;
+
+    const result = await this.followService.getFollowers(
+      sellerId,
+      viewerId,
+      cursor,
       limit ? Number(limit) : 10,
-      offset ? Number(offset) : 0,
     );
 
     return {
       message: 'Followers fetched successfully',
-      data: { followers },
+      data: result,
     };
   }
 
-  @Get('followings/:userId')
+  @Get('followings/:bidderId')
+  @Auth(AuthType.OPTIONAL)
   @HttpCode(HttpStatus.OK)
   async getFollowings(
-    @Param('userId') userId: string,
+    @Req() req: Request,
+    @Param('bidderId') bidderId: string,
     @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query('cursor') cursor?: string,
   ): Promise<ResponsePayload> {
-    const followings: FollowUserDto[] = await this.followService.getFollowings(
-      userId,
+    const viewerId = req.user?.userId;
+
+    const result = await this.followService.getFollowings(
+      bidderId,
+      viewerId,
+      cursor,
       limit ? Number(limit) : 10,
-      offset ? Number(offset) : 0,
     );
 
     return {
       message: 'Followings fetched successfully',
-      data: { followings },
+      data: result,
     };
   }
 
@@ -145,21 +189,22 @@ export class FollowController {
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
-  async getBlocked(
+  async getBlockedUsers(
     @Req() req: Request,
     @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query('cursor') cursor?: string,
   ): Promise<ResponsePayload> {
     const sellerId = req.user?.userId;
-    const blocked: FollowUserDto[] = await this.followService.getBlocked(
+
+    const result = await this.followService.getBlockedUsers(
       sellerId as string,
+      cursor,
       limit ? Number(limit) : 10,
-      offset ? Number(offset) : 0,
     );
 
     return {
       message: 'Blocked users fetched successfully',
-      data: { blocked },
+      data: result,
     };
   }
 
@@ -167,21 +212,45 @@ export class FollowController {
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
-  async getPending(
+  async getPendingReceivedFollowRequests(
     @Req() req: Request,
     @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query('cursor') cursor?: string,
   ): Promise<ResponsePayload> {
     const sellerId = req.user?.userId;
-    const pending: FollowUserDto[] = await this.followService.getPending(
+
+    const result = await this.followService.getPendingReceivedFollowRequests(
       sellerId as string,
+      cursor,
       limit ? Number(limit) : 10,
-      offset ? Number(offset) : 0,
     );
 
     return {
       message: 'Pending follow requests fetched successfully',
-      data: { pending },
+      data: result,
+    };
+  }
+
+  @Get('sent')
+  @Roles(Role.BIDDER)
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async getSentFollowRequests(
+    @Req() req: Request,
+    @Query('limit') limit?: number,
+    @Query('cursor') cursor?: string,
+  ): Promise<ResponsePayload> {
+    const userId = req.user?.userId;
+
+    const result = await this.followService.getSentFollowRequests(
+      userId as string,
+      cursor,
+      limit ? Number(limit) : 10,
+    );
+
+    return {
+      message: 'Sent follow requests fetched successfully',
+      data: result,
     };
   }
 }

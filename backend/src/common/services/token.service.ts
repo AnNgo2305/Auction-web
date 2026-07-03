@@ -1,6 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import {
   AccessTokenPayload,
@@ -16,7 +15,8 @@ import {
   ERROR_UNKNOWN_ACCESS_TOKEN,
   ERROR_UNKNOWN_REFRESH_TOKEN,
 } from '@common/constants/error.constant';
-import { JwtConfig } from '@common/config/jwt.config';
+import jwtConfig from '@common/config/jwt.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class TokenService {
@@ -27,13 +27,14 @@ export class TokenService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfigValue: ConfigType<typeof jwtConfig>,
   ) {
-    const jwtConfig = this.configService.getOrThrow<JwtConfig['jwt']>('jwt');
-    this.accessTokenKey = jwtConfig.accessTokenKey;
-    this.refreshTokenKey = jwtConfig.refreshTokenKey;
-    this.accessTokenExpiresIn = jwtConfig.accessTokenExpiresIn;
-    this.refreshTokenExpiresIn = jwtConfig.refreshTokenExpiresIn;
+    this.accessTokenKey = this.jwtConfigValue.accessTokenKey;
+    this.refreshTokenKey = this.jwtConfigValue.refreshTokenKey;
+    this.accessTokenExpiresIn = this.jwtConfigValue.accessTokenExpiresIn;
+    this.refreshTokenExpiresIn = this.jwtConfigValue.refreshTokenExpiresIn;
   }
 
   async generateAccessToken(payload: AccessTokenPayloadInput): Promise<string> {

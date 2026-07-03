@@ -17,6 +17,7 @@ import { ProfileModule } from '@modules/profile/profile.module';
 import { AddressModule } from '@modules/address/address.module';
 import { ProductModule } from '@modules/product/product.module';
 import { AuctionModule } from '@modules/auction/auction.module';
+import { UploadModule } from '@modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuctionModule } from '@modules/auction/auction.module';
     AddressModule,
     ProductModule,
     AuctionModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
