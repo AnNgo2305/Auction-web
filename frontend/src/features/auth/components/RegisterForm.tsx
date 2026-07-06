@@ -12,8 +12,11 @@ import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerSchema, type RegisterBody as RegisterFormValues } from '../schemas/register.schema';
-import { useRegister } from '../hooks/useRegister';
+import {
+  registerSchema,
+  type RegisterBody as RegisterFormValues,
+} from '@/features/auth/schemas/register.schema';
+import { useRegister } from '@/features/auth/hooks/useRegister';
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);

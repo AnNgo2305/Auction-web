@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
-import { authApi } from '../api/auth.api';
+import { authApi } from '@/features/auth/api/auth.api';
 import { toast } from 'sonner';
-import type { ForgotPasswordBody } from '../schemas/forgot-password.schema';
+import type { ForgotPasswordBody } from '@/features/auth/schemas/forgot-password.schema';
 import type { ApiResponseError } from '@/shared/types/error.ts';
 import type { ForgotPasswordResponse } from '@/features/auth/types/forgot-password.response.ts';
 

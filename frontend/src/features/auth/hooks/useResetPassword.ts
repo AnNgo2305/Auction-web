@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { authApi } from '../api/auth.api';
+import { authApi } from '@/features/auth/api/auth.api';
 import { toast } from 'sonner';
 import type { ApiResponseError } from '@/shared/types/error.ts';
 import type { ResetPasswordResponse } from '@/features/auth/types/reset-password.response.ts';

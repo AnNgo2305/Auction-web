@@ -251,23 +251,23 @@ export class AuthService {
     );
     this.logger.log(`Verification OTP generated for ${newUser.email}`);
 
-    // try {
-    //   await this.mailService.sendMail(
-    //     newUser.email,
-    //     otpCode,
-    //     MailType.VERIFY_EMAIL,
-    //   );
-    // } catch {
-    //   this.logger.error(
-    //     `Failed to send verification email to ${newUser.email}`,
-    //   );
-    //   return {
-    //     userId: newUser.userId,
-    //     email: newUser.email,
-    //     message:
-    //       'Registration was successful, but we could not send the verification email. Please use the resend verification email option.',
-    //   };
-    // }
+    try {
+      await this.mailService.sendMail(
+        newUser.email,
+        otpCode,
+        MailType.VERIFY_EMAIL,
+      );
+    } catch {
+      this.logger.error(
+        `Failed to send verification email to ${newUser.email}`,
+      );
+      return {
+        userId: newUser.userId,
+        email: newUser.email,
+        message:
+          'Registration was successful, but we could not send the verification email. Please use the resend verification email option.',
+      };
+    }
 
     this.logger.log(`User ${username} registered successfully`);
     return {

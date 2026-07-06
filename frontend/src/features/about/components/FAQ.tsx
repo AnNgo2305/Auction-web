@@ -15,7 +15,7 @@ const faq = [
   {
     question: 'Does the platform support real payments or money transfer?',
     answer:
-      'The platform does not integrate with traditional payment gateways such as banking APIs, credit cards, or third-party processors like Stripe in a production context. ' +
+      'The platform does not integrate with traditional payment gateways such as banking APIs, credit cards, or third-party processors like Stripe in a production contexts. ' +
       'However, it does include a QR-based payment flow implemented for learning purposes, which helps demonstrate how modern applications can simulate or integrate real-world payment experiences. ' +
       'This feature is meant strictly for educational exploration of payment UX, and it is not intended to handle real financial transactions or production-level money movement. ' +
       'The implementation allows experimentation with payment-related workflows, transaction states, and user interactions while avoiding the complexity and regulatory requirements of handling actual financial operations.',
@@ -34,7 +34,7 @@ const faq = [
       'The main goal of this project is to improve practical frontend development skills by building a realistic auction platform simulation. ' +
       'It focuses on implementing core product-like features such as authentication flows, auction lifecycle handling, and interactive UI behavior. ' +
       'Additionally, the project is designed to strengthen understanding of scalable UI architecture and real-world application patterns commonly used in modern web systems. ' +
-      'By working on a feature-rich domain such as online auctions, the project provides opportunities to explore component design, data management strategies, user workflows, and overall application structure in a meaningful context.',
+      'By working on a feature-rich domain such as online auctions, the project provides opportunities to explore component design, data management strategies, user workflows, and overall application structure in a meaningful contexts.',
   },
   {
     question: 'Can users actually create and manage auctions?',

@@ -1,21 +1,21 @@
 import { api } from '@/shared/api/axios';
 
-import type { LoginBody } from '../schemas/login.schema';
-import type { RegisterBody } from '../schemas/register.schema';
-import type { ForgotPasswordBody } from '../schemas/forgot-password.schema';
-import type { ResetPasswordBody } from '../schemas/reset-password.schema';
-import type { VerifyOtpBody } from '../schemas/verify-otp.schema';
-import type { ResendOtpEmailBody } from '../schemas/resend-otp-email.schema';
+import type { LoginBody } from '@/features/auth/schemas/login.schema';
+import type { RegisterBody } from '@/features/auth/schemas/register.schema';
+import type { ForgotPasswordBody } from '@/features/auth/schemas/forgot-password.schema';
+import type { ResetPasswordBody } from '@/features/auth/schemas/reset-password.schema';
+import type { VerifyOtpBody } from '@/features/auth/schemas/verify-otp.schema';
+import type { ResendOtpEmailBody } from '@/features/auth/schemas/resend-otp-email.schema';
 
-import type { LoginResponse } from '../types/login.response';
-import type { RegisterResponse } from '../types/register.response';
-import type { ForgotPasswordResponse } from '../types/forgot-password.response';
-import type { VerifyResetPasswordOtpResponse } from '../types/verify-reset-password-otp.response';
-import type { ResetPasswordResponse } from '../types/reset-password.response';
-import type { VerifyEmailOtpResponse } from '../types/verify-email-otp.response';
-import type { LogoutResponse } from '../types/logout.response';
-import type { LogoutAllResponse } from '../types/logout-all.response';
-import type { ResendOtpEmailResponse } from '../types/resend-otp-email.response';
+import type { LoginResponse } from '@/features/auth/types/login.response';
+import type { RegisterResponse } from '@/features/auth/types/register.response';
+import type { ForgotPasswordResponse } from '@/features/auth/types/forgot-password.response';
+import type { VerifyResetPasswordOtpResponse } from '@/features/auth/types/verify-reset-password-otp.response';
+import type { ResetPasswordResponse } from '@/features/auth/types/reset-password.response';
+import type { VerifyEmailOtpResponse } from '@/features/auth/types/verify-email-otp.response';
+import type { LogoutResponse } from '@/features/auth/types/logout.response';
+import type { LogoutAllResponse } from '@/features/auth/types/logout-all.response';
+import type { ResendOtpEmailResponse } from '@/features/auth/types/resend-otp-email.response';
 
 const AUTH_API_PREFIX = '/auth';
 

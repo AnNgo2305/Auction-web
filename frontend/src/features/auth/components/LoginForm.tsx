@@ -9,8 +9,11 @@ import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginBody as LoginFormValues } from '../schemas/login.schema';
-import { useLogin } from '../hooks/useLogin';
+import {
+  loginSchema,
+  type LoginBody as LoginFormValues,
+} from '@/features/auth/schemas/login.schema';
+import { useLogin } from '@/features/auth/hooks/useLogin';
 import { toast } from 'sonner';
 
 export function LoginForm() {
@@ -78,7 +81,7 @@ export function LoginForm() {
               </FieldLabel>
               <InputGroup className="h-14">
                 <InputGroupAddon>
-                  <Mail size={30} className="h-7 w-7" />
+                  <Mail size={16} />
                 </InputGroupAddon>
                 <InputGroupInput
                   id="email"
@@ -97,7 +100,7 @@ export function LoginForm() {
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="email" className="text-sm font-medium">
+              <FieldLabel htmlFor="password" className="text-sm font-medium">
                 Password
               </FieldLabel>
               <InputGroup className="h-14">

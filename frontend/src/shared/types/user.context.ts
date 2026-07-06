@@ -1,0 +1,19 @@
+import { type CurrentUser, UserRole } from '@/shared/types/current-user';
+
+export interface UserContextValue {
+  currentUser: CurrentUser | null;
+
+  isAuthenticated: boolean;
+
+  setCurrentUser: (user: CurrentUser | null) => void;
+
+  clearCurrentUser: () => void;
+
+  updateProfileImageUrl: (profileImageUrl: string | null) => void;
+
+  updateCoverImageUrl: (coverImageUrl: string | null) => void;
+
+  isCurrentUser: (userId: string) => boolean;
+
+  hasRole: (...roles: UserRole[]) => boolean;
+}

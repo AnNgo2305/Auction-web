@@ -25,6 +25,19 @@ import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Get('me')
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async getMe(@Req() req: Request): Promise<ResponsePayload> {
+    const userId = req.user?.userId as string;
+    const result = await this.userService.getMe(userId);
+
+    return {
+      message: 'Current user retrieved successfully',
+      data: result,
+    };
+  }
+
   @Get()
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.ADMIN)

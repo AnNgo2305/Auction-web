@@ -8,8 +8,11 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { verifyOtpSchema, type VerifyOtpBody as VerifyOTPValues} from '../schemas/verify-otp.schema';
-import { OTP, OTP_TYPE, type OtpType } from '../constants/otp';
+import {
+  verifyOtpSchema,
+  type VerifyOtpBody as VerifyOTPValues,
+} from '@/features/auth/schemas/verify-otp.schema';
+import { OTP, OTP_TYPE, type OtpType } from '@/features/auth/constants/otp';
 import { useVerifyEmailOTP } from '@/features/auth/hooks/useVerifyEmailOTP.ts';
 import { useNavigate } from 'react-router-dom';
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
@@ -17,8 +20,8 @@ import type { ApiResponseError } from '@/shared/types/error.ts';
 import { toast } from 'sonner';
 import { useVerifyResetPasswordlOTP } from '@/features/auth/hooks/useVerifyResetPasswordOTP.ts';
 import { useResendOTPEmail } from '@/features/auth/hooks/useResendOTPEmail';
-import { VERIFY_EMAIL_OTP_ERROR_MESSAGES } from '../constants/auth-error.messages.ts';
-import { VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES } from '../constants/auth-error.messages.ts';
+import { VERIFY_EMAIL_OTP_ERROR_MESSAGES } from '@/features/auth/constants/auth-error.messages.ts';
+import { VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES } from '@/features/auth/constants/auth-error.messages.ts';
 
 type VerifyOTPFormProps = {
   type: OtpType;

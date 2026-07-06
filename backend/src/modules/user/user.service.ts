@@ -18,6 +18,7 @@ import { PaginationResult } from '@common/types/pagination.interface';
 import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 import { BanUserResponseDto } from '@modules/user/dtos/ban-user.response.dto';
 import { UserWarningStatusDto } from '@modules/user/dtos/get-warning.response.dto';
+import { MeResponseDto } from '@modules/user/dtos/me.response.dto';
 
 @Injectable()
 export class UserService {
@@ -380,5 +381,36 @@ export class UserService {
         lockedUntil: null,
       },
     });
+  }
+
+  async getMe(userId: string): Promise<MeResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: {
+        userId: true,
+        email: true,
+        username: true,
+        role: true,
+        profile: {
+          select: {
+            profileImageUrl: true,
+            coverImageUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_USER_NOT_FOUND);
+    }
+
+    return {
+      userId: user.userId,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      profileImageUrl: user.profile?.profileImageUrl ?? null,
+      coverImageUrl: user.profile?.coverImageUrl ?? null,
+    };
   }
 }
