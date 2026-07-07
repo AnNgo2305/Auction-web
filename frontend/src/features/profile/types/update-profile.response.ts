@@ -9,7 +9,7 @@ export class UpdateProfileData {
 
   dateOfBirth!: string | null;
 
-  gender!: string | null;
+  gender!: 'MALE' | 'FEMALE' | 'OTHER' | null;
 }
 
 export type UpdateProfileResponse = ApiResponse<UpdateProfileData>;

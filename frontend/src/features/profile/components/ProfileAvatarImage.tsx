@@ -1,11 +1,11 @@
-import { Trash2, Camera } from 'lucide-react';
+import { Camera, Trash2 } from 'lucide-react';
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
-import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/shared/ui/dropdown-menu';
 import { Skeleton } from '@/shared/ui/skeleton';
 import {
@@ -14,64 +14,101 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/shared/ui/avatar';
+import { Button } from '@/shared/ui/button';
 
-type ProfileAvatarProps = {
+type ProfileAvatarImageProps = {
   avatarImageUrl?: string | null;
   isOwner: boolean;
   isOnline: boolean;
   isLoading?: boolean;
-  onUpload: () => void;
-  onDelete: () => void;
+  setUploadAvatarImageDialogOpen: (open: boolean) => void;
+  setDeleteAvatarImageDialogOpen: (open: boolean) => void;
 };
 
-export function ProfileAvatar({
+export function ProfileAvatarImage({
   avatarImageUrl,
   isOwner,
   isOnline,
   isLoading = false,
-  onUpload,
-  onDelete,
-}: ProfileAvatarProps) {
+  setUploadAvatarImageDialogOpen,
+  setDeleteAvatarImageDialogOpen,
+}: ProfileAvatarImageProps) {
+  const handleOpenUploadDialog = () => {
+    if (isLoading) return;
+
+    setUploadAvatarImageDialogOpen(true);
+  };
+
+  const handleOpenDeleteDialog = () => {
+    if (isLoading) return;
+
+    setDeleteAvatarImageDialogOpen(true);
+  };
+
+  const hasAvatarImage = Boolean(avatarImageUrl);
+
+  const avatarContent = (
+    <div className="relative size-36">
+      <Avatar className="border-background size-full border-4">
+        <AvatarImage
+          src={avatarImageUrl || defaultAvatarImageUrl}
+          alt="Avatar"
+        />
+        <AvatarFallback>NA</AvatarFallback>
+        <AvatarBadge
+          className={
+            isOnline
+              ? 'border-background bg-green-500'
+              : 'bg-muted-foreground border-background'
+          }
+        />
+      </Avatar>
+      {isLoading && (
+        <div className="absolute inset-0 z-10 overflow-hidden rounded-full">
+          <Skeleton className="size-full rounded-full opacity-60" />
+        </div>
+      )}
+    </div>
+  );
+
+  if (!isOwner) {
+    return avatarContent;
+  }
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={!isOwner || isLoading}>
+      <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="ghost"
           className="size-36 rounded-full p-0 hover:bg-black/10"
+          disabled={isLoading}
         >
-          <div className="relative size-full">
-            <Avatar className="border-background size-full border-4">
-              <AvatarImage
-                src={avatarImageUrl || defaultAvatarImageUrl}
-                alt="Avatar"
-              />
-              <AvatarFallback>NA</AvatarFallback>
-              <AvatarBadge
-                className={
-                  isOnline
-                    ? 'border-background bg-green-500'
-                    : 'bg-muted-foreground border-background'
-                }
-              />
-            </Avatar>
-            {isLoading && (
-              <div className="absolute inset-0 z-10 overflow-hidden rounded-full">
-                <Skeleton className="size-full rounded-full opacity-60" />
-              </div>
-            )}
-          </div>
+          {avatarContent}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="bg-white text-black">
-        <DropdownMenuItem onClick={onUpload} disabled={!isOwner || isLoading}>
+        <DropdownMenuItem
+          onClick={handleOpenUploadDialog}
+          disabled={isLoading}
+          className="text-black focus:bg-gray-100 focus:text-black"
+        >
           <Camera className="mr-2 h-4 w-4" />
-          Change profile photo
+          {hasAvatarImage ? 'Change profile photo' : 'Upload profile photo'}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onDelete} className="text-destructive">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete your profile photo
-        </DropdownMenuItem>
+        {hasAvatarImage && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleOpenDeleteDialog}
+              className="text-destructive focus:text-destructive focus:bg-gray-100"
+              disabled={isLoading}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete your profile photo
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

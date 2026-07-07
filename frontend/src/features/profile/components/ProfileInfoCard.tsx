@@ -13,7 +13,7 @@ import type { GetProfileData } from '@/features/profile/types/get-profile.respon
 import type { ElementType } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface ProfileCardProps extends Pick<
+interface ProfileInfoCardProps extends Pick<
   GetProfileData,
   'email' | 'createdAt' | 'fullName' | 'phoneNumber' | 'dateOfBirth' | 'gender'
 > {
@@ -32,7 +32,7 @@ type ProfileItem = {
   value: string;
 };
 
-export function ProfileCard(props: ProfileCardProps) {
+export function ProfileInfoCard(props: ProfileInfoCardProps) {
   const navigate = useNavigate();
 
   const handleEdit = () => {

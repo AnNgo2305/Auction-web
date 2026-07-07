@@ -1,29 +1,44 @@
-import { ImagePlus, Trash2, Upload } from 'lucide-react';
+import { Camera, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { Skeleton } from '@/shared/ui/skeleton';
 import defaultCoverImageUrl from '@/assets/images/default-cover.png';
 
-type ProfileCoverProps = {
+type ProfileCoverImageProps = {
   coverImageUrl?: string | null;
   isOwner: boolean;
-  onUpload: () => void;
-  onDelete: () => void;
   isLoading?: boolean;
+  setUploadCoverImageDialogOpen: (open: boolean) => void;
+  setDeleteCoverImageDialogOpen: (open: boolean) => void;
 };
 
-export function ProfileCover({
+export function ProfileCoverImage({
   coverImageUrl,
   isOwner,
-  onUpload,
-  onDelete,
   isLoading = false,
-}: ProfileCoverProps) {
+  setUploadCoverImageDialogOpen,
+  setDeleteCoverImageDialogOpen,
+}: ProfileCoverImageProps) {
+  const handleOpenUploadDialog = () => {
+    if (isLoading) return;
+
+    setUploadCoverImageDialogOpen(true);
+  };
+
+  const handleOpenDeleteDialog = () => {
+    if (isLoading) return;
+
+    setDeleteCoverImageDialogOpen(true);
+  };
+
+  const hasCoverImage = Boolean(coverImageUrl);
+
   return (
     <div className="bg-muted relative h-64 w-full overflow-hidden rounded-xl">
       <img
@@ -45,28 +60,32 @@ export function ProfileCover({
                 className="bg-white/90 text-black hover:bg-white"
                 disabled={isLoading}
               >
-                <ImagePlus className="mr-2 h-4 w-4" />
-                Edit your cover photo
+                <Camera className="mr-2 h-4 w-4" />
+                {hasCoverImage ? 'Change cover photo' : 'Add cover photo'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-white text-black">
               <DropdownMenuItem
-                onClick={onUpload}
+                onClick={handleOpenUploadDialog}
                 disabled={isLoading}
                 className="text-black focus:bg-gray-100 focus:text-black"
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Upload your cover photo
               </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={onDelete}
-                disabled={isLoading}
-                className="text-black focus:bg-gray-100 focus:text-black"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete your cover photo
-              </DropdownMenuItem>
+              {hasCoverImage && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleOpenDeleteDialog}
+                    disabled={isLoading}
+                    className="text-destructive focus:text-destructive focus:bg-gray-100"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete cover photo
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

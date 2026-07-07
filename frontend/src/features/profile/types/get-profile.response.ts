@@ -1,5 +1,7 @@
 import type { ApiResponse } from '@/shared/types/response';
 
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
 export class GetProfileData {
   userId!: string;
 

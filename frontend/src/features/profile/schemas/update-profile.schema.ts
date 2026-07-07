@@ -6,34 +6,34 @@ export const updateProfileSchema = z.object({
       error: 'fullName must be a string',
     })
     .max(255, 'fullName must not exceed 255 characters')
-    .optional(),
+    .nullable(),
 
   phoneNumber: z
     .string({
       error: 'phoneNumber must be a string',
     })
     .max(255, 'phoneNumber must not exceed 255 characters')
-    .optional(),
+    .nullable(),
 
   bio: z
     .string({
       error: 'bio must be a string',
     })
     .max(500, 'bio must not exceed 500 characters')
-    .optional(),
+    .nullable(),
 
   dateOfBirth: z
     .string({
       error: 'dateOfBirth must be a string',
     })
     .pipe(z.iso.datetime('dateOfBirth must be a valid ISO date string'))
-    .optional(),
+    .nullable(),
 
   gender: z
     .enum(['MALE', 'FEMALE', 'OTHER'], {
       error: 'gender must be a valid enum value',
     })
-    .optional(),
+    .nullable(),
 });
 
 export type UpdateProfileBody = z.infer<typeof updateProfileSchema>;
