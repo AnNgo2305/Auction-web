@@ -36,7 +36,6 @@ import { BlockedUsersResponseDto } from '@modules/follow/dtos/get-blocked-users.
 import { ReceivedFollowRequestsCursorResponseDto } from '@modules/follow/dtos/get-received-follow-requests.response.dto';
 import { SentFollowRequestsResponseDto } from '@modules/follow/dtos/get-sent-follow-requests.response.dto';
 import type { RelationshipStatusResult } from '@modules/follow/dtos/user-follow.response.dto';
-import { FollowWhereInput } from '@generated/prisma/models/Follow';
 
 @Injectable()
 export class FollowService {
@@ -963,22 +962,5 @@ export class FollowService {
     }
 
     return map;
-  }
-
-  private buildVisibilityFilter(viewerId?: string): FollowWhereInput {
-    if (!viewerId) {
-      return {};
-    }
-
-    return {
-      seller: {
-        followers: {
-          none: {
-            followerId: viewerId,
-            status: FollowStatus.BLOCKED,
-          },
-        },
-      },
-    };
   }
 }

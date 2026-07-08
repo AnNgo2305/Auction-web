@@ -111,7 +111,6 @@ export function UploadImageDialog({
         croppedAreaPixels,
         selectedFile,
       );
-      onSave(croppedFile);
       onFileChange(null);
       setImageSrc('');
       setCrop({ x: 0, y: 0 });
@@ -119,6 +118,7 @@ export function UploadImageDialog({
       setCroppedAreaPixels(null);
 
       onOpenChange(false);
+      onSave(croppedFile);
     } catch (err) {
       console.error('Crop failed', err);
     }

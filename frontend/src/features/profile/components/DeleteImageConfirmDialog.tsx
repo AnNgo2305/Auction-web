@@ -9,28 +9,57 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-
-type DeleteImageType = 'avatar' | 'cover';
+import { useDeleteCoverImage } from '@/features/profile/hooks/profile/useDeleteCoverImage.ts';
+import { useDeleteProfileImage } from '@/features/profile/hooks/profile/useDeleteProfileImage.ts';
+import { toast } from 'sonner';
+import * as React from 'react';
+import type { ImageType } from '@/features/profile/types/profile.type.ts';
 
 type DeleteImageDialogProps = {
   open: boolean;
-  type: DeleteImageType;
-  isDeleting?: boolean;
+  type: ImageType;
   onOpenChange: (open: boolean) => void;
-  onDeleteImage: () => void;
+  onDeleteImage: (type: ImageType) => void;
 };
 
 export function DeleteImageDialog({
   open,
   type,
-  isDeleting = false,
   onOpenChange,
   onDeleteImage,
 }: DeleteImageDialogProps) {
   const imageName = type === 'avatar' ? 'profile photo' : 'cover photo';
 
+  const deleteCoverImageMutation = useDeleteCoverImage();
+  const deleteProfileImageMutation = useDeleteProfileImage();
+
+  const isDeleting =
+    type === 'avatar'
+      ? deleteProfileImageMutation.isPending
+      : deleteCoverImageMutation.isPending;
+
+  const handleOpenChange = (open: boolean) => {
+    onOpenChange(open);
+  };
+
+  const handleDeleteImage = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+
+    try {
+      const res =
+        type === 'avatar'
+          ? await deleteProfileImageMutation.mutateAsync()
+          : await deleteCoverImageMutation.mutateAsync();
+
+      toast.success(res.message);
+      onDeleteImage(type);
+    } catch {}
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {imageName}?</AlertDialogTitle>
@@ -42,10 +71,7 @@ export function DeleteImageDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={(event) => {
-              event.preventDefault();
-              onDeleteImage();
-            }}
+            onClick={handleDeleteImage}
             disabled={isDeleting}
             className="bg-red-600 text-white hover:bg-red-700"
           >

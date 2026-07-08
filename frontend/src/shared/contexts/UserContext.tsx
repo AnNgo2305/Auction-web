@@ -6,8 +6,8 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type { UserContextValue } from '@/shared/types/user.context.ts';
-import { type CurrentUser, UserRole } from '@/shared/types/current-user.ts';
+import type { UserContextValue } from '@/shared/types/user.context';
+import { type CurrentUser, UserRole } from '@/shared/types/current-user';
 
 const UserContext = createContext<UserContextValue | null>(null);
 

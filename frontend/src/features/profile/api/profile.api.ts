@@ -51,7 +51,7 @@ export const profileApi = {
     return res.data;
   },
 
-  deleteAvatar: async (): Promise<DeleteProfileImageResponse> => {
+  deleteAvatarImage: async (): Promise<DeleteProfileImageResponse> => {
     const res = await api.delete<DeleteProfileImageResponse>(
       `${PROFILE_API_PREFIX}/avatar`,
     );
@@ -59,7 +59,7 @@ export const profileApi = {
     return res.data;
   },
 
-  deleteCover: async (): Promise<DeleteCoverImageResponse> => {
+  deleteCoverImage: async (): Promise<DeleteCoverImageResponse> => {
     const res = await api.delete<DeleteCoverImageResponse>(
       `${PROFILE_API_PREFIX}/cover`,
     );

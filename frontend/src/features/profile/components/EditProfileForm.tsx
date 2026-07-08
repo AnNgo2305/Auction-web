@@ -25,7 +25,8 @@ import {
   updateProfileSchema,
   type UpdateProfileBody,
 } from '@/features/profile/schemas/update-profile.schema';
-import { useUpdateProfile } from '@/features/profile/hooks/useUpdateProfile';
+import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile.ts';
+import type { Gender } from '@/features/profile/types/profile.type.ts';
 
 type EditProfileFormProps = {
   email: string;
@@ -34,7 +35,7 @@ type EditProfileFormProps = {
   phoneNumber: string | null;
   bio: string | null;
   dateOfBirth: string | Date | null;
-  gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  gender: Gender | null;
 };
 
 const GENDER_OPTIONS = [

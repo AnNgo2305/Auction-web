@@ -9,14 +9,17 @@ import {
   VenusAndMars,
   Edit,
 } from 'lucide-react';
-import type { GetProfileData } from '@/features/profile/types/get-profile.response.ts';
 import type { ElementType } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Gender } from '@/features/profile/types/profile.type';
 
-interface ProfileInfoCardProps extends Pick<
-  GetProfileData,
-  'email' | 'createdAt' | 'fullName' | 'phoneNumber' | 'dateOfBirth' | 'gender'
-> {
+interface ProfileInfoCardProps {
+  email: string;
+  createdAt: string | Date;
+  fullName: string | null;
+  phoneNumber: string | null;
+  dateOfBirth: string | Date | null;
+  gender: Gender | null;
   isOwner: boolean;
 }
 
@@ -36,8 +39,7 @@ export function ProfileInfoCard(props: ProfileInfoCardProps) {
   const navigate = useNavigate();
 
   const handleEdit = () => {
-    // TODO
-    // navigate('/profile/edit');
+    navigate('/profile/edit');
   };
 
   const joinDate = new Date(props.createdAt).toLocaleDateString("vi-VN", {
