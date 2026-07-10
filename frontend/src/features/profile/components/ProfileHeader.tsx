@@ -27,7 +27,8 @@ interface ProfileHeaderProps {
   followerCount?: number;
   followingCount?: number;
   mutualFollowedSellerCount?: number;
-  relationship: RelationshipStatus;
+  relationshipStatus: RelationshipStatus;
+  relationshipId?: string;
   isOwner: boolean;
 }
 
@@ -44,18 +45,19 @@ export function ProfileHeader({
   followerCount,
   followingCount,
   mutualFollowedSellerCount,
-  relationship,
+  relationshipStatus,
+  relationshipId,
 }: ProfileHeaderProps) {
   const { currentUser } = useUser();
 
   const relationshipLabel = getRelationshipLabel({
-    relationship,
+    relationship: relationshipStatus,
     currentUserRole: currentUser?.role,
     profileRole: role,
   });
 
   const relationshipActions = getRelationshipActions({
-    relationship,
+    relationship: relationshipStatus,
     currentUserRole: currentUser?.role,
     profileRole: role,
   });

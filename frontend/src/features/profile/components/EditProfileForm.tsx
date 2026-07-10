@@ -25,18 +25,9 @@ import {
   updateProfileSchema,
   type UpdateProfileBody,
 } from '@/features/profile/schemas/update-profile.schema';
-import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile.ts';
-import type { Gender } from '@/features/profile/types/profile.type.ts';
-
-type EditProfileFormProps = {
-  email: string;
-  username: string;
-  fullName: string | null;
-  phoneNumber: string | null;
-  bio: string | null;
-  dateOfBirth: string | Date | null;
-  gender: Gender | null;
-};
+import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile';
+import { useOutletContext } from 'react-router-dom';
+import type { ProfileOutletContext } from '@/features/profile/types/profile-outlet-context';
 
 const GENDER_OPTIONS = [
   {
@@ -53,15 +44,9 @@ const GENDER_OPTIONS = [
   },
 ] as const;
 
-export function EditProfileForm({
-  email,
-  username,
-  fullName,
-  phoneNumber,
-  bio,
-  dateOfBirth,
-  gender,
-}: EditProfileFormProps) {
+export function EditProfileForm() {
+  const { profile } = useOutletContext<ProfileOutletContext>();
+
   const {
     register,
     handleSubmit,
@@ -71,18 +56,18 @@ export function EditProfileForm({
   } = useForm<UpdateProfileBody>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
-      fullName: fullName ?? '',
-      phoneNumber: phoneNumber ?? '',
-      bio: bio ?? '',
-      dateOfBirth: dateOfBirth
-        ? new Date(dateOfBirth).toISOString().split('T')[0]
+      fullName: profile.fullName ?? '',
+      phoneNumber: profile.phoneNumber ?? '',
+      bio: profile.bio ?? '',
+      dateOfBirth: profile.dateOfBirth
+        ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
         : '',
-      gender: gender ?? undefined,
+      gender: profile.gender ?? undefined,
     },
     mode: 'onChange',
   });
 
-  const updateProfileMutation = useUpdateProfile((res) => {
+  const updateProfileMutation = useUpdateProfile(profile.userId, (res) => {
     reset({
       fullName: res.data.fullName ?? '',
       phoneNumber: res.data.phoneNumber ?? '',
@@ -124,7 +109,7 @@ export function EditProfileForm({
                   <Mail size={16} />
                 </InputGroupAddon>
                 <InputGroupInput
-                  value={email}
+                  value={profile.email}
                   id="email"
                   readOnly
                   className="bg-muted h-full py-0 text-2xl leading-normal"
@@ -140,7 +125,7 @@ export function EditProfileForm({
                   <User size={30} />
                 </InputGroupAddon>
                 <InputGroupInput
-                  value={username}
+                  value={profile.username}
                   id="username"
                   readOnly
                   className="bg-muted h-full py-0 text-2xl leading-normal"

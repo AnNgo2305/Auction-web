@@ -1,15 +1,29 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { profileApi } from '@/features/profile/api/profile.api.ts';
-import type { ApiResponseError } from '@/shared/types/error.ts';
-import type { DeleteProfileImageResponse } from '@/features/profile/types/delete-profile-image.response.ts';
-import { DELETE_PROFILE_IMAGE_ERROR_MESSAGES } from '@/features/profile/constants/profile-error.messages.ts';
+import { profileApi } from '@/features/profile/api/profile.api';
+import { profileKeys } from '@/features/profile/constants/profile-query-key';
+import { DELETE_PROFILE_IMAGE_ERROR_MESSAGES } from '@/features/profile/constants/profile-error.messages';
+import type { ApiResponseError } from '@/shared/types/error';
+import type { DeleteProfileImageResponse } from '@/features/profile/types/delete-profile-image.response';
 
-export function useDeleteProfileImage() {
+export function useDeleteProfileImage(
+  userId: string,
+  onSuccessCallback?: (res: DeleteProfileImageResponse) => void,
+) {
+  const queryClient = useQueryClient();
+
   return useMutation<DeleteProfileImageResponse, ApiResponseError, void>({
     mutationFn: profileApi.deleteAvatarImage,
 
-    onError: (err) => {
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({
+        queryKey: profileKeys.detail(userId),
+      });
+
+      onSuccessCallback?.(response);
+    },
+
+    onError: (err: ApiResponseError) => {
       const code = err.errorCode;
 
       const message =

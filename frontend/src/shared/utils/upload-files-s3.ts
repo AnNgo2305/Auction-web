@@ -3,13 +3,13 @@ import {
   createPresignedUrls,
   uploadFile,
 } from '@/shared/api/upload';
-import type { UploadPurpose } from '@/shared/types/upload';
+import type { ConfirmUploadItem, UploadPurpose } from '@/shared/types/upload';
 
 export async function uploadToS3(
   files: File[],
   purpose: UploadPurpose,
   onProgress?: (fileIndex: number, percent: number) => void,
-): Promise<void> {
+): Promise<ConfirmUploadItem[]> {
   // Request presigned URLs from the backend
   const { data } = await createPresignedUrls({
     purpose,
@@ -34,7 +34,9 @@ export async function uploadToS3(
   );
 
   // Confirm uploaded files with the backend
-  await confirmUpload({
+  const confirmResponse = await confirmUpload({
     keys: data.urls.map((url) => url.key),
   });
+
+  return confirmResponse.data.files;
 }

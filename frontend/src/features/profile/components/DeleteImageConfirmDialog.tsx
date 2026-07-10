@@ -14,6 +14,7 @@ import { useDeleteProfileImage } from '@/features/profile/hooks/profile/useDelet
 import { toast } from 'sonner';
 import * as React from 'react';
 import type { ImageType } from '@/features/profile/types/profile.type.ts';
+import { useParams } from 'react-router-dom';
 
 type DeleteImageDialogProps = {
   open: boolean;
@@ -29,9 +30,20 @@ export function DeleteImageDialog({
   onDeleteImage,
 }: DeleteImageDialogProps) {
   const imageName = type === 'avatar' ? 'profile photo' : 'cover photo';
+  const { userId } = useParams<{ userId: string }>();
 
-  const deleteCoverImageMutation = useDeleteCoverImage();
-  const deleteProfileImageMutation = useDeleteProfileImage();
+  const deleteProfileImageMutation = useDeleteProfileImage(
+    userId ?? '',
+    (res) => {
+      toast.success(res.message);
+      onDeleteImage('avatar');
+    },
+  );
+
+  const deleteCoverImageMutation = useDeleteCoverImage(userId ?? '', (res) => {
+    toast.success(res.message);
+    onDeleteImage('cover');
+  });
 
   const isDeleting =
     type === 'avatar'
@@ -48,13 +60,11 @@ export function DeleteImageDialog({
     event.preventDefault();
 
     try {
-      const res =
-        type === 'avatar'
-          ? await deleteProfileImageMutation.mutateAsync()
-          : await deleteCoverImageMutation.mutateAsync();
-
-      toast.success(res.message);
-      onDeleteImage(type);
+      if (type === 'avatar') {
+        await deleteProfileImageMutation.mutateAsync();
+      } else {
+        await deleteCoverImageMutation.mutateAsync();
+      }
     } catch {}
   };
 

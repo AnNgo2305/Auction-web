@@ -1,4 +1,4 @@
-import { Camera, Trash2 } from 'lucide-react';
+import { Camera, Loader2, Trash2 } from 'lucide-react';
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 import {
   DropdownMenu,
@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/shared/ui/dropdown-menu';
-import { Skeleton } from '@/shared/ui/skeleton';
 import {
   Avatar,
   AvatarBadge,
@@ -15,12 +14,15 @@ import {
   AvatarImage,
 } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
+import { Skeleton } from '@/shared/ui/skeleton';
 
 type ProfileAvatarImageProps = {
   avatarImageUrl?: string | null;
   isOwner: boolean;
   isOnline: boolean;
-  isLoading?: boolean;
+  isInitialProfileLoading?: boolean;
+  isProfileRefreshing?: boolean;
+  isSaving?: boolean;
   setUploadAvatarImageDialogOpen: (open: boolean) => void;
   setDeleteAvatarImageDialogOpen: (open: boolean) => void;
 };
@@ -29,23 +31,21 @@ export function ProfileAvatarImage({
   avatarImageUrl,
   isOwner,
   isOnline,
-  isLoading = false,
+  isInitialProfileLoading = false,
+  isProfileRefreshing = false,
+  isSaving = false,
   setUploadAvatarImageDialogOpen,
   setDeleteAvatarImageDialogOpen,
 }: ProfileAvatarImageProps) {
-  const handleOpenUploadDialog = () => {
-    if (isLoading) return;
-
-    setUploadAvatarImageDialogOpen(true);
-  };
-
-  const handleOpenDeleteDialog = () => {
-    if (isLoading) return;
-
-    setDeleteAvatarImageDialogOpen(true);
-  };
-
   const hasAvatarImage = Boolean(avatarImageUrl);
+  const isDisabled = isProfileRefreshing || isSaving;
+
+  const handleOpenUploadDialog = () => {setUploadAvatarImageDialogOpen(true)};
+  const handleOpenDeleteDialog = () => {setDeleteAvatarImageDialogOpen(true)};
+
+  if (isInitialProfileLoading) {
+    return <Skeleton className="size-36 rounded-full" />;
+  }
 
   const avatarContent = (
     <div className="relative size-36">
@@ -63,9 +63,9 @@ export function ProfileAvatarImage({
           }
         />
       </Avatar>
-      {isLoading && (
-        <div className="absolute inset-0 z-10 overflow-hidden rounded-full">
-          <Skeleton className="size-full rounded-full opacity-60" />
+      {isSaving && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/35">
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
         </div>
       )}
     </div>
@@ -82,7 +82,7 @@ export function ProfileAvatarImage({
           type="button"
           variant="ghost"
           className="size-36 rounded-full p-0 hover:bg-black/10"
-          disabled={isLoading}
+          disabled={isDisabled}
         >
           {avatarContent}
         </Button>
@@ -90,7 +90,7 @@ export function ProfileAvatarImage({
       <DropdownMenuContent align="center" className="bg-white text-black">
         <DropdownMenuItem
           onClick={handleOpenUploadDialog}
-          disabled={isLoading}
+          disabled={isDisabled}
           className="text-black focus:bg-gray-100 focus:text-black"
         >
           <Camera className="mr-2 h-4 w-4" />
@@ -102,7 +102,7 @@ export function ProfileAvatarImage({
             <DropdownMenuItem
               onClick={handleOpenDeleteDialog}
               className="text-destructive focus:text-destructive focus:bg-gray-100"
-              disabled={isLoading}
+              disabled={isDisabled}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete your profile photo

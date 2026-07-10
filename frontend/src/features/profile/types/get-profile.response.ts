@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/shared/types/response';
-
-export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+import type { Gender, Role } from '@/features/profile/types/profile.type';
+import { RelationshipStatus } from '@/features/profile/types/relationship.type';
 
 export class GetProfileData {
   userId!: string;
@@ -9,7 +9,7 @@ export class GetProfileData {
 
   username!: string;
 
-  role!: string;
+  role!: Role;
 
   createdAt!: string;
 
@@ -23,7 +23,7 @@ export class GetProfileData {
 
   dateOfBirth!: string | null;
 
-  gender!: string | null;
+  gender!: Gender | null;
 
   profileImageUrl!: string | null;
 
@@ -34,8 +34,8 @@ export class GetProfileData {
   followingCount?: number;
 
   relationship!: {
-    status: string;
-    friendshipId: string | null;
+    status: RelationshipStatus;
+    friendshipId?: string;
   };
 
   mutualFollowedSellerCount?: number;
