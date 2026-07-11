@@ -25,6 +25,8 @@ import { PasswordService } from '@common/services/password.service';
 import { LoggerService } from '@common/services/logger.service';
 import { RelationshipStatus } from '@modules/follow/follow.constant';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { UpdateProfileImageResponseDto } from '@modules/profile/dtos/update-profile-image.response.dto';
+import { UpdateCoverImageResponseDto } from '@modules/profile/dtos/update-cover-image.response.dto';
 
 @Injectable()
 export class ProfileService {
@@ -259,7 +261,10 @@ export class ProfileService {
     };
   }
 
-  async updateProfileImage(userId: string, imageKey: string): Promise<void> {
+  async updateProfileImage(
+    userId: string,
+    imageKey: string,
+  ): Promise<UpdateProfileImageResponseDto> {
     this.logger.log(`Update profile image for userId=${userId}`);
 
     const oldImageKey = await this.prisma.$transaction(async (tx) => {
@@ -297,9 +302,15 @@ export class ProfileService {
     }
 
     this.logger.log(`Profile image updated for userId=${userId}`);
+    return {
+      profileImageUrl: this.fileService.getPublicUrl(imageKey),
+    };
   }
 
-  async updateCoverImage(userId: string, imageKey: string): Promise<void> {
+  async updateCoverImage(
+    userId: string,
+    imageKey: string,
+  ): Promise<UpdateCoverImageResponseDto> {
     this.logger.log(`Update cover image for userId=${userId}`);
 
     const oldImageKey = await this.prisma.$transaction(async (tx) => {
@@ -337,6 +348,9 @@ export class ProfileService {
     }
 
     this.logger.log(`Cover image updated for userId=${userId}`);
+    return {
+      coverImageUrl: this.fileService.getPublicUrl(imageKey),
+    };
   }
 
   async deleteProfileImage(userId: string): Promise<void> {
