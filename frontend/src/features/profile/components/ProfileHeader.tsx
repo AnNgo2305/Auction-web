@@ -25,6 +25,8 @@ import { useAcceptFollow } from '@/features/profile/hooks/relationship/useAccept
 import { useDeclineFollow } from '@/features/profile/hooks/relationship/useDeclineFollow';
 import { useBlockBidder } from '@/features/profile/hooks/relationship/useBlockBidder';
 import { useUnblockBidder } from '@/features/profile/hooks/relationship/useUnblockBidder';
+import { Link } from 'react-router-dom';
+import { profilePaths } from '@/features/profile/constants/profile.routes';
 
 interface ProfileHeaderProps {
   userId: string,
@@ -127,29 +129,38 @@ export function ProfileHeader({
         {bio && <p className="max-w-2xl text-sm leading-relaxed">{bio}</p>}
         <div className="flex flex-wrap items-center gap-6 text-sm">
           {followerCount !== undefined && (
-            <div>
+            <Link
+              to={profilePaths.followers(userId)}
+              className="hover:text-primary transition-colors"
+            >
               <span className="font-semibold">
                 {formatCount(followerCount)}
               </span>{' '}
               Followers
-            </div>
+            </Link>
           )}
           {followingCount !== undefined && (
-            <div>
+            <Link
+              to={profilePaths.following(userId)}
+              className="hover:text-primary transition-colors"
+            >
               <span className="font-semibold">
                 {formatCount(followingCount)}
               </span>{' '}
               Following
-            </div>
+            </Link>
           )}
           {mutualFollowedSellerCount !== undefined &&
             mutualFollowedSellerCount > 0 && (
-              <div>
+              <Link
+                to={profilePaths.following(userId)}
+                className="hover:text-primary transition-colors"
+              >
                 <span className="font-semibold">
                   {formatCount(mutualFollowedSellerCount)}
                 </span>{' '}
                 Mutual sellers
-              </div>
+              </Link>
             )}
         </div>
       </div>

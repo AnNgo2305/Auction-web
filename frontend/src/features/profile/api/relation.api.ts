@@ -13,6 +13,7 @@ import type { GetBlockedUsersResponse } from '@/features/profile/types/relations
 import type {
   CancelFollowRequestResponse
 } from '@/features/profile/types/relationship/cancel-follow-request.response';
+import type { GetFollowingsResponse } from '@/features/profile/types/relationship/get-following.response';
 
 const FOLLOW_API_PREFIX = '/follows';
 
@@ -115,6 +116,24 @@ export const relationApi = {
         },
       },
     );
+    return res.data;
+  },
+
+  getFollowings: async (
+    bidderId: string,
+    limit?: number,
+    cursor?: string,
+  ): Promise<GetFollowingsResponse> => {
+    const res = await api.get<GetFollowingsResponse>(
+      `${FOLLOW_API_PREFIX}/following/${bidderId}`,
+      {
+        params: {
+          limit,
+          cursor,
+        },
+      },
+    );
+
     return res.data;
   },
 };
