@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import * as React from 'react';
 import type { ImageType } from '@/features/profile/types/profile/profile.type.ts';
 import { useParams } from 'react-router-dom';
+import { useUser } from '@/shared/contexts/UserContext.tsx';
 
 type DeleteImageDialogProps = {
   open: boolean;
@@ -31,16 +32,19 @@ export function DeleteImageDialog({
 }: DeleteImageDialogProps) {
   const imageName = type === 'avatar' ? 'profile photo' : 'cover photo';
   const { userId } = useParams<{ userId: string }>();
+  const { updateProfileImageUrl, updateCoverImageUrl } = useUser();
 
   const deleteProfileImageMutation = useDeleteProfileImage(
     userId ?? '',
     (res) => {
+      updateProfileImageUrl(null);
       toast.success(res.message);
       onDeleteImage('avatar');
     },
   );
 
   const deleteCoverImageMutation = useDeleteCoverImage(userId ?? '', (res) => {
+    updateCoverImageUrl(null);
     toast.success(res.message);
     onDeleteImage('cover');
   });

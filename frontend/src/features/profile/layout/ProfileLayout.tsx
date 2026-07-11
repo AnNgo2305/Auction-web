@@ -31,7 +31,7 @@ export function ProfileLayout() {
     null,
   );
   const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
-  const { isCurrentUser } = useUser();
+  const { isCurrentUser, updateProfileImageUrl, updateCoverImageUrl } = useUser();
 
   const {
     data: profile,
@@ -42,10 +42,12 @@ export function ProfileLayout() {
   } = useGetProfile(userId ?? '');
 
   const updateProfileImageMutation = useUpdateProfileImage(userId ?? '', (res) => {
+    updateProfileImageUrl(res.data.profileImageUrl);
     toast.success(res.message);
   });
 
   const updateCoverImageMutation = useUpdateCoverImage(userId ?? '', (res) => {
+    updateCoverImageUrl(res.data.coverImageUrl);
     toast.success(res.message);
   });
 
