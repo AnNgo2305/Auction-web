@@ -1,8 +1,8 @@
-import type { UpdateProfileResponse } from '@/features/profile/types/update-profile.response';
+import type { UpdateProfileResponse } from '@/features/profile/types/profile/update-profile.response.ts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '@/features/profile/api/profile.api.ts';
 import { profileKeys } from '@/features/profile/constants/profile-query-key.ts';
-import { type GetProfileResponse } from '@/features/profile/types/get-profile.response.ts';
+import { type GetProfileResponse } from '@/features/profile/types/profile/get-profile.response.ts';
 import type { ApiResponseError } from '@/shared/types/error.ts';
 import type { UpdateProfileBody } from '@/features/profile/schemas/update-profile.schema';
 import { UPDATE_PROFILE_ERROR_MESSAGES } from '@/features/profile/constants/profile-error.messages.ts';
@@ -24,7 +24,9 @@ export function useUpdateProfile(
     UpdateProfileBody,
     UpdateProfileContext
   >({
-    mutationFn: profileApi.updateProfile,
+    mutationFn: async (body: UpdateProfileBody): Promise<UpdateProfileResponse> => {
+      return await profileApi.updateProfile(body);
+    },
 
     onMutate: async (
       updateProfileBody: UpdateProfileBody,

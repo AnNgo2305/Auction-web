@@ -12,7 +12,9 @@ export function useResetPassword(onCallback?: () => void) {
     ApiResponseError,
     ResetPasswordBody
   >({
-    mutationFn: authApi.resetPassword,
+    mutationFn: async (body: ResetPasswordBody): Promise<ResetPasswordResponse> => {
+      return await authApi.resetPassword(body);
+    },
 
     onSuccess: (res) => {
       toast.success(res.message);

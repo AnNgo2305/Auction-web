@@ -5,7 +5,7 @@ import { profileKeys } from '@/features/profile/constants/profile-query-key';
 import { UPDATE_COVER_IMAGE_ERROR_MESSAGES } from '@/features/profile/constants/profile-error.messages';
 import type { ApiResponseError } from '@/shared/types/error';
 import type { UpdateImageBody } from '@/features/profile/schemas/update-image.schema';
-import type { UpdateCoverImageResponse } from '@/features/profile/types/update-cover-image.response';
+import type { UpdateCoverImageResponse } from '@/features/profile/types/profile/update-cover-image.response.ts';
 
 export function useUpdateCoverImage(
   userId: string,
@@ -18,7 +18,9 @@ export function useUpdateCoverImage(
     ApiResponseError,
     UpdateImageBody
   >({
-    mutationFn: profileApi.updateCover,
+    mutationFn: async (body: UpdateImageBody): Promise<UpdateCoverImageResponse> => {
+      return await profileApi.updateCover(body);
+    },
 
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({

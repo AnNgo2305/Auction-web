@@ -1,6 +1,6 @@
 import { NavLink, useLocation, useParams } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
-import type { Role } from '@/features/profile/types/profile.type';
+import type { Role } from '@/features/profile/types/profile/profile.type.ts';
 
 interface ProfileTabsProps {
   isOwner: boolean;

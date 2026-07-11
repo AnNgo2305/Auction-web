@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import type { ElementType } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import type { ProfileOutletContext } from '@/features/profile/types/profile-outlet-context';
+import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context.ts';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
 
 const GENDER_LABEL: Record<string, string> = {

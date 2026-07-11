@@ -13,7 +13,7 @@ import { useDeleteCoverImage } from '@/features/profile/hooks/profile/useDeleteC
 import { useDeleteProfileImage } from '@/features/profile/hooks/profile/useDeleteProfileImage.ts';
 import { toast } from 'sonner';
 import * as React from 'react';
-import type { ImageType } from '@/features/profile/types/profile.type.ts';
+import type { ImageType } from '@/features/profile/types/profile/profile.type.ts';
 import { useParams } from 'react-router-dom';
 
 type DeleteImageDialogProps = {

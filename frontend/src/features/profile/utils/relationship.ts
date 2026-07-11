@@ -1,8 +1,8 @@
 import type {
   ProfileAction,
   RelationshipStatus,
-} from '@/features/profile/types/relationship.type';
-import type { Role } from '@/features/profile/types/profile.type';
+} from '@/features/profile/types/profile/relationship.type.ts';
+import type { Role } from '@/features/profile/types/profile/profile.type.ts';
 
 type RelationshipContext = {
   relationship: RelationshipStatus;
@@ -11,9 +11,6 @@ type RelationshipContext = {
 };
 export function getRelationshipLabel({ relationship, currentUserRole, profileRole }: RelationshipContext): string | null {
   switch (relationship) {
-    case 'SELF':
-      return 'Edit Profile';
-
     case 'NONE':
       if (currentUserRole === 'BIDDER' && profileRole === 'SELLER') {
         return 'Follow';
@@ -57,9 +54,6 @@ export function getRelationshipActions({
     currentUserRole === 'SELLER' && profileRole === 'BIDDER';
 
   switch (relationship) {
-    case 'SELF':
-      return [];
-
     case 'NONE':
       if (isBidderViewingSeller) {
         return ['Follow'];

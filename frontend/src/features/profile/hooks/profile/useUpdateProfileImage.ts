@@ -5,7 +5,7 @@ import { profileKeys } from '@/features/profile/constants/profile-query-key';
 import { UPDATE_PROFILE_IMAGE_ERROR_MESSAGES } from '@/features/profile/constants/profile-error.messages';
 import type { ApiResponseError } from '@/shared/types/error';
 import type { UpdateImageBody } from '@/features/profile/schemas/update-image.schema';
-import type { UpdateProfileImageResponse } from '@/features/profile/types/update-profile-image.response';
+import type { UpdateProfileImageResponse } from '@/features/profile/types/profile/update-profile-image.response.ts';
 
 export function useUpdateProfileImage(
   userId: string,
@@ -18,7 +18,9 @@ export function useUpdateProfileImage(
     ApiResponseError,
     UpdateImageBody
   >({
-    mutationFn: profileApi.updateAvatar,
+    mutationFn: async (body: UpdateImageBody): Promise<UpdateProfileImageResponse> => {
+      return await profileApi.updateAvatar(body);
+    },
 
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({

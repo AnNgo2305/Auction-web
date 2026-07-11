@@ -4,7 +4,7 @@ import { profileApi } from '@/features/profile/api/profile.api';
 import { profileKeys } from '@/features/profile/constants/profile-query-key';
 import { DELETE_PROFILE_IMAGE_ERROR_MESSAGES } from '@/features/profile/constants/profile-error.messages';
 import type { ApiResponseError } from '@/shared/types/error';
-import type { DeleteProfileImageResponse } from '@/features/profile/types/delete-profile-image.response';
+import type { DeleteProfileImageResponse } from '@/features/profile/types/profile/delete-profile-image.response.ts';
 
 export function useDeleteProfileImage(
   userId: string,
@@ -13,7 +13,9 @@ export function useDeleteProfileImage(
   const queryClient = useQueryClient();
 
   return useMutation<DeleteProfileImageResponse, ApiResponseError, void>({
-    mutationFn: profileApi.deleteAvatarImage,
+    mutationFn: async (): Promise<DeleteProfileImageResponse> => {
+      return await profileApi.deleteAvatarImage();
+    },
 
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({

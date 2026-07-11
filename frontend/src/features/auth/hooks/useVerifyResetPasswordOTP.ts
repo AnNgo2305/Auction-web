@@ -11,11 +11,13 @@ export function useVerifyResetPasswordlOTP(onSuccessCallback?: (res: VerifyReset
     ApiResponseError,
     VerifyOtpBody
   >({
-    mutationFn: authApi.verifyResetPasswordOTP,
+    mutationFn: async (body: VerifyOtpBody): Promise<VerifyResetPasswordOtpResponse> => {
+      return await authApi.verifyResetPasswordOTP(body);
+    },
 
     onSuccess: (res: VerifyResetPasswordOtpResponse) => {
       toast.success(res.message);
       onSuccessCallback?.(res);
-    }
-  })
+    },
+  });
 }

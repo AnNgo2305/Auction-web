@@ -1,14 +1,14 @@
 import { api } from '@/shared/api/axios';
-
 import type { UpdateProfileBody } from '@/features/profile/schemas/update-profile.schema';
 import type { UpdateImageBody } from '@/features/profile/schemas/update-image.schema';
-
-import type { GetProfileResponse } from '@/features/profile/types/get-profile.response';
-import type { UpdateProfileResponse } from '@/features/profile/types/update-profile.response';
-import type { UpdateProfileImageResponse } from '@/features/profile/types/update-profile-image.response';
-import type { UpdateCoverImageResponse } from '@/features/profile/types/update-cover-image.response';
-import type { DeleteProfileImageResponse } from '@/features/profile/types/delete-profile-image.response';
-import type { DeleteCoverImageResponse } from '@/features/profile/types/delete-cover-image.response';
+import type { ChangePasswordBody } from '@/features/profile/schemas/change-password.schema';
+import type { ChangePasswordResponse } from '@/features/profile/types/profile/change-password.response';
+import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
+import type { UpdateProfileResponse } from '@/features/profile/types/profile/update-profile.response';
+import type { UpdateProfileImageResponse } from '@/features/profile/types/profile/update-profile-image.response';
+import type { UpdateCoverImageResponse } from '@/features/profile/types/profile/update-cover-image.response';
+import type { DeleteProfileImageResponse } from '@/features/profile/types/profile/delete-profile-image.response';
+import type { DeleteCoverImageResponse } from '@/features/profile/types/profile/delete-cover-image.response';
 
 const PROFILE_API_PREFIX = '/profile';
 
@@ -62,6 +62,17 @@ export const profileApi = {
   deleteCoverImage: async (): Promise<DeleteCoverImageResponse> => {
     const res = await api.delete<DeleteCoverImageResponse>(
       `${PROFILE_API_PREFIX}/cover`,
+    );
+
+    return res.data;
+  },
+
+  changePassword: async (
+    body: ChangePasswordBody,
+  ): Promise<ChangePasswordResponse> => {
+    const res = await api.patch<ChangePasswordResponse>(
+      `${PROFILE_API_PREFIX}/password`,
+      body,
     );
 
     return res.data;

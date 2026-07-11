@@ -8,7 +8,9 @@ import { REGISTER_ERROR_MESSAGES } from '@/features/auth/constants/auth-error.me
 
 export function useRegister(onSuccessCallback?: (res: RegisterResponse) => void) {
   return useMutation<RegisterResponse, ApiResponseError, RegisterBody>({
-    mutationFn: authApi.register,
+    mutationFn: async (body: RegisterBody): Promise<RegisterResponse> => {
+      return await authApi.register(body);
+    },
 
     onSuccess: (res: RegisterResponse) => {
       toast.success(res.data.message);

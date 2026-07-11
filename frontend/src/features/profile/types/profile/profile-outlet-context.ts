@@ -1,4 +1,4 @@
-import type { GetProfileData } from '@/features/profile/types/get-profile.response.ts';
+import type { GetProfileData } from '@/features/profile/types/profile/get-profile.response.ts';
 
 export interface ProfileOutletContext {
   profile: GetProfileData;

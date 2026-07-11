@@ -27,7 +27,7 @@ import {
 } from '@/features/profile/schemas/update-profile.schema';
 import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile';
 import { useOutletContext } from 'react-router-dom';
-import type { ProfileOutletContext } from '@/features/profile/types/profile-outlet-context';
+import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context.ts';
 
 const GENDER_OPTIONS = [
   {

@@ -6,12 +6,12 @@ import type { ApiResponseError } from '@/shared/types/error';
 import type { VerifyOtpBody } from '@/features/auth/schemas/verify-otp.schema';
 
 export function useVerifyEmailOTP(onSuccessCallback?: () => void) {
-  return useMutation<
-    VerifyEmailOtpResponse,
-    ApiResponseError,
-    VerifyOtpBody
-  >({
-    mutationFn: authApi.verifyEmailOTP,
+  return useMutation<VerifyEmailOtpResponse, ApiResponseError, VerifyOtpBody>({
+    mutationFn: async (
+      body: VerifyOtpBody,
+    ): Promise<VerifyEmailOtpResponse> => {
+      return await authApi.verifyEmailOTP(body);
+    },
 
     onSuccess: (res: VerifyEmailOtpResponse) => {
       toast.success(res.message);

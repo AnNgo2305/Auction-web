@@ -10,7 +10,7 @@ import { useUser } from '@/shared/contexts/UserContext';
 import { ProfileTabs } from '@/features/profile/components/ProfileTabs';
 import { useUpdateProfileImage } from '@/features/profile/hooks/profile/useUpdateProfileImage';
 import { useUpdateCoverImage } from '@/features/profile/hooks/profile/useUpdateCoverImage';
-import type { ImageType } from '@/features/profile/types/profile.type';
+import type { ImageType } from '@/features/profile/types/profile/profile.type.ts';
 import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { toast } from 'sonner';
 
@@ -129,6 +129,7 @@ export function ProfileLayout() {
           />
           <div className="flex-1 pb-2">
             <ProfileHeader
+              userId={profile!.userId}
               username={profile!.username}
               fullName={profile!.fullName}
               bio={profile!.bio}
@@ -137,8 +138,6 @@ export function ProfileLayout() {
               followingCount={profile!.followingCount}
               mutualFollowedSellerCount={profile!.mutualFollowedSellerCount}
               relationshipStatus={profile!.relationship.status}
-              relationshipId={profile!.relationship.friendshipId}
-              isOwner={isOwner}
             />
           </div>
         </div>

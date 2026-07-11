@@ -1,6 +1,6 @@
-import type { ApiResponse } from '@/shared/types/response';
-import type { Gender, Role } from '@/features/profile/types/profile.type';
-import { RelationshipStatus } from '@/features/profile/types/relationship.type';
+import type { ApiResponse } from '@/shared/types/response.ts';
+import type { Gender, Role } from '@/features/profile/types/profile/profile.type.ts';
+import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type.ts';
 
 export class GetProfileData {
   userId!: string;

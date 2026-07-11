@@ -1,10 +1,10 @@
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
-import type { Role } from '@/features/profile/types/profile.type';
+import type { Role } from '@/features/profile/types/profile/profile.type';
 import {
   type ProfileAction,
   RelationshipStatus,
-} from '@/features/profile/types/relationship.type';
+} from '@/features/profile/types/profile/relationship.type';
 import { formatCount } from '@/shared/utils/format-count';
 import { MoreHorizontal } from 'lucide-react';
 import {
@@ -17,9 +17,17 @@ import {
   getRelationshipActions,
   getRelationshipLabel,
 } from '@/features/profile/utils/relationship';
-import { useUser } from '@/shared/contexts/UserContext.tsx';
+import { useUser } from '@/shared/contexts/UserContext';
+import { useFollowSeller } from '@/features/profile/hooks/relationship/useFollowSeller';
+import { useUnfollowSeller } from '@/features/profile/hooks/relationship/useUnfollowSeller';
+import { useCancelFollowRequest } from '@/features/profile/hooks/relationship/useCancelFollowRequest';
+import { useAcceptFollow } from '@/features/profile/hooks/relationship/useAcceptFollow';
+import { useDeclineFollow } from '@/features/profile/hooks/relationship/useDeclineFollow';
+import { useBlockBidder } from '@/features/profile/hooks/relationship/useBlockBidder';
+import { useUnblockBidder } from '@/features/profile/hooks/relationship/useUnblockBidder';
 
 interface ProfileHeaderProps {
+  userId: string,
   username: string;
   fullName: string | null;
   bio: string | null;
@@ -28,8 +36,6 @@ interface ProfileHeaderProps {
   followingCount?: number;
   mutualFollowedSellerCount?: number;
   relationshipStatus: RelationshipStatus;
-  relationshipId?: string;
-  isOwner: boolean;
 }
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -38,6 +44,7 @@ const ROLE_LABEL: Record<Role, string> = {
 };
 
 export function ProfileHeader({
+  userId,
   username,
   fullName,
   bio,
@@ -46,7 +53,6 @@ export function ProfileHeader({
   followingCount,
   mutualFollowedSellerCount,
   relationshipStatus,
-  relationshipId,
 }: ProfileHeaderProps) {
   const { currentUser } = useUser();
 
@@ -62,34 +68,45 @@ export function ProfileHeader({
     profileRole: role,
   });
 
+  const followMutation = useFollowSeller(userId);
+  const unfollowMutation = useUnfollowSeller(userId);
+  const cancelFollowRequestMutation = useCancelFollowRequest(userId);
+
+  const sellerId = currentUser?.userId ?? '';
+  const acceptFollowMutation = useAcceptFollow(sellerId, userId);
+
+  const declineFollowMutation = useDeclineFollow(userId);
+  const blockBidderMutation = useBlockBidder(userId);
+  const unblockBidderMutation = useUnblockBidder(userId);
+
   const handleRelationshipAction = (action: ProfileAction) => {
     switch (action) {
       case 'Follow':
-        // TODO: followMutation.mutate();
+        followMutation.mutate();
         break;
 
       case 'Unfollow':
-        // TODO: unfollowMutation.mutate();
+        unfollowMutation.mutate();
         break;
 
       case 'Accept':
-        // TODO: acceptFollowRequestMutation.mutate();
+        acceptFollowMutation.mutate();
         break;
 
       case 'Decline':
-        // TODO: declineFollowRequestMutation.mutate();
+        declineFollowMutation.mutate();
         break;
 
       case 'Cancel':
-        // TODO: cancelFollowRequestMutation.mutate();
+        cancelFollowRequestMutation.mutate();
         break;
 
       case 'Block':
-        // TODO: blockUserMutation.mutate();
+        blockBidderMutation.mutate();
         break;
 
       case 'Unblock':
-        // TODO: unblockUserMutation.mutate();
+        unblockBidderMutation.mutate();
         break;
 
       default:

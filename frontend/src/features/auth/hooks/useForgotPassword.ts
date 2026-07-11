@@ -13,7 +13,9 @@ export function useForgotPassword(
     ApiResponseError,
     ForgotPasswordBody
   >({
-    mutationFn: authApi.forgotPassword,
+    mutationFn: async (body: ForgotPasswordBody): Promise<ForgotPasswordResponse> => {
+      return await authApi.forgotPassword(body);
+    },
 
     onSuccess: (res) => {
       toast.success(

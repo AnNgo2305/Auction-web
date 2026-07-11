@@ -16,7 +16,9 @@ export function useResendOTPEmail(
     ApiResponseError,
     ResendOtpEmailBody
   >({
-    mutationFn: authApi.resendOtp,
+    mutationFn: async (body: ResendOtpEmailBody): Promise<ResendOtpEmailResponse> => {
+      return await authApi.resendOtp(body);
+    },
 
     onSuccess: (res: VerifyEmailOtpResponse) => {
       toast.success(res.message ?? 'OTP email has been sent successfully.');
