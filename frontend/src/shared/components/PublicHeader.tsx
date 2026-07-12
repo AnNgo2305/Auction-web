@@ -1,14 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 import logo from '@/assets/images/bid-market.png';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
-import { ABOUT_ROUTES } from '@/features/about/constants/about.routes.ts';
+import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes';
+import { ABOUT_ROUTES } from '@/features/about/constants/about.routes';
 
 export default function PublicHeader() {
   const location = useLocation();
 
   return (
-    <header className="border-b border-white/10 bg-(--footer)/90 text-white backdrop-blur-md">
+    <header className="fixed top-0 right-0 left-0 z-50 border-b border-white/10 bg-(--footer)/90 text-white backdrop-blur-md">
       <div className="mx-auto flex h-16 items-center justify-between px-8">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">

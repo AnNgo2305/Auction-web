@@ -11,11 +11,11 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import defaultCoverImageUrl from '@/assets/images/default-cover.png';
 
 type ProfileCoverImageProps = {
-  coverImageUrl?: string | null;
+  coverImageUrl: string | null | undefined;
   isOwner: boolean;
-  isInitialProfileLoading?: boolean;
-  isProfileRefreshing?: boolean;
-  isSaving?: boolean;
+  isInitialProfileLoading: boolean;
+  isProfileRefreshing: boolean;
+  isSaving: boolean;
   setUploadCoverImageDialogOpen: (open: boolean) => void;
   setDeleteCoverImageDialogOpen: (open: boolean) => void;
 };
@@ -29,25 +29,25 @@ export function ProfileCoverImage({
   setUploadCoverImageDialogOpen,
   setDeleteCoverImageDialogOpen,
 }: ProfileCoverImageProps) {
+  if (isInitialProfileLoading) {
+    return <Skeleton className="aspect-20/7 w-full rounded-xl" />;
+  }
+
   const hasCoverImage = Boolean(coverImageUrl);
   const isDisabled = isProfileRefreshing || isSaving;
 
   const handleOpenUploadDialog = () => {setUploadCoverImageDialogOpen(true)};
   const handleOpenDeleteDialog = () => {setDeleteCoverImageDialogOpen(true)};
 
-  if (isInitialProfileLoading) {
-    return <Skeleton className="h-64 w-full rounded-xl" />;
-  }
-
   return (
-    <div className="bg-muted relative h-64 w-full overflow-hidden rounded-xl">
+    <div className="bg-muted relative aspect-20/7 w-full overflow-hidden rounded-xl">
       <img
         src={coverImageUrl || defaultCoverImageUrl}
         alt="Cover"
         className="h-full w-full object-cover transition-opacity"
       />
       {isSaving && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/35">
+        <div className="absolute inset-0 z-0 flex items-center justify-center bg-gray-300">
           <Loader2 className="h-10 w-10 animate-spin text-white" />
         </div>
       )}
@@ -71,7 +71,7 @@ export function ProfileCoverImage({
                 className="text-black focus:bg-gray-100 focus:text-black"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                Upload your cover photo
+                Upload
               </DropdownMenuItem>
               {hasCoverImage && (
                 <>
@@ -82,7 +82,7 @@ export function ProfileCoverImage({
                     className="text-destructive focus:text-destructive focus:bg-gray-100"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete cover photo
+                    Delete
                   </DropdownMenuItem>
                 </>
               )}

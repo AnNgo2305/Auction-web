@@ -63,7 +63,7 @@ export function ProfileLayout() {
     );
   }
 
-  const isOwner = isCurrentUser(profile!.userId);
+  const isOwner = profile ? isCurrentUser(profile.userId) : false;
   const isOnline = false;
 
   const handleDeleteImage = (type: ImageType) => {
@@ -107,9 +107,9 @@ export function ProfileLayout() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto mt-20 max-w-9/12 space-y-6">
       <ProfileCoverImage
-        coverImageUrl={profile!.coverImageUrl}
+        coverImageUrl={profile?.coverImageUrl}
         isOwner={isOwner}
         isInitialProfileLoading={isInitialProfileLoading}
         isProfileRefreshing={isProfileRefreshing}
@@ -117,10 +117,10 @@ export function ProfileLayout() {
         setUploadCoverImageDialogOpen={setUploadCoverImageDialogOpen}
         setDeleteCoverImageDialogOpen={setDeleteCoverImageDialogOpen}
       />
-      <div className="px-6">
-        <div className="-mt-20 flex items-end gap-6">
+      <div className="-mt-20 px-10">
+        <div className="flex items-center gap-5">
           <ProfileAvatarImage
-            avatarImageUrl={profile!.profileImageUrl}
+            avatarImageUrl={profile?.profileImageUrl}
             isOwner={isOwner}
             isOnline={isOnline}
             isInitialProfileLoading={isInitialProfileLoading}
@@ -129,22 +129,23 @@ export function ProfileLayout() {
             setUploadAvatarImageDialogOpen={setUploadAvatarImageDialogOpen}
             setDeleteAvatarImageDialogOpen={setDeleteAvatarImageDialogOpen}
           />
-          <div className="flex-1 pb-2">
+          <div className="flex-1 pt-22">
             <ProfileHeader
-              userId={profile!.userId}
-              username={profile!.username}
-              fullName={profile!.fullName}
-              bio={profile!.bio}
-              role={profile!.role}
-              followerCount={profile!.followerCount}
-              followingCount={profile!.followingCount}
-              mutualFollowedSellerCount={profile!.mutualFollowedSellerCount}
-              relationshipStatus={profile!.relationship.status}
+              userId={profile?.userId}
+              username={profile?.username}
+              fullName={profile?.fullName}
+              bio={profile?.bio}
+              role={profile?.role}
+              followerCount={profile?.followerCount}
+              followingCount={profile?.followingCount}
+              mutualFollowedSellerCount={profile?.mutualFollowedSellerCount}
+              relationshipStatus={profile?.relationship.status}
+              isInitialProfileLoading={isInitialProfileLoading}
             />
           </div>
         </div>
       </div>
-      <ProfileTabs isOwner={isOwner} role={profile!.role} />
+      <ProfileTabs isOwner={isOwner} role={profile?.role} />
       <div className="px-6 pb-8">
         <Outlet
           context={{
@@ -159,6 +160,7 @@ export function ProfileLayout() {
         open={uploadAvatarImageDialogOpen}
         cropType="avatar"
         title="Upload profile photo"
+        description="Choose a square image to use as your profile photo."
         selectedFile={selectedAvatarFile}
         onOpenChange={setUploadAvatarImageDialogOpen}
         onFileChange={setSelectedAvatarFile}
@@ -168,6 +170,7 @@ export function ProfileLayout() {
         open={uploadCoverImageDialogOpen}
         cropType="cover"
         title="Upload cover photo"
+        description="Choose a wide image for your profile cover. It will be cropped to fit the banner area."
         selectedFile={selectedCoverFile}
         onOpenChange={setUploadCoverImageDialogOpen}
         onFileChange={setSelectedCoverFile}

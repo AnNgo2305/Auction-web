@@ -8,8 +8,11 @@ import { profilePaths } from '@/features/profile/constants/profile.routes';
 import { getRelationshipLabel } from '@/features/profile/utils/relationship';
 import { Badge } from '@/shared/ui/badge';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Input } from '@/shared/ui/input';
-import { InputGroup, InputGroupAddon } from '@/shared/ui/input-group';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group';
 import { Loader2, Search } from 'lucide-react';
 
 interface UserPreviewListProps {
@@ -29,6 +32,33 @@ export function UserPreviewList({
   isFetchingNextPage = false,
   onLoadMore,
 }: UserPreviewListProps) {
+  if (isInitialLoading) {
+    return (
+      <div
+        className={cn(
+          'grid gap-4',
+          columns === 1 ? 'grid-cols-1' : 'grid-cols-2',
+        )}
+      >
+        {Array.from({ length: columns === 2 ? 6 : 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between rounded-lg border p-4"
+          >
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-9 w-24 rounded-md" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const { currentUser } = useUser();
   const [searchText, setSearchText] = useState('');
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -58,33 +88,6 @@ export function UserPreviewList({
     );
   }, [users, searchText]);
 
-  if (isInitialLoading) {
-    return (
-      <div
-        className={cn(
-          'grid gap-4',
-          columns === 1 ? 'grid-cols-1' : 'grid-cols-2',
-        )}
-      >
-        {Array.from({ length: columns === 2 ? 6 : 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between rounded-lg border p-4"
-          >
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-            </div>
-            <Skeleton className="h-9 w-24 rounded-md" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="max-w-sm">
@@ -92,7 +95,7 @@ export function UserPreviewList({
           <InputGroupAddon>
             <Search className="text-muted-foreground h-4 w-4" />
           </InputGroupAddon>
-          <Input
+          <InputGroupInput
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="Search by username..."

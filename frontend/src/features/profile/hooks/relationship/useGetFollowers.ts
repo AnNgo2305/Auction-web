@@ -2,7 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { relationApi } from '@/features/profile/api/relation.api';
 import { relationKeys } from '@/features/profile/constants/relation-query-key';
 
-const DEFAULT_LIMIT = 20;
+const DEFAULT_LIMIT = 10;
 
 export function useGetFollowers(
   sellerId: string,

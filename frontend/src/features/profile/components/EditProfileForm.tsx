@@ -1,7 +1,6 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
@@ -27,7 +26,9 @@ import {
 } from '@/features/profile/schemas/update-profile.schema';
 import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile';
 import { useOutletContext } from 'react-router-dom';
-import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context.ts';
+import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context';
+import { formatDateInputToIso, formatIsoToDateInput } from '@/shared/utils/format-time';
+import { Skeleton } from '@/shared/ui/skeleton';
 
 const GENDER_OPTIONS = [
   {
@@ -45,7 +46,42 @@ const GENDER_OPTIONS = [
 ] as const;
 
 export function EditProfileForm() {
-  const { profile } = useOutletContext<ProfileOutletContext>();
+  const { profile, isInitialProfileLoading } = useOutletContext<ProfileOutletContext>();
+  if (isInitialProfileLoading) {
+    return (
+      <Card className="mx-auto w-full max-w-2xl shadow-lg">
+        <CardHeader className="items-center space-y-1 text-center">
+          <Skeleton className="h-8 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-14 w-full rounded-md" />
+            </div>
+          ))}
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-14 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-14 w-full rounded-md" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-32 w-full rounded-md" />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-36" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const {
     register,
@@ -93,9 +129,10 @@ export function EditProfileForm() {
 
   return (
     <Card className="mx-auto w-full max-w-2xl shadow-lg">
-      <CardHeader className="space-y-0.5 text-center">
-        <CardTitle>Edit Profile</CardTitle>
-        <CardDescription>Update your personal information.</CardDescription>
+      <CardHeader className="items-center space-y-1 text-center">
+        <CardTitle className="text-2xl font-bold tracking-wide uppercase">
+          Edit Profile
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
@@ -183,16 +220,25 @@ export function EditProfileForm() {
                 >
                   Date of birth
                 </FieldLabel>
-                <InputGroup className="h-14">
-                  <InputGroupAddon>
-                    <Cake size={16} />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="dateOfBirth"
-                    type="date"
-                    {...register('dateOfBirth')}
-                  />
-                </InputGroup>
+                <Controller
+                  control={control}
+                  name="dateOfBirth"
+                  render={({ field }) => (
+                    <InputGroup className="h-14">
+                      <InputGroupAddon>
+                        <Cake size={16} />
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="dateOfBirth"
+                        type="date"
+                        value={formatIsoToDateInput(field.value)}
+                        onChange={(e) => {
+                          field.onChange(formatDateInputToIso(e.target.value));
+                        }}
+                      />
+                    </InputGroup>
+                  )}
+                />
                 {errors.dateOfBirth && (
                   <FieldError className="text-xs leading-tight text-red-500">
                     {errors.dateOfBirth.message}

@@ -15,14 +15,15 @@ import {
 } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { Skeleton } from '@/shared/ui/skeleton';
+import { cn } from '@/shared/lib/utils.ts';
 
 type ProfileAvatarImageProps = {
-  avatarImageUrl?: string | null;
+  avatarImageUrl: string | null | undefined;
   isOwner: boolean;
   isOnline: boolean;
-  isInitialProfileLoading?: boolean;
-  isProfileRefreshing?: boolean;
-  isSaving?: boolean;
+  isInitialProfileLoading: boolean;
+  isProfileRefreshing: boolean;
+  isSaving: boolean;
   setUploadAvatarImageDialogOpen: (open: boolean) => void;
   setDeleteAvatarImageDialogOpen: (open: boolean) => void;
 };
@@ -37,18 +38,18 @@ export function ProfileAvatarImage({
   setUploadAvatarImageDialogOpen,
   setDeleteAvatarImageDialogOpen,
 }: ProfileAvatarImageProps) {
+  if (isInitialProfileLoading) {
+    return <Skeleton className="size-44 rounded-full" />;
+  }
+
   const hasAvatarImage = Boolean(avatarImageUrl);
   const isDisabled = isProfileRefreshing || isSaving;
 
   const handleOpenUploadDialog = () => {setUploadAvatarImageDialogOpen(true)};
   const handleOpenDeleteDialog = () => {setDeleteAvatarImageDialogOpen(true)};
 
-  if (isInitialProfileLoading) {
-    return <Skeleton className="size-36 rounded-full" />;
-  }
-
   const avatarContent = (
-    <div className="relative size-36">
+    <div className="relative size-44 rounded-full">
       <Avatar className="border-background size-full border-4">
         <AvatarImage
           src={avatarImageUrl || defaultAvatarImageUrl}
@@ -56,11 +57,10 @@ export function ProfileAvatarImage({
         />
         <AvatarFallback>NA</AvatarFallback>
         <AvatarBadge
-          className={
-            isOnline
-              ? 'border-background bg-green-500'
-              : 'bg-muted-foreground border-background'
-          }
+          className={cn(
+            'border-background right-9 bottom-2',
+            isOnline ? 'bg-green-500' : 'bg-muted-foreground',
+          )}
         />
       </Avatar>
       {isSaving && (
@@ -81,7 +81,7 @@ export function ProfileAvatarImage({
         <Button
           type="button"
           variant="ghost"
-          className="size-36 rounded-full p-0 hover:bg-black/10"
+          className="h-auto w-auto rounded-full p-0 hover:bg-black/10 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           disabled={isDisabled}
         >
           {avatarContent}
@@ -94,7 +94,7 @@ export function ProfileAvatarImage({
           className="text-black focus:bg-gray-100 focus:text-black"
         >
           <Camera className="mr-2 h-4 w-4" />
-          {hasAvatarImage ? 'Change profile photo' : 'Upload profile photo'}
+          {hasAvatarImage ? 'Change' : 'Upload'}
         </DropdownMenuItem>
         {hasAvatarImage && (
           <>
@@ -105,7 +105,7 @@ export function ProfileAvatarImage({
               disabled={isDisabled}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete your profile photo
+              Delete
             </DropdownMenuItem>
           </>
         )}

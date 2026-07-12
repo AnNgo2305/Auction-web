@@ -125,7 +125,7 @@ export const relationApi = {
     cursor?: string,
   ): Promise<GetFollowingsResponse> => {
     const res = await api.get<GetFollowingsResponse>(
-      `${FOLLOW_API_PREFIX}/following/${bidderId}`,
+      `${FOLLOW_API_PREFIX}/followings/${bidderId}`,
       {
         params: {
           limit,

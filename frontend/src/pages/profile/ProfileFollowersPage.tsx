@@ -4,10 +4,12 @@ import { UserPreviewList } from '@/features/profile/components/UserPreviewList';
 import { useGetFollowers } from '@/features/profile/hooks/relationship/useGetFollowers';
 
 export function ProfileFollowersPage() {
-  const { profile } = useOutletContext<ProfileOutletContext>();
+  const { profile, isInitialProfileLoading } = useOutletContext<ProfileOutletContext>();
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetFollowers(profile.userId);
+  const { data, isLoading: isInitialFollowerLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetFollowers(profile?.userId);
+
+  const isLoading = isInitialProfileLoading || isInitialFollowerLoading;
 
   return (
     <UserPreviewList

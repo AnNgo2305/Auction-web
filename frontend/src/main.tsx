@@ -1,19 +1,22 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App.tsx';
-import { QueryProvider } from '@/shared/providers/QueryProvider.tsx';
+import App from './App';
+import { QueryProvider } from '@/shared/providers/QueryProvider';
 import { Toaster } from 'sonner';
-import { AuthProvider } from '@/shared/contexts/AuthContext.tsx';
-import { UserProvider } from '@/shared/contexts/UserContext.tsx';
+import { AuthProvider } from '@/shared/contexts/AuthContext';
+import { UserProvider } from '@/shared/contexts/UserContext';
+import { TooltipProvider } from '@/shared/ui/tooltip';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryProvider>
       <UserProvider>
         <AuthProvider>
-          <App />
-          <Toaster richColors position="top-right" />
+          <TooltipProvider delayDuration={200}>
+            <App />
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
         </AuthProvider>
       </UserProvider>
     </QueryProvider>

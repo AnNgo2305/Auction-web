@@ -4,7 +4,7 @@ import type { Role } from '@/features/profile/types/profile/profile.type.ts';
 
 interface ProfileTabsProps {
   isOwner: boolean;
-  role: Role;
+  role: Role | undefined;
 }
 
 export function ProfileTabs({ isOwner, role }: ProfileTabsProps) {
@@ -31,11 +31,15 @@ export function ProfileTabs({ isOwner, role }: ProfileTabsProps) {
           },
         ]
       : []),
-    {
-      key: 'following',
-      label: 'Following',
-      to: profilePaths.following(userId),
-    },
+    ...(role === 'BIDDER'
+      ? [
+          {
+            key: 'following',
+            label: 'Following',
+            to: profilePaths.following(userId),
+          },
+        ]
+      : []),
     ...(isOwner
       ? [
           {

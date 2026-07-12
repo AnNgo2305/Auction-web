@@ -62,7 +62,7 @@ export function UploadImageDialog({
   });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const aspect = cropType === 'cover' ? 16 / 9 : 1;
+  const aspect = cropType === 'cover' ? 20 / 7 : 1;
 
   /** Creates and resets the preview URL for the selected image. */
   useEffect(() => {
@@ -171,8 +171,10 @@ export function UploadImageDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-xl font-bold tracking-wide uppercase">
+            {title}
+          </DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <div className="space-y-4">
