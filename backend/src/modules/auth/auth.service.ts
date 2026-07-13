@@ -49,6 +49,7 @@ import { Request, Response } from 'express';
 import { VerifyResetPasswordOtpResponseDto } from '@modules/auth/dtos/verify-reset-password-otp.response';
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
 import { ProfileService } from '@modules/profile/profile.service';
+import { FileService } from '@common/services/file.service';
 
 @Injectable()
 export class AuthService {
@@ -68,6 +69,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly profileService: ProfileService,
     private readonly logger: LoggerService,
+    private readonly fileService: FileService,
   ) {}
 
   async login(
@@ -94,6 +96,12 @@ export class AuthService {
           username: user.username,
           isVerified: user.isVerified,
           isBanned: user.isBanned,
+          profileImageUrl: user.profile?.profileImageUrl
+            ? this.fileService.getPublicUrl(user.profile.profileImageUrl)
+            : null,
+          coverImageUrl: user.profile?.coverImageUrl
+            ? this.fileService.getPublicUrl(user.profile.coverImageUrl)
+            : null,
           provider,
         },
         otpRequired: true,
@@ -204,6 +212,12 @@ export class AuthService {
         role: user.role,
         isVerified: user.isVerified,
         isBanned: user.isBanned,
+        profileImageUrl: user.profile?.profileImageUrl
+          ? this.fileService.getPublicUrl(user.profile.profileImageUrl)
+          : null,
+        coverImageUrl: user.profile?.coverImageUrl
+          ? this.fileService.getPublicUrl(user.profile.coverImageUrl)
+          : null,
         provider,
       },
     };

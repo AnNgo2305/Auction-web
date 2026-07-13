@@ -16,4 +16,9 @@ export class UserInfoResponseDto {
   failedLoginAttempts!: number;
 
   lockedUntil!: Date | null;
+
+  profile!: {
+    profileImageUrl: string | null;
+    coverImageUrl: string | null;
+  } | null;
 }

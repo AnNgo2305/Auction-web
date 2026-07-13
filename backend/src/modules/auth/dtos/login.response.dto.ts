@@ -13,6 +13,10 @@ export class LoginResponseDto {
     isBanned: boolean;
 
     provider: string;
+
+    profileImageUrl: string | null;
+
+    coverImageUrl: string | null;
   };
 
   otpRequired?: boolean;

@@ -37,6 +37,12 @@ export class UserService {
         isBanned: true,
         failedLoginAttempts: true,
         lockedUntil: true,
+        profile: {
+          select: {
+            profileImageUrl: true,
+            coverImageUrl: true,
+          },
+        },
       },
     });
   }
@@ -83,7 +89,7 @@ export class UserService {
     userId: string,
   ): Promise<Omit<
     UserInfoResponseDto,
-    'password' | 'failedLoginAttempts' | 'lockedUntil'
+    'password' | 'failedLoginAttempts' | 'lockedUntil' | 'profile'
   > | null> {
     return this.prisma.user.findUnique({
       where: { userId },
@@ -102,7 +108,9 @@ export class UserService {
 
   async findUsers(
     filter: UserQueryDto,
-  ): Promise<PaginationResult<Omit<UserInfoResponseDto, 'password'>>> {
+  ): Promise<
+    PaginationResult<Omit<UserInfoResponseDto, 'password' | 'profile'>>
+  > {
     const {
       email,
       username,

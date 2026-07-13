@@ -13,14 +13,14 @@ export const UPLOAD_RULES: Record<
     maxSize: 5 * 1024 * 1024,
     allowedMime: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
     maxFiles: 1,
-    roles: ['USER', 'SELLER'],
+    roles: ['BIDDER', 'SELLER'],
   },
 
   cover: {
     maxSize: 10 * 1024 * 1024,
     allowedMime: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
     maxFiles: 1,
-    roles: ['USER', 'SELLER'],
+    roles: ['BIDDER', 'SELLER'],
   },
 };
 

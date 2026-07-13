@@ -15,7 +15,7 @@ async function bootstrap(): Promise<{
   });
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://127.0.0.1:5173',
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });
@@ -23,7 +23,7 @@ async function bootstrap(): Promise<{
   app.use(cookieParser());
 
   const port = process.env.PORT || 3000;
-  const host = process.env.HOST || 'localhost';
+  const host = process.env.HOST || '127.0.0.1';
   await app.listen(port, host);
 
   return { port, host };
