@@ -1,3 +1,7 @@
 export const ABOUT_ROUTES = {
-  ABOUT: '/about',
+  ABOUT: '',
+} as const;
+
+export const aboutPaths = {
+  about: () => '/about',
 } as const;

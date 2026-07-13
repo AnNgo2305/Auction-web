@@ -10,7 +10,7 @@ import { Button } from '@/shared/ui/button';
 import { Spinner } from '@/shared/ui/spinner';
 import { resetPasswordSchema, type ResetPasswordBody as ResetPasswordValues } from '@/features/auth/schemas/reset-password.schema';
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
+import { authPaths } from '@/features/auth/constants/auth.routes';
 
 export function ResetPasswordForm() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export function ResetPasswordForm() {
   const resetPasswordToken = params.get('token');
 
   if (!resetPasswordToken) {
-    return <Navigate to={AUTH_ROUTES.FORGOT_PASSWORD} replace />;
+    return <Navigate to={authPaths.forgotPassword()} replace />;
   }
 
   const form = useForm<ResetPasswordValues>({
@@ -41,7 +41,7 @@ export function ResetPasswordForm() {
   } = form;
 
   const resetPasswordMutation = useResetPassword(() => {
-    navigate(AUTH_ROUTES.LOGIN, {
+    navigate(authPaths.login(), {
       replace: true,
     });
   });

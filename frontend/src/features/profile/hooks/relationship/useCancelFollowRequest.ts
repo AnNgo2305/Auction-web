@@ -7,27 +7,31 @@ import { CANCEL_FOLLOW_REQUEST_ERROR_MESSAGES } from '@/features/profile/constan
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { CancelFollowRequestResponse } from '@/features/profile/types/relationship/cancel-follow-request.response';
-
 import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+
+type CancelFollowVariables = {
+  sellerId: string;
+  bidderId: string;
+};
 
 type CancelFollowRequestContext = {
   previousProfileCache?: GetProfileResponse;
 };
 
-export function useCancelFollowRequest(sellerId: string) {
+export function useCancelFollowRequest() {
   const queryClient = useQueryClient();
 
   return useMutation<
     CancelFollowRequestResponse,
     ApiResponseError,
-    void,
+    CancelFollowVariables,
     CancelFollowRequestContext
   >({
-    mutationFn: async (): Promise<CancelFollowRequestResponse> => {
+    mutationFn: async ({sellerId}): Promise<CancelFollowRequestResponse> => {
       return relationApi.cancelFollowRequest(sellerId);
     },
 
-    onMutate: async (): Promise<CancelFollowRequestContext> => {
+    onMutate: async ({sellerId}): Promise<CancelFollowRequestContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(sellerId),
       });
@@ -64,10 +68,10 @@ export function useCancelFollowRequest(sellerId: string) {
       toast.success(response.message);
     },
 
-    onError: (error, _, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousProfileCache) {
         queryClient.setQueryData(
-          profileKeys.detail(sellerId),
+          profileKeys.detail(variables.sellerId),
           context.previousProfileCache,
         );
       }
@@ -80,14 +84,21 @@ export function useCancelFollowRequest(sellerId: string) {
       toast.error(message);
     },
 
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: profileKeys.detail(sellerId),
-      });
-
+    onSettled: async (_, __, variables) => {
+      // Refresh your sent follow requests list.
       await queryClient.invalidateQueries({
         queryKey: relationKeys.sentRequests(),
       });
-    },
+
+      // Refresh the current seller's profile to reflect the latest relationship status (source = Seller Main Profile page).
+      await queryClient.invalidateQueries({
+        queryKey: profileKeys.detail(variables.sellerId),
+      });
+
+      // Refresh the current bidder's following list (source = Bidder Following page).
+      await queryClient.invalidateQueries({
+        queryKey: relationKeys.followings(variables.bidderId),
+      });
+    }
   });
 }

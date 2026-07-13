@@ -8,7 +8,7 @@ import { Separator } from '@/shared/ui/separator';
 import { Spinner } from '@/shared/ui/spinner.tsx';
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
+import { authPaths } from '@/features/auth/constants/auth.routes';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,7 +43,7 @@ export function RegisterForm() {
   } = form;
 
   const registerMutation = useRegister((res) => {
-    navigate(AUTH_ROUTES.VERIFY_EMAIL, {
+    navigate(authPaths.verifyEmail(), {
       state: {
         userId: res.data.userId,
         email: res.data.email,
@@ -64,7 +64,7 @@ export function RegisterForm() {
         <CardDescription className="text-sm">
           Already have an account?{' '}
           <Link
-            to={AUTH_ROUTES.LOGIN}
+            to={authPaths.login()}
             className="text-primary hover:text-primary/80 font-medium transition-colors hover:underline"
           >
             Sign in

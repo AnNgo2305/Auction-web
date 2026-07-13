@@ -9,24 +9,29 @@ import type { GetProfileResponse } from '@/features/profile/types/profile/get-pr
 import type { UnfollowSellerResponse } from '@/features/profile/types/relationship/unfollow-seller.response';
 import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
 
+type UnfollowSellerVariables = {
+  sellerId: string;
+  bidderId: string;
+};
+
 type UnfollowSellerContext = {
   previousProfileCache?: GetProfileResponse;
 };
 
-export function useUnfollowSeller(sellerId: string) {
+export function useUnfollowSeller() {
   const queryClient = useQueryClient();
 
   return useMutation<
     UnfollowSellerResponse,
     ApiResponseError,
-    void,
+    UnfollowSellerVariables,
     UnfollowSellerContext
   >({
-    mutationFn: async (): Promise<UnfollowSellerResponse> => {
+    mutationFn: async ({sellerId}): Promise<UnfollowSellerResponse> => {
       return relationApi.unfollowSeller(sellerId);
     },
 
-    onMutate: async (): Promise<UnfollowSellerContext> => {
+    onMutate: async ({sellerId}): Promise<UnfollowSellerContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(sellerId),
       });
@@ -63,10 +68,10 @@ export function useUnfollowSeller(sellerId: string) {
       toast.success(response.message);
     },
 
-    onError: (error, _, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousProfileCache) {
         queryClient.setQueryData(
-          profileKeys.detail(sellerId),
+          profileKeys.detail(variables.sellerId),
           context.previousProfileCache,
         );
       }
@@ -78,17 +83,20 @@ export function useUnfollowSeller(sellerId: string) {
       toast.error(message);
     },
 
-    onSettled: async () => {
+    onSettled: async (_, __, variables) => {
+      // Refresh the current seller's profile to reflect the latest relationship status (source = Seller Main Profile page)
       await queryClient.invalidateQueries({
-        queryKey: profileKeys.detail(sellerId),
+        queryKey: profileKeys.detail(variables.sellerId),
       });
 
+      // Refresh the current seller's follower list (source = Seller Main Profile page).
       await queryClient.invalidateQueries({
-        queryKey: relationKeys.followers(sellerId),
+        queryKey: relationKeys.followers(variables.sellerId),
       });
 
+      // Refresh the current bidder's following list (source = Bidder Following page).
       await queryClient.invalidateQueries({
-        queryKey: relationKeys.followings(),
+        queryKey: relationKeys.followings(variables.bidderId),
       });
     },
   });

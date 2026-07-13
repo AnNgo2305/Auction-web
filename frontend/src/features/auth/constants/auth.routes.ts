@@ -1,10 +1,23 @@
 export const AUTH_ROUTES = {
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/sign-up',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  VERIFY_EMAIL: '/auth/verify-email',
-  VERIFY_RESET_PASSWORD: '/auth/verify-reset-password',
-  RESET_PASSWORD: '/auth/reset-password',
+  LOGIN: 'login',
+  REGISTER: 'sign-up',
+  FORGOT_PASSWORD: 'forgot-password',
+  VERIFY_EMAIL: 'verify-email',
+  VERIFY_RESET_PASSWORD: 'verify-reset-password',
+  RESET_PASSWORD: 'reset-password',
 } as const;
 
-export type AuthRoute = (typeof AUTH_ROUTES)[keyof typeof AUTH_ROUTES];
+export const authPaths = {
+  login: () => `/auth/${AUTH_ROUTES.LOGIN}`,
+  register: () => `/auth/${AUTH_ROUTES.REGISTER}`,
+  forgotPassword: () => `/auth/${AUTH_ROUTES.FORGOT_PASSWORD}`,
+  verifyEmail: () => `/auth/${AUTH_ROUTES.VERIFY_EMAIL}`,
+  verifyResetPassword: () => `/auth/${AUTH_ROUTES.VERIFY_RESET_PASSWORD}`,
+
+  // Navigate
+  resetPasswordWithToken: (token: string) =>
+    `/auth/${AUTH_ROUTES.RESET_PASSWORD}?token=${token}`,
+
+  // Pathname
+  resetPassword: () => `/auth/${AUTH_ROUTES.RESET_PASSWORD}`,
+} as const;

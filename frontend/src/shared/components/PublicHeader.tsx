@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 import logo from '@/assets/images/bid-market.png';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes';
-import { ABOUT_ROUTES } from '@/features/about/constants/about.routes';
+import { authPaths } from '@/features/auth/constants/auth.routes';
+import { aboutPaths } from '@/features/about/constants/about.routes';
 
 export default function PublicHeader() {
   const location = useLocation();
@@ -21,7 +21,7 @@ export default function PublicHeader() {
           </Link>
           <nav className="flex items-center gap-2">
             <Link
-              to={ABOUT_ROUTES.ABOUT}
+              to={aboutPaths.about()}
               className={cn(
                 'relative rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
                 location.pathname === '/about'
@@ -43,10 +43,10 @@ export default function PublicHeader() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            to={AUTH_ROUTES.LOGIN}
+            to={authPaths.login()}
             className={cn(
               'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
-              location.pathname === AUTH_ROUTES.LOGIN
+              location.pathname === authPaths.login()
                 ? 'bg-white text-black shadow-sm'
                 : 'text-white/80 hover:bg-white/15 hover:text-white',
             )}
@@ -54,10 +54,10 @@ export default function PublicHeader() {
             Login
           </Link>
           <Link
-            to={AUTH_ROUTES.REGISTER}
+            to={authPaths.register()}
             className={cn(
               'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
-              location.pathname === AUTH_ROUTES.REGISTER
+              location.pathname === authPaths.register()
                 ? 'bg-white text-black shadow-sm'
                 : 'text-white/80 hover:bg-white/15 hover:text-white',
             )}

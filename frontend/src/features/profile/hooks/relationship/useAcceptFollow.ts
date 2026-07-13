@@ -9,24 +9,29 @@ import type { GetProfileResponse } from '@/features/profile/types/profile/get-pr
 import type { AcceptFollowResponse } from '@/features/profile/types/relationship/accept-follow.response';
 import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
 
+type AcceptFollowVariables = {
+  sellerId: string;
+  bidderId: string;
+};
+
 type AcceptFollowContext = {
   previousProfileCache?: GetProfileResponse;
 };
 
-export function useAcceptFollow(sellerId: string, bidderId: string) {
+export function useAcceptFollow() {
   const queryClient = useQueryClient();
 
   return useMutation<
     AcceptFollowResponse,
     ApiResponseError,
-    void,
+    AcceptFollowVariables,
     AcceptFollowContext
   >({
-    mutationFn: async (): Promise<AcceptFollowResponse> => {
+    mutationFn: async ({ bidderId }): Promise<AcceptFollowResponse> => {
       return await relationApi.acceptFollow(bidderId);
     },
 
-    onMutate: async (): Promise<AcceptFollowContext> => {
+    onMutate: async ({ bidderId }): Promise<AcceptFollowContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(bidderId),
       });
@@ -54,19 +59,17 @@ export function useAcceptFollow(sellerId: string, bidderId: string) {
         },
       );
 
-      return {
-        previousProfileCache,
-      };
+      return { previousProfileCache };
     },
 
     onSuccess: (response) => {
       toast.success(response.message);
     },
 
-    onError: (error, _, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousProfileCache) {
         queryClient.setQueryData(
-          profileKeys.detail(bidderId),
+          profileKeys.detail(variables.bidderId),
           context.previousProfileCache,
         );
       }
@@ -80,22 +83,26 @@ export function useAcceptFollow(sellerId: string, bidderId: string) {
       toast.error(message);
     },
 
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: profileKeys.detail(bidderId),
-      });
-
+    onSettled: async (_, __, variables) => {
+      // Refresh your pending follow requests list.
       await queryClient.invalidateQueries({
         queryKey: relationKeys.pendingRequests(),
       });
 
+      // Refresh the current bidder's profile to reflect the latest relationship status (source = Bidder Main Profile page).
       await queryClient.invalidateQueries({
-        queryKey: relationKeys.followers(sellerId),
+        queryKey: profileKeys.detail(variables.bidderId),
       });
 
+      // Refresh the current bidder's followings list (source = Bidder Main Profile page).
       await queryClient.invalidateQueries({
-        queryKey: relationKeys.followings(bidderId),
+        queryKey: relationKeys.followings(variables.bidderId),
       });
-    },
+
+      // Refresh the current seller's followers list (source = Seller Follower page).
+      await queryClient.invalidateQueries({
+        queryKey: relationKeys.followers(variables.sellerId),
+      });
+    }
   });
 }

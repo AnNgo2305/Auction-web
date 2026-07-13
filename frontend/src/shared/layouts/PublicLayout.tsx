@@ -2,28 +2,35 @@ import { Outlet, useLocation } from 'react-router-dom';
 import PublicHeader from '@/shared/components/PublicHeader';
 import Footer from '@/shared/components/Footer';
 import AuthBanner from '@/shared/components/AuthBanner';
-import { AUTH_ROUTES, type AuthRoute } from '@/features/auth/constants/auth.routes.ts';
+import { authPaths } from '@/features/auth/constants/auth.routes';
 
 export default function PublicLayout() {
   const location = useLocation();
 
-  const authPages = Object.values(AUTH_ROUTES);
+  const authPages = [
+    authPaths.login(),
+    authPaths.register(),
+    authPaths.forgotPassword(),
+    authPaths.verifyEmail(),
+    authPaths.verifyResetPassword(),
+    authPaths.resetPassword(),
+  ];
 
-  const isAuthPage = authPages.includes(location.pathname as AuthRoute);
+  const isAuthPage = authPages.includes(location.pathname);
 
   const getTitle = () => {
     switch (location.pathname) {
-      case AUTH_ROUTES.LOGIN:
+      case authPaths.login():
         return 'Login';
-      case AUTH_ROUTES.REGISTER:
+      case authPaths.register():
         return 'Register';
-      case AUTH_ROUTES.FORGOT_PASSWORD:
+      case authPaths.forgotPassword():
         return 'Forgot Password';
-      case AUTH_ROUTES.VERIFY_EMAIL:
+      case authPaths.verifyEmail():
         return 'Verify Email';
-      case AUTH_ROUTES.VERIFY_RESET_PASSWORD:
+      case authPaths.verifyResetPassword():
         return 'Verify Reset Password';
-      case AUTH_ROUTES.RESET_PASSWORD:
+      case authPaths.resetPassword():
         return 'Reset Password';
       default:
         return '';

@@ -5,7 +5,7 @@ import { Button } from '@/shared/ui/button';
 import { Spinner } from '@/shared/ui/spinner';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
+import { authPaths } from '@/features/auth/constants/auth.routes';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,7 +40,7 @@ export function LoginForm() {
       toast.info(
         'Please click the "Send OTP" button to receive a verification code to your email before continuing.',
       );
-      navigate(AUTH_ROUTES.VERIFY_EMAIL, {
+      navigate(authPaths.verifyEmail(), {
         state: {
           userId: res.data.user.userId,
           email: res.data.user.email,
@@ -65,7 +65,7 @@ export function LoginForm() {
         <CardDescription className="text-sm">
           Don’t have an account?{' '}
           <Link
-            to={AUTH_ROUTES.REGISTER}
+            to={authPaths.register()}
             className="text-primary hover:text-primary/80 font-medium transition-colors hover:underline"
           >
             Sign up
@@ -148,7 +148,7 @@ export function LoginForm() {
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
         <Link
-          to={AUTH_ROUTES.FORGOT_PASSWORD}
+          to={authPaths.forgotPassword()}
           className="text-primary text-sm hover:underline"
         >
           Forgot password?

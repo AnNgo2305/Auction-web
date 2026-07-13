@@ -7,27 +7,31 @@ import { BLOCK_BIDDER_ERROR_MESSAGES } from '@/features/profile/constants/relati
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { BlockBidderResponse } from '@/features/profile/types/relationship/block-bidder.response';
-
 import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+
+type BlockBidderVariables = {
+  sellerId: string;
+  bidderId: string;
+};
 
 type BlockBidderContext = {
   previousProfileCache?: GetProfileResponse;
 };
 
-export function useBlockBidder(bidderId: string) {
+export function useBlockBidder() {
   const queryClient = useQueryClient();
 
   return useMutation<
     BlockBidderResponse,
     ApiResponseError,
-    void,
+    BlockBidderVariables,
     BlockBidderContext
   >({
-    mutationFn: async (): Promise<BlockBidderResponse> => {
+    mutationFn: async ({ bidderId }): Promise<BlockBidderResponse> => {
       return relationApi.blockBidder(bidderId);
     },
 
-    onMutate: async (): Promise<BlockBidderContext> => {
+    onMutate: async ({ bidderId }): Promise<BlockBidderContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(bidderId),
       });
@@ -60,10 +64,10 @@ export function useBlockBidder(bidderId: string) {
       toast.success(response.message);
     },
 
-    onError: (error, _, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousProfileCache) {
         queryClient.setQueryData(
-          profileKeys.detail(bidderId),
+          profileKeys.detail(variables.bidderId),
           context.previousProfileCache,
         );
       }
@@ -77,14 +81,21 @@ export function useBlockBidder(bidderId: string) {
       toast.error(message);
     },
 
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: profileKeys.detail(bidderId),
-      });
-
+    onSettled: async (_, __, variables) => {
+      // Refresh your blocked users list.
       await queryClient.invalidateQueries({
         queryKey: relationKeys.blockedUsers(),
       });
-    },
+
+      // Refresh the current bidder's profile to reflect the latest relationship status (source = Bidder Main Profile page).
+      await queryClient.invalidateQueries({
+        queryKey: profileKeys.detail(variables.bidderId),
+      });
+
+      // Refresh the current seller's followers list (source = Seller Follower page).
+      await queryClient.invalidateQueries({
+        queryKey: relationKeys.followers(variables.sellerId),
+      });
+    }
   });
 }

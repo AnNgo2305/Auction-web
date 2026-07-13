@@ -9,8 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 import type { ApiResponseError } from '@/shared/types/error';
 import { useNavigate } from 'react-router-dom';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
-import { FORGOT_PASSWORD_ERROR_MESSAGES } from '@/features/auth/constants/auth-error.messages.ts';
+import { authPaths } from '@/features/auth/constants/auth.routes';
+import { FORGOT_PASSWORD_ERROR_MESSAGES } from '@/features/auth/constants/auth-error.messages';
 
 export function ForgotPasswordForm() {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
   } = form
 
   const forgotPasswordMutation = useForgotPassword((res) => {
-    navigate(AUTH_ROUTES.VERIFY_RESET_PASSWORD, {
+    navigate(authPaths.verifyResetPassword(), {
       state: {
         userId: res.data.userId,
         email: res.data.email,

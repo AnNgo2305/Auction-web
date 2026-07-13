@@ -1,8 +1,8 @@
 export const PROFILE_ROUTES = {
-  OVERVIEW: '/profile/:userId',
-  FOLLOWERS: '/profile/:userId/followers',
-  FOLLOWING: '/profile/:userId/following',
-  EDIT: '/profile/:userId/edit',
+  OVERVIEW: ':userId',
+  FOLLOWERS: ':userId/followers',
+  FOLLOWING: ':userId/following',
+  EDIT: ':userId/edit',
 } as const;
 
 export const profilePaths = {

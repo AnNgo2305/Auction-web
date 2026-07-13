@@ -8,7 +8,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/images/bid-market.png';
 import defaultAvatar from '@/assets/images/default-avatar.jpg';
-import { ABOUT_ROUTES } from '@/features/about/constants/about.routes';
+import { aboutPaths } from '@/features/about/constants/about.routes';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
 import {
@@ -21,7 +21,7 @@ import {
 import { useUser } from '@/shared/contexts/UserContext';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/contexts/AuthContext';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes';
+import { authPaths } from '@/features/auth/constants/auth.routes';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -35,12 +35,12 @@ export default function AuthHeader() {
 
   const handleLogout = async () => {
     await logout();
-    navigate(AUTH_ROUTES.LOGIN);
+    navigate(authPaths.login());
   };
 
   const handleLogoutAll = async () => {
     await logoutAll();
-    navigate(AUTH_ROUTES.LOGIN);
+    navigate(authPaths.login());
   };
 
   return (
@@ -57,10 +57,10 @@ export default function AuthHeader() {
           </Link>
           <nav>
             <Link
-              to={ABOUT_ROUTES.ABOUT}
+              to={aboutPaths.about()}
               className={cn(
                 'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                location.pathname === ABOUT_ROUTES.ABOUT
+                location.pathname === aboutPaths.about()
                   ? 'text-white'
                   : 'text-white/80 hover:text-white',
               )}

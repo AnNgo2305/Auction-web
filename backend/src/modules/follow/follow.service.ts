@@ -484,7 +484,7 @@ export class FollowService {
         skip: 1,
       }),
       orderBy: {
-        createdAt: 'desc',
+        followId: 'desc',
       },
       select: {
         followId: true,
@@ -542,7 +542,6 @@ export class FollowService {
       where: {
         followerId: bidderId,
         status: FollowStatus.ACTIVE,
-        // ...this.buildVisibilityFilter(viewerId),
       },
       take: limit + 1,
       ...(cursor && {
@@ -552,7 +551,7 @@ export class FollowService {
         skip: 1,
       }),
       orderBy: {
-        createdAt: 'desc',
+        followId: 'desc',
       },
       select: {
         followId: true,
@@ -631,7 +630,7 @@ export class FollowService {
         skip: 1,
       }),
       orderBy: {
-        createdAt: 'desc',
+        followId: 'desc',
       },
     });
 
@@ -682,7 +681,7 @@ export class FollowService {
         skip: 1,
       }),
       orderBy: {
-        createdAt: 'desc',
+        followId: 'desc',
       },
     });
 
@@ -736,7 +735,7 @@ export class FollowService {
         skip: 1,
       }),
       orderBy: {
-        createdAt: 'desc',
+        followId: 'desc',
       },
     });
 

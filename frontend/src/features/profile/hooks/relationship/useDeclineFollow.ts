@@ -7,27 +7,31 @@ import { DECLINE_FOLLOW_ERROR_MESSAGES } from '@/features/profile/constants/rela
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { DeclineFollowResponse } from '@/features/profile/types/relationship/decline-follow.response';
-
 import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+
+type CancelFollowVariables = {
+  sellerId: string;
+  bidderId: string;
+};
 
 type DeclineFollowContext = {
   previousProfileCache?: GetProfileResponse;
 };
 
-export function useDeclineFollow(bidderId: string) {
+export function useDeclineFollow() {
   const queryClient = useQueryClient();
 
   return useMutation<
     DeclineFollowResponse,
     ApiResponseError,
-    void,
+    CancelFollowVariables,
     DeclineFollowContext
   >({
-    mutationFn: async (): Promise<DeclineFollowResponse> => {
+    mutationFn: async ({ bidderId }): Promise<DeclineFollowResponse> => {
       return await relationApi.declineFollow(bidderId);
     },
 
-    onMutate: async (): Promise<DeclineFollowContext> => {
+    onMutate: async ({ bidderId }): Promise<DeclineFollowContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(bidderId),
       });
@@ -60,10 +64,10 @@ export function useDeclineFollow(bidderId: string) {
       toast.success(response.message);
     },
 
-    onError: (error, _, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousProfileCache) {
         queryClient.setQueryData(
-          profileKeys.detail(bidderId),
+          profileKeys.detail(variables.bidderId),
           context.previousProfileCache,
         );
       }
@@ -77,14 +81,21 @@ export function useDeclineFollow(bidderId: string) {
       toast.error(message);
     },
 
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: profileKeys.detail(bidderId),
-      });
-
+    onSettled: async (_, __, variables) => {
+      // Refresh your pending follow requests list.
       await queryClient.invalidateQueries({
         queryKey: relationKeys.pendingRequests(),
       });
-    },
+
+      // Refresh the current bidder's profile to reflect the latest relationship status (source = Bidder Main Profile page).
+      await queryClient.invalidateQueries({
+        queryKey: profileKeys.detail(variables.bidderId),
+      });
+
+      // Refresh the current seller's followers list (source = Seller Follower page).
+      await queryClient.invalidateQueries({
+        queryKey: relationKeys.followers(variables.sellerId),
+      });
+    }
   });
 }

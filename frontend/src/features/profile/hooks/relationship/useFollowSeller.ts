@@ -9,24 +9,29 @@ import { toast } from 'sonner';
 import { FOLLOW_ERROR_MESSAGES } from '@/features/profile/constants/relationship-error.messages';
 import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
 
+type FollowSellerVariables = {
+  sellerId: string;
+  bidderId: string;
+};
+
 type FollowSellerContext = {
   previousProfileCache?: GetProfileResponse;
 };
 
-export function useFollowSeller(sellerId: string) {
+export function useFollowSeller() {
   const queryClient = useQueryClient();
 
   return useMutation<
     FollowSellerResponse,
     ApiResponseError,
-    void,
+    FollowSellerVariables,
     FollowSellerContext
   >({
-    mutationFn: async (): Promise<FollowSellerResponse> => {
+    mutationFn: async ({sellerId}): Promise<FollowSellerResponse> => {
       return relationApi.followSeller(sellerId);
     },
 
-    onMutate: async (): Promise<FollowSellerContext> => {
+    onMutate: async ({sellerId}): Promise<FollowSellerContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(sellerId),
       });
@@ -60,10 +65,10 @@ export function useFollowSeller(sellerId: string) {
       toast.success(response.message);
     },
 
-    onError: (error, _, context) => {
+    onError: (error, variables, context) => {
       if (context?.previousProfileCache) {
         queryClient.setQueryData(
-          profileKeys.detail(sellerId),
+          profileKeys.detail(variables.sellerId),
           context.previousProfileCache,
         );
       }
@@ -73,14 +78,21 @@ export function useFollowSeller(sellerId: string) {
       toast.error(message);
     },
 
-    onSettled: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: profileKeys.detail(sellerId),
-      });
-
+    onSettled: async (_, __, variables) => {
+      // Refresh your sent follow requests list.
       await queryClient.invalidateQueries({
         queryKey: relationKeys.sentRequests(),
       });
-    },
+
+      // Refresh the current seller's profile to reflect the latest relationship status (source = Seller Main Profile page)
+      await queryClient.invalidateQueries({
+        queryKey: profileKeys.detail(variables.sellerId),
+      });
+
+      // Refresh the current bidder's following list (source = Bidder Following page).
+      await queryClient.invalidateQueries({
+        queryKey: relationKeys.followings(variables.bidderId),
+      });
+    }
   });
 }

@@ -18,6 +18,7 @@ export function ProfileFollowingPage() {
 
   return (
     <UserPreviewList
+      ownerUserId={profile?.userId}
       users={data?.sellers ?? []}
       isInitialLoading={isLoading}
       columns={2}

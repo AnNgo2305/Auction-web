@@ -13,6 +13,7 @@ export function ProfileFollowersPage() {
 
   return (
     <UserPreviewList
+      ownerUserId={profile?.userId}
       users={data?.bidders ?? []}
       isInitialLoading={isLoading}
       columns={2}

@@ -15,7 +15,7 @@ import {
 import { OTP, OTP_TYPE, type OtpType } from '@/features/auth/constants/otp';
 import { useVerifyEmailOTP } from '@/features/auth/hooks/useVerifyEmailOTP.ts';
 import { useNavigate } from 'react-router-dom';
-import { AUTH_ROUTES } from '@/features/auth/constants/auth.routes.ts';
+import { authPaths } from '@/features/auth/constants/auth.routes';
 import type { ApiResponseError } from '@/shared/types/error.ts';
 import { toast } from 'sonner';
 import { useVerifyResetPasswordlOTP } from '@/features/auth/hooks/useVerifyResetPasswordOTP.ts';
@@ -69,7 +69,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const email = state?.email;
 
   if (!userId || !email) {
-    return <Navigate to={AUTH_ROUTES.LOGIN} replace />;
+    return <Navigate to={authPaths.login()} replace />;
   }
 
   const form = useForm<Pick<VerifyOTPValues, 'code'>>({
@@ -93,7 +93,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   } = form;
 
   const verifyEmailOtpMutation = useVerifyEmailOTP(() => {
-    navigate(AUTH_ROUTES.LOGIN, {
+    navigate(authPaths.login(), {
       replace: true,
     });
   });
@@ -101,7 +101,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const verifyResetPasswordOtpMutation = useVerifyResetPasswordlOTP((res) => {
     const token = res.data.resetPasswordToken;
 
-    navigate(`${AUTH_ROUTES.RESET_PASSWORD}?token=${token}`, { replace: true });
+    navigate(authPaths.resetPasswordWithToken(token), { replace: true });
   });
 
   const mutationMap = {
@@ -116,7 +116,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
     (error) => {
       const code = error?.errorCode;
       if (code === 'USER_NOT_FOUND' || code === 'EMAIL_ALREADY_VERIFIED') {
-        navigate(AUTH_ROUTES.LOGIN, { replace: true });
+        navigate(authPaths.login(), { replace: true });
       }
     },
   );
@@ -136,7 +136,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
 
       if (isRedirectError(code)) {
         toast.error(message);
-        navigate(AUTH_ROUTES.LOGIN, { replace: true });
+        navigate(authPaths.login(), { replace: true });
         return;
       }
 
@@ -150,7 +150,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const handleSendEmail = () => {
     if (!userId || !email) {
       toast.error('Invalid verification session. Please try again.');
-      navigate(AUTH_ROUTES.LOGIN, { replace: true, });
+      navigate(authPaths.login(), { replace: true });
       return;
     }
 
