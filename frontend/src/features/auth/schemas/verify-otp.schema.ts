@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { OTP_TYPE } from '@/shared/types/otp.ts';
 
 export const verifyOtpSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
 
-  type: z.enum(['VERIFY_EMAIL', 'RESET_PASSWORD'], {
+  type: z.enum([OTP_TYPE.VERIFY_EMAIL, OTP_TYPE.RESET_PASSWORD], {
     error: 'OTP type must be a valid value',
   }),
 

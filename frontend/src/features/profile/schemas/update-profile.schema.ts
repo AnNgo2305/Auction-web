@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GENDERS } from '@/shared/types/user.ts';
 
 export const updateProfileSchema = z.object({
   fullName: z
@@ -26,11 +27,11 @@ export const updateProfileSchema = z.object({
     .string({
       error: 'dateOfBirth must be a string',
     })
-    .pipe(z.iso.datetime('dateOfBirth must be a valid ISO date string'))
+    .pipe(z.iso.date('dateOfBirth must be a valid ISO date string'))
     .nullable(),
 
   gender: z
-    .enum(['MALE', 'FEMALE', 'OTHER'], {
+    .enum([GENDERS.MALE, GENDERS.FEMALE, GENDERS.OTHER], {
       error: 'gender must be a valid enum value',
     })
     .nullable(),

@@ -1,3 +1,4 @@
+import { ROLES } from '@/shared/types/user';
 import { z } from 'zod';
 
 export const registerSchema = z
@@ -36,7 +37,7 @@ export const registerSchema = z
 
     confirmPassword: z.string().min(1, 'Confirm password is required'),
 
-    role: z.enum(['BIDDER', 'SELLER'], {
+    role: z.enum([ROLES.BIDDER, ROLES.SELLER], {
       error: 'Role is required',
     }),
   })

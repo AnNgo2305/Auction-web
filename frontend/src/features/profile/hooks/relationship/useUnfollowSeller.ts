@@ -7,7 +7,7 @@ import { UNFOLLOW_ERROR_MESSAGES } from '@/features/profile/constants/relationsh
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { UnfollowSellerResponse } from '@/features/profile/types/relationship/unfollow-seller.response';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship.ts';
 
 type UnfollowSellerVariables = {
   sellerId: string;
@@ -52,7 +52,7 @@ export function useUnfollowSeller() {
             data: {
               ...previousGetProfileResponse.data,
               relationship: {
-                status: RelationshipStatus.NONE,
+                status: RELATIONSHIP_STATUSES.NONE,
               },
             },
           };

@@ -7,7 +7,7 @@ import { DECLINE_FOLLOW_ERROR_MESSAGES } from '@/features/profile/constants/rela
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { DeclineFollowResponse } from '@/features/profile/types/relationship/decline-follow.response';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship.ts';
 
 type CancelFollowVariables = {
   sellerId: string;
@@ -48,7 +48,7 @@ export function useDeclineFollow() {
             data: {
               ...previousProfileCache.data,
               relationship: {
-                status: RelationshipStatus.NONE,
+                status: RELATIONSHIP_STATUSES.NONE,
               },
             },
           },

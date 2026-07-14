@@ -5,7 +5,7 @@ import { useAcceptFollow } from './useAcceptFollow';
 import { useDeclineFollow } from './useDeclineFollow';
 import { useBlockBidder } from './useBlockBidder';
 import { useUnblockBidder } from './useUnblockBidder';
-import type { ProfileAction } from '@/features/profile/types/profile/relationship.type';
+import  { PROFILE_ACTIONS, type ProfileAction } from '@/shared/types/relationship.ts';
 
 export function useRelationshipActions() {
   const followMutation = useFollowSeller();
@@ -20,43 +20,43 @@ export function useRelationshipActions() {
 
   const handleRelationshipAction = (currentUserId: string, targetUserId: string, action: ProfileAction) => {
     switch (action) {
-      case 'Follow':
+      case PROFILE_ACTIONS.FOLLOW:
         return followMutation.mutate({
           bidderId: currentUserId,
           sellerId: targetUserId,
         });
 
-      case 'Unfollow':
+      case PROFILE_ACTIONS.UNFOLLOW:
         return unfollowMutation.mutate({
           bidderId: currentUserId,
           sellerId: targetUserId,
         });
 
-      case 'Accept':
+      case PROFILE_ACTIONS.ACCEPT:
         return acceptFollowMutation.mutate({
           sellerId: currentUserId,
-          bidderId: targetUserId
+          bidderId: targetUserId,
         });
 
-      case 'Decline':
+      case PROFILE_ACTIONS.DECLINE:
         return declineFollowMutation.mutate({
           sellerId: currentUserId,
           bidderId: targetUserId,
         });
 
-      case 'Cancel':
+      case PROFILE_ACTIONS.CANCEL:
         return cancelFollowRequestMutation.mutate({
           bidderId: currentUserId,
           sellerId: targetUserId,
         });
 
-      case 'Block':
+      case PROFILE_ACTIONS.BLOCK:
         return blockBidderMutation.mutate({
           sellerId: currentUserId,
           bidderId: targetUserId,
         });
 
-      case 'Unblock':
+      case PROFILE_ACTIONS.UNBLOCK:
         return unblockBidderMutation.mutate({
           sellerId: currentUserId,
           bidderId: targetUserId,

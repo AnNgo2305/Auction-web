@@ -4,8 +4,6 @@ import AboutRoutes from '@/routes/AboutRoute';
 import ProfileRoutes from '@/routes/ProfileRoute';
 
 function App() {
-  console.count('App');
-
   return (
     <BrowserRouter>
       <Routes>

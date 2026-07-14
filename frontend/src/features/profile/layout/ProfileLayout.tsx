@@ -10,12 +10,12 @@ import { useUser } from '@/shared/contexts/UserContext';
 import { ProfileTabs } from '@/features/profile/components/ProfileTabs';
 import { useUpdateProfileImage } from '@/features/profile/hooks/profile/useUpdateProfileImage';
 import { useUpdateCoverImage } from '@/features/profile/hooks/profile/useUpdateCoverImage';
-import type { ImageType } from '@/features/profile/types/profile/profile.type.ts';
 import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { toast } from 'sonner';
+import { IMAGE_TYPES, type ImageType } from '@/shared/types/user.ts';
+import { UPLOAD_PURPOSES } from '@/shared/types/upload.ts';
 
 export function ProfileLayout() {
-  console.count("pro lay")
   const { userId } = useParams<{ userId: string }>();
   const [uploadAvatarImageDialogOpen, setUploadAvatarImageDialogOpen] =
     useState(false);
@@ -68,7 +68,7 @@ export function ProfileLayout() {
   const isOnline = false;
 
   const handleDeleteImage = (type: ImageType) => {
-    if (type === 'avatar') {
+    if (type === IMAGE_TYPES.AVATAR) {
       setDeleteAvatarImageDialogOpen(false);
     } else {
       setDeleteCoverImageDialogOpen(false);
@@ -78,7 +78,7 @@ export function ProfileLayout() {
   const handleSaveAvatarImage = async (file: File) => {
     setIsAvatarSaving(true);
     try {
-      const [uploadedFile] = await uploadToS3([file], 'avatar');
+      const [uploadedFile] = await uploadToS3([file], UPLOAD_PURPOSES.AVATAR);
       if (uploadedFile) {
         await updateProfileImageMutation.mutateAsync({
           imageKey: uploadedFile.key,
@@ -94,7 +94,7 @@ export function ProfileLayout() {
   const handleSaveCoverImage = async (file: File) => {
     setIsCoverSaving(true);
     try {
-      const [uploadedFile] = await uploadToS3([file], 'cover');
+      const [uploadedFile] = await uploadToS3([file], UPLOAD_PURPOSES.COVER);
       if (uploadedFile) {
         await updateCoverImageMutation.mutateAsync({
           imageKey: uploadedFile.key,
@@ -183,13 +183,13 @@ export function ProfileLayout() {
       />
       <DeleteImageDialog
         open={deleteAvatarImageDialogOpen}
-        type="avatar"
+        type={IMAGE_TYPES.AVATAR}
         onOpenChange={setDeleteAvatarImageDialogOpen}
         onDeleteImage={handleDeleteImage}
       />
       <DeleteImageDialog
         open={deleteCoverImageDialogOpen}
-        type="cover"
+        type={IMAGE_TYPES.COVER}
         onOpenChange={setDeleteCoverImageDialogOpen}
         onDeleteImage={handleDeleteImage}
       />

@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/shared/types/response.ts';
-import type { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
-import type { Role } from '@/features/profile/types/profile/profile.type';
+import type { Role } from '@/shared/types/user.ts';
+import type { RelationshipStatus } from '@/shared/types/relationship.ts';
 
 export class RelationshipStatusData {
   status!: RelationshipStatus;

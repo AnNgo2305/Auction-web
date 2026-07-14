@@ -8,11 +8,12 @@ import type { ProfileOutletContext } from '@/features/profile/types/profile/prof
 import { profilePaths } from '@/features/profile/constants/profile.routes';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { formatIsoToDate } from '@/shared/utils/format-time.ts';
+import { type Gender, GENDERS } from '@/shared/types/user.ts';
 
-const GENDER_LABEL: Record<string, string> = {
-  MALE: "Male",
-  FEMALE: "Female",
-  OTHER: "Other",
+const GENDER_LABEL: Record<Gender, string> = {
+  [GENDERS.MALE]: "Male",
+  [GENDERS.FEMALE]: "Female",
+  [GENDERS.OTHER]: "Other",
 };
 
 type ProfileItem = {

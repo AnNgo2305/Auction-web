@@ -4,7 +4,6 @@ import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Navigate, useLocation } from 'react-router-dom';
 
 export default function PublicRoute() {
-  console.count("AuthLayout")
   const { pathname } = useLocation();
   const { isAuthenticated } = useUser();
 

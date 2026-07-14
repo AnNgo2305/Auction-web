@@ -1,4 +1,5 @@
-import type { CurrentUser, UserRole } from '@/shared/types/current-user';
+import type { CurrentUser } from '@/shared/types/current-user';
+import type { Role } from '@/shared/types/user.ts';
 
 export interface UserContextValue {
   currentUser: CurrentUser | null;
@@ -15,5 +16,5 @@ export interface UserContextValue {
 
   isCurrentUser: (userId: string) => boolean;
 
-  hasRole: (...roles: UserRole[]) => boolean;
+  hasRole: (...roles: Role[]) => boolean;
 }

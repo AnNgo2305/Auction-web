@@ -7,7 +7,7 @@ import { profileKeys } from '@/features/profile/constants/profile-query-key';
 import { relationKeys } from '@/features/profile/constants/relation-query-key';
 import { toast } from 'sonner';
 import { FOLLOW_ERROR_MESSAGES } from '@/features/profile/constants/relationship-error.messages';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship.ts';
 
 type FollowSellerVariables = {
   sellerId: string;
@@ -49,7 +49,7 @@ export function useFollowSeller() {
             data: {
               ...previousGetProfileResponse.data,
               relationship: {
-                status: RelationshipStatus.PENDING_OUTGOING,
+                status: RELATIONSHIP_STATUSES.PENDING_OUTGOING,
               },
             },
           };

@@ -8,7 +8,6 @@ import type { ConfirmUploadItem, UploadPurpose } from '@/shared/types/upload';
 export async function uploadToS3(
   files: File[],
   purpose: UploadPurpose,
-  onProgress?: (fileIndex: number, percent: number) => void,
 ): Promise<ConfirmUploadItem[]> {
   // Request presigned URLs from the backend
   const { data } = await createPresignedUrls({
@@ -27,9 +26,7 @@ export async function uploadToS3(
       if (!file) {
         throw new Error(`Missing file at index ${index}`);
       }
-      return uploadFile(url.uploadUrl, file, (percent) =>
-        onProgress?.(index, percent),
-      );
+      return uploadFile(url.uploadUrl, file);
     })
   );
 

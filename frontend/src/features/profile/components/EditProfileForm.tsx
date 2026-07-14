@@ -6,17 +6,16 @@ import {
 } from '@/shared/ui/card';
 import { Field, FieldGroup, FieldLabel } from '@/shared/ui/field';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group';
-import { User, Mail, Phone, Cake, VenusAndMars } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Phone,
+  Cake,
+  VenusAndMars,
+  ChevronDown,
+} from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/ui/select';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FieldError } from '@/shared/ui/field';
@@ -32,19 +31,20 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
+import { GENDERS } from '@/shared/types/user.ts';
 
 const GENDER_OPTIONS = [
   {
     label: 'Male',
-    value: 'MALE',
+    value: GENDERS.MALE,
   },
   {
     label: 'Female',
-    value: 'FEMALE',
+    value: GENDERS.FEMALE,
   },
   {
     label: 'Other',
-    value: 'OTHER',
+    value: GENDERS.OTHER,
   },
 ] as const;
 
@@ -52,15 +52,12 @@ export function EditProfileForm() {
   const { isOwner, profile, isInitialProfileLoading } =
     useOutletContext<ProfileOutletContext>();
 
-  if (isInitialProfileLoading) console.count('skeleton');
-
-
   const {
     register,
     handleSubmit,
     control,
     reset,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty },
   } = useForm<UpdateProfileBody>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
@@ -75,32 +72,27 @@ export function EditProfileForm() {
     mode: 'onChange',
   });
 
-  useEffect(() => {
-    console.log("eff")
+  const resetProfile = () => {
     if (!profile) return;
 
     reset({
-      fullName: profile.fullName ?? "",
-      phoneNumber: profile.phoneNumber ?? "",
-      bio: profile.bio ?? "",
+      fullName: profile.fullName ?? '',
+      phoneNumber: profile.phoneNumber ?? '',
+      bio: profile.bio ?? '',
       dateOfBirth: profile.dateOfBirth
-        ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
-        : "",
+        ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
+        : '',
       gender: profile.gender ?? undefined,
     });
-  }, [profile, reset]);
+  };
+
+  useEffect(() => {
+    resetProfile();
+  }, [profile]);
 
   const updateProfileMutation = useUpdateProfile(profile?.userId, (res) => {
     toast.success(res.message);
   });
-
-  useEffect(() => {
-    console.log('isValid changed ', isValid);
-  }, [isValid]);
-
-  useEffect(() => {
-    console.log("err changed")
-  }, [errors]);
 
   if (isInitialProfileLoading) {
     return (
@@ -153,8 +145,6 @@ export function EditProfileForm() {
   if (!isOwner) {
     return <Navigate to="/" replace />;
   }
-
-  console.count('edit form');
 
   return (
     <Card className="mx-auto w-full max-w-2xl shadow-lg">
@@ -278,37 +268,32 @@ export function EditProfileForm() {
                 <FieldLabel htmlFor="gender" className="text-sm font-medium">
                   Gender
                 </FieldLabel>
-                {/*<Controller*/}
-                {/*  control={control}*/}
-                {/*  name="gender"*/}
-                {/*  render={({ field }) => (*/}
-                {/*    <div className="relative">*/}
-                {/*      <VenusAndMars className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />*/}
-                {/*      <Select*/}
-                {/*        value={field.value ?? undefined}*/}
-                {/*        onValueChange={field.onChange}*/}
-                {/*      >*/}
-                {/*        <SelectTrigger className="h-14 pl-10">*/}
-                {/*          <SelectValue placeholder="Select gender" />*/}
-                {/*        </SelectTrigger>*/}
-                {/*        <SelectContent>*/}
-                {/*          <SelectGroup>*/}
-                {/*            {GENDER_OPTIONS.map((item) => (*/}
-                {/*              <SelectItem key={item.value} value={item.value}>*/}
-                {/*                {item.label}*/}
-                {/*              </SelectItem>*/}
-                {/*            ))}*/}
-                {/*          </SelectGroup>*/}
-                {/*        </SelectContent>*/}
-                {/*      </Select>*/}
-                {/*    </div>*/}
-                {/*  )}*/}
-                {/*/>*/}
-                {/*{errors.gender && (*/}
-                {/*  <FieldError className="text-xs leading-tight text-red-500">*/}
-                {/*    {errors.gender.message}*/}
-                {/*  </FieldError>*/}
-                {/*)}*/}
+                <Controller
+                  control={control}
+                  name="gender"
+                  render={({ field }) => (
+                    <div className="relative">
+                      <VenusAndMars className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
+                      <select
+                        className="bg-background h-14 w-full appearance-none rounded-md border pr-10 pl-10"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        {GENDER_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
+                    </div>
+                  )}
+                />
+                {errors.gender && (
+                  <FieldError className="text-xs leading-tight text-red-500">
+                    {errors.gender.message}
+                  </FieldError>
+                )}
               </Field>
             </div>
             <Field>
@@ -331,13 +316,14 @@ export function EditProfileForm() {
           <div className="mt-6 flex justify-end gap-3">
             <Button
               variant="outline"
-              disabled={updateProfileMutation.isPending}
+              disabled={!isDirty || updateProfileMutation.isPending}
+              onClick={resetProfile}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={!isValid || updateProfileMutation.isPending}
+              disabled={!isDirty || !isValid || updateProfileMutation.isPending}
             >
               {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>

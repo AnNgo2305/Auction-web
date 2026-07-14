@@ -1,8 +1,6 @@
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Skeleton } from '@/shared/ui/skeleton';
-import type { Role } from '@/features/profile/types/profile/profile.type';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
 import { formatCount } from '@/shared/utils/format-count';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { getRelationshipActions, getRelationshipLabel } from '@/features/profile/utils/relationship';
@@ -11,8 +9,12 @@ import { Link } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
 import { cn } from '@/shared/lib/utils.ts';
 import React from 'react';
-import { ACTION_CONFIG } from '@/features/profile/constants/relationship-actions';
 import { useRelationshipActions } from '@/features/profile/hooks/relationship/useRelationshipActions';
+import { type Role, ROLES } from '@/shared/types/user.ts';
+import {
+  ACTION_CONFIG,
+  type RelationshipStatus,
+} from '@/shared/types/relationship.ts';
 
 interface ProfileHeaderProps {
   userId: string | undefined;
@@ -28,13 +30,13 @@ interface ProfileHeaderProps {
 }
 
 const ROLE_LABEL: Record<Role, string> = {
-  SELLER: 'Seller',
-  BIDDER: 'Bidder',
+  [ROLES.SELLER]: 'Seller',
+  [ROLES.BIDDER]: 'Bidder',
 };
 
 const ROLE_BADGE_CLASS: Record<Role, string> = {
-  SELLER: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
-  BIDDER: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+  [ROLES.SELLER]: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  [ROLES.BIDDER]: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
 };
 
 export function ProfileHeader({

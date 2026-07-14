@@ -1,5 +1,5 @@
 import { VerifyOTPForm } from '@/features/auth/components/VerifyOTPForm.tsx';
-import { OTP_TYPE } from '@/features/auth/constants/otp.ts';
+import { OTP_TYPE } from '@/shared/types/otp.ts';
 
 export default function VerifyEmailPage() {
   return (

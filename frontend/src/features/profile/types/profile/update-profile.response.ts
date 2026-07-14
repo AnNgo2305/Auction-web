@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@/shared/types/response.ts';
+import type { Gender } from '@/shared/types/user.ts';
 
 export class UpdateProfileData {
   fullName!: string | null;
@@ -9,7 +10,7 @@ export class UpdateProfileData {
 
   dateOfBirth!: string | null;
 
-  gender!: 'MALE' | 'FEMALE' | 'OTHER' | null;
+  gender!: Gender | null;
 }
 
 export type UpdateProfileResponse = ApiResponse<UpdateProfileData>;

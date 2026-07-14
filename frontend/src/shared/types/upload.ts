@@ -1,4 +1,10 @@
-export type UploadPurpose = 'avatar' | 'cover';
+export const UPLOAD_PURPOSES = {
+  AVATAR: 'avatar',
+  COVER: 'cover',
+} as const;
+
+export type UploadPurpose =
+  (typeof UPLOAD_PURPOSES)[keyof typeof UPLOAD_PURPOSES];
 
 export interface FileMetadata {
   originalFileName: string;

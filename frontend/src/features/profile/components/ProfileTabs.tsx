@@ -1,7 +1,7 @@
 import { NavLink, useLocation, useParams } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
-import type { Role } from '@/features/profile/types/profile/profile.type.ts';
 import { Skeleton } from '@/shared/ui/skeleton.tsx';
+import { type Role, ROLES } from '@/shared/types/user.ts';
 
 interface ProfileTabsProps {
   isOwner: boolean;
@@ -36,7 +36,7 @@ export function ProfileTabs({ isOwner, role, isLoading }: ProfileTabsProps) {
       label: 'Overview',
       to: profilePaths.overview(userId),
     },
-    ...(role === 'SELLER'
+    ...(role === ROLES.SELLER
       ? [
           {
             key: 'followers',
@@ -45,7 +45,7 @@ export function ProfileTabs({ isOwner, role, isLoading }: ProfileTabsProps) {
           },
         ]
       : []),
-    ...(role === 'BIDDER'
+    ...(role === ROLES.BIDDER
       ? [
           {
             key: 'following',

@@ -1,40 +1,43 @@
-import type {
-  ProfileAction,
-  RelationshipStatus,
-} from '@/features/profile/types/profile/relationship.type.ts';
-import type { Role } from '@/features/profile/types/profile/profile.type.ts';
+import { type Role, ROLES } from '@/shared/types/user.ts';
+import  {
+  PROFILE_ACTIONS,
+  type ProfileAction,
+  RELATIONSHIP_STATUSES,
+  type RelationshipStatus,
+} from '@/shared/types/relationship.ts';
 
 type RelationshipContext = {
   relationship: RelationshipStatus;
   currentUserRole: Role | undefined;
   profileRole: Role;
 };
+
 export function getRelationshipLabel({ relationship, currentUserRole, profileRole }: RelationshipContext): string | null {
   switch (relationship) {
-    case 'NONE':
-      if (currentUserRole === 'BIDDER' && profileRole === 'SELLER') {
+    case RELATIONSHIP_STATUSES.NONE:
+      if (currentUserRole === ROLES.BIDDER && profileRole === ROLES.SELLER) {
         return 'Follow';
       }
 
-      if (currentUserRole === 'SELLER' && profileRole === 'BIDDER') {
+      if (currentUserRole === ROLES.SELLER && profileRole === ROLES.BIDDER) {
         return 'More';
       }
 
       return null;
 
-    case 'FOLLOWING':
+    case RELATIONSHIP_STATUSES.FOLLOWING:
       return 'Following';
 
-    case 'ACCEPTED':
+    case RELATIONSHIP_STATUSES.ACCEPTED:
       return 'Connected';
 
-    case 'PENDING_OUTGOING':
+    case RELATIONSHIP_STATUSES.PENDING_OUTGOING:
       return 'Request Sent';
 
-    case 'PENDING_INCOMING':
+    case RELATIONSHIP_STATUSES.PENDING_INCOMING:
       return 'Awaiting Approval';
 
-    case 'BLOCKING':
+    case RELATIONSHIP_STATUSES.BLOCKING:
       return 'Blocking';
 
     default:
@@ -48,37 +51,41 @@ export function getRelationshipActions({
   profileRole,
 }: RelationshipContext): ProfileAction[] {
   const isBidderViewingSeller =
-    currentUserRole === 'BIDDER' && profileRole === 'SELLER';
+    currentUserRole === ROLES.BIDDER && profileRole === ROLES.SELLER;
 
   const isSellerViewingBidder =
-    currentUserRole === 'SELLER' && profileRole === 'BIDDER';
+    currentUserRole === ROLES.SELLER && profileRole === ROLES.BIDDER;
 
   switch (relationship) {
-    case 'NONE':
+    case RELATIONSHIP_STATUSES.NONE:
       if (isBidderViewingSeller) {
-        return ['Follow'];
+        return [PROFILE_ACTIONS.FOLLOW];
       }
 
       if (isSellerViewingBidder) {
-        return ['Block'];
+        return [PROFILE_ACTIONS.BLOCK];
       }
 
       return [];
 
-    case 'FOLLOWING':
-      return ['Unfollow'];
+    case RELATIONSHIP_STATUSES.FOLLOWING:
+      return [PROFILE_ACTIONS.UNFOLLOW];
 
-    case 'ACCEPTED':
-      return ['Unfollow', 'Block'];
+    case RELATIONSHIP_STATUSES.ACCEPTED:
+      return [PROFILE_ACTIONS.BLOCK];
 
-    case 'PENDING_OUTGOING':
-      return ['Cancel'];
+    case RELATIONSHIP_STATUSES.PENDING_OUTGOING:
+      return [PROFILE_ACTIONS.CANCEL];
 
-    case 'PENDING_INCOMING':
-      return ['Accept', 'Decline', 'Block'];
+    case RELATIONSHIP_STATUSES.PENDING_INCOMING:
+      return [
+        PROFILE_ACTIONS.ACCEPT,
+        PROFILE_ACTIONS.DECLINE,
+        PROFILE_ACTIONS.BLOCK,
+      ];
 
-    case 'BLOCKING':
-      return ['Unblock'];
+    case RELATIONSHIP_STATUSES.BLOCKING:
+      return [PROFILE_ACTIONS.UNBLOCK];
 
     default:
       return [];

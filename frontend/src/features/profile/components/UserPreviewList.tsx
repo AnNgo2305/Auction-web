@@ -26,8 +26,9 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { Button } from '@/shared/ui/button';
-import { ACTION_CONFIG } from '@/features/profile/constants/relationship-actions';
 import { useRelationshipActions } from '@/features/profile/hooks/relationship/useRelationshipActions';
+import { ACTION_CONFIG } from '@/shared/types/relationship.ts';
+import { ROLES } from '@/shared/types/user';
 
 interface UserPreviewListProps {
   ownerUserId?: string;
@@ -40,13 +41,13 @@ interface UserPreviewListProps {
 }
 
 const ROLE_LABEL = {
-  SELLER: 'Seller',
-  BIDDER: 'Bidder',
+  [ROLES.SELLER]: 'Seller',
+  [ROLES.BIDDER]: 'Bidder',
 } as const;
 
 const ROLE_BADGE_CLASS = {
-  SELLER: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
-  BIDDER: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+  [ROLES.SELLER]: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+  [ROLES.BIDDER]: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
 } as const;
 
 export function UserPreviewList({

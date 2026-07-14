@@ -6,19 +6,15 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authPaths } from '@/features/auth/constants/auth.routes';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  loginSchema,
-  type LoginBody as LoginFormValues,
-} from '@/features/auth/schemas/login.schema';
+import { loginSchema, type LoginBody as LoginFormValues } from '@/features/auth/schemas/login.schema';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { toast } from 'sonner';
 import { useUser } from '@/shared/contexts/UserContext';
 
 export function LoginForm() {
-  console.count("login f")
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { setCurrentUser } = useUser();
@@ -73,14 +69,6 @@ export function LoginForm() {
     toast.success(res.message);
     navigate('/');
   });
-
-  const prev = useRef(errors);
-
-
-  useEffect(() => {
-    console.log(prev.current === errors);
-    prev.current = errors;
-  }, [errors]);
 
   const onSubmit = (data: LoginFormValues) => {
     loginMutation.mutate(data);

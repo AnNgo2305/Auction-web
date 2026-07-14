@@ -7,7 +7,7 @@ import { ACCEPT_FOLLOW_ERROR_MESSAGES } from '@/features/profile/constants/relat
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { AcceptFollowResponse } from '@/features/profile/types/relationship/accept-follow.response';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship.ts';
 
 type AcceptFollowVariables = {
   sellerId: string;
@@ -52,7 +52,7 @@ export function useAcceptFollow() {
             data: {
               ...previousGetProfileResponse.data,
               relationship: {
-                status: RelationshipStatus.ACCEPTED,
+                status: RELATIONSHIP_STATUSES.ACCEPTED,
               },
             },
           };

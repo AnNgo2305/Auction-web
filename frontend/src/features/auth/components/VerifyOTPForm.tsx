@@ -12,7 +12,7 @@ import {
   verifyOtpSchema,
   type VerifyOtpBody as VerifyOTPValues,
 } from '@/features/auth/schemas/verify-otp.schema';
-import { OTP, OTP_TYPE, type OtpType } from '@/features/auth/constants/otp';
+import { OTP, OTP_TYPE, type OtpType } from '@/shared/types/otp';
 import { useVerifyEmailOTP } from '@/features/auth/hooks/useVerifyEmailOTP.ts';
 import { useNavigate } from 'react-router-dom';
 import { authPaths } from '@/features/auth/constants/auth.routes';

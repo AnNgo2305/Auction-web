@@ -7,7 +7,7 @@ import { CANCEL_FOLLOW_REQUEST_ERROR_MESSAGES } from '@/features/profile/constan
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { CancelFollowRequestResponse } from '@/features/profile/types/relationship/cancel-follow-request.response';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship.ts';
 
 type CancelFollowVariables = {
   sellerId: string;
@@ -52,7 +52,7 @@ export function useCancelFollowRequest() {
             data: {
               ...previousGetProfileResponse.data,
               relationship: {
-                status: RelationshipStatus.NONE,
+                status: RELATIONSHIP_STATUSES.NONE,
               },
             },
           };

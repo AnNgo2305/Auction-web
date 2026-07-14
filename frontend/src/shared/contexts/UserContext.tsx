@@ -7,15 +7,14 @@ import {
   useState,
 } from 'react';
 import type { UserContextValue } from '@/shared/types/user.context';
-import type { CurrentUser, UserRole } from '@/shared/types/current-user';
+import type { CurrentUser } from '@/shared/types/current-user';
 import { getMe } from '@/shared/api/me';
 import { Loader2 } from 'lucide-react';
+import type { Role } from '@/shared/types/user.ts';
 
 const UserContext = createContext<UserContextValue | null>(null);
 
 export function UserProvider({ children }: PropsWithChildren) {
-  console.count('UserProvider');
-
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const clearCurrentUser = useCallback(() => {
@@ -49,7 +48,7 @@ export function UserProvider({ children }: PropsWithChildren) {
   );
 
   const hasRole = useCallback(
-    (...roles: UserRole[]) => {
+    (...roles: Role[]) => {
       return currentUser ? roles.includes(currentUser.role) : false;
     },
     [currentUser],

@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@/shared/types/response';
+import type { Role } from '@/shared/types/user.ts';
 
 export class LoginData {
   user!: {
@@ -8,7 +9,7 @@ export class LoginData {
 
     username: string;
 
-    role: 'BIDDER' | 'SELLER';
+    role: Role;
 
     isVerified: boolean;
 

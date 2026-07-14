@@ -13,9 +13,9 @@ import { useDeleteCoverImage } from '@/features/profile/hooks/profile/useDeleteC
 import { useDeleteProfileImage } from '@/features/profile/hooks/profile/useDeleteProfileImage.ts';
 import { toast } from 'sonner';
 import * as React from 'react';
-import type { ImageType } from '@/features/profile/types/profile/profile.type.ts';
 import { useParams } from 'react-router-dom';
 import { useUser } from '@/shared/contexts/UserContext.tsx';
+import { IMAGE_TYPES, type ImageType } from '@/shared/types/user.ts';
 
 type DeleteImageDialogProps = {
   open: boolean;
@@ -30,7 +30,7 @@ export function DeleteImageDialog({
   onOpenChange,
   onDeleteImage,
 }: DeleteImageDialogProps) {
-  const imageName = type === 'avatar' ? 'profile photo' : 'cover photo';
+  const imageName = type === IMAGE_TYPES.AVATAR ? 'profile photo' : 'cover photo';
   const { userId } = useParams<{ userId: string }>();
   const { updateProfileImageUrl, updateCoverImageUrl } = useUser();
 
@@ -39,18 +39,18 @@ export function DeleteImageDialog({
     (res) => {
       updateProfileImageUrl(null);
       toast.success(res.message);
-      onDeleteImage('avatar');
+      onDeleteImage(IMAGE_TYPES.AVATAR);
     },
   );
 
   const deleteCoverImageMutation = useDeleteCoverImage(userId ?? '', (res) => {
     updateCoverImageUrl(null);
     toast.success(res.message);
-    onDeleteImage('cover');
+    onDeleteImage(IMAGE_TYPES.COVER);
   });
 
   const isDeleting =
-    type === 'avatar'
+    type === IMAGE_TYPES.AVATAR
       ? deleteProfileImageMutation.isPending
       : deleteCoverImageMutation.isPending;
 
@@ -64,7 +64,7 @@ export function DeleteImageDialog({
     event.preventDefault();
 
     try {
-      if (type === 'avatar') {
+      if (type === IMAGE_TYPES.AVATAR) {
         await deleteProfileImageMutation.mutateAsync();
       } else {
         await deleteCoverImageMutation.mutateAsync();

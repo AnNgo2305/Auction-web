@@ -7,7 +7,7 @@ import { BLOCK_BIDDER_ERROR_MESSAGES } from '@/features/profile/constants/relati
 import type { ApiResponseError } from '@/shared/types/error';
 import type { GetProfileResponse } from '@/features/profile/types/profile/get-profile.response';
 import type { BlockBidderResponse } from '@/features/profile/types/relationship/block-bidder.response';
-import { RelationshipStatus } from '@/features/profile/types/profile/relationship.type';
+import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship.ts';
 
 type BlockBidderVariables = {
   sellerId: string;
@@ -48,7 +48,7 @@ export function useBlockBidder() {
             data: {
               ...previousProfileCache.data,
               relationship: {
-                status: RelationshipStatus.BLOCKING,
+                status: RELATIONSHIP_STATUSES.BLOCKING,
               },
             },
           },
