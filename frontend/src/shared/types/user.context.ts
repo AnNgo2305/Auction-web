@@ -1,4 +1,4 @@
-import { type CurrentUser, UserRole } from '@/shared/types/current-user';
+import type { CurrentUser, UserRole } from '@/shared/types/current-user';
 
 export interface UserContextValue {
   currentUser: CurrentUser | null;

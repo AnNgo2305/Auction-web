@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+// import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
@@ -9,7 +9,7 @@ import { UserProvider } from '@/shared/contexts/UserContext';
 import { TooltipProvider } from '@/shared/ui/tooltip';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>
     <QueryProvider>
       <UserProvider>
         <AuthProvider>
@@ -20,5 +20,5 @@ createRoot(document.getElementById('root')!).render(
         </AuthProvider>
       </UserProvider>
     </QueryProvider>
-  </StrictMode>,
+  // </StrictMode>,
 );

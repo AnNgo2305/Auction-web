@@ -1,7 +1,4 @@
-export enum UserRole {
-  BIDDER = 'BIDDER',
-  SELLER = 'SELLER',
-}
+export type UserRole = 'BIDDER' | 'SELLER'
 
 export interface CurrentUser {
   userId: string;

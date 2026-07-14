@@ -29,6 +29,9 @@ import { useOutletContext } from 'react-router-dom';
 import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context';
 import { formatDateInputToIso, formatIsoToDateInput } from '@/shared/utils/format-time';
 import { Skeleton } from '@/shared/ui/skeleton';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+import { Navigate } from 'react-router-dom';
 
 const GENDER_OPTIONS = [
   {
@@ -46,7 +49,59 @@ const GENDER_OPTIONS = [
 ] as const;
 
 export function EditProfileForm() {
-  const { profile, isInitialProfileLoading } = useOutletContext<ProfileOutletContext>();
+  const { isOwner, profile, isInitialProfileLoading } =
+    useOutletContext<ProfileOutletContext>();
+
+  if (isInitialProfileLoading) console.count('skeleton');
+
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<UpdateProfileBody>({
+    resolver: zodResolver(updateProfileSchema),
+    defaultValues: {
+      fullName: profile?.fullName ?? '',
+      phoneNumber: profile?.phoneNumber ?? '',
+      bio: profile?.bio ?? '',
+      dateOfBirth: profile?.dateOfBirth
+        ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
+        : '',
+      gender: profile?.gender ?? undefined,
+    },
+    mode: 'onChange',
+  });
+
+  useEffect(() => {
+    console.log("eff")
+    if (!profile) return;
+
+    reset({
+      fullName: profile.fullName ?? "",
+      phoneNumber: profile.phoneNumber ?? "",
+      bio: profile.bio ?? "",
+      dateOfBirth: profile.dateOfBirth
+        ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
+        : "",
+      gender: profile.gender ?? undefined,
+    });
+  }, [profile, reset]);
+
+  const updateProfileMutation = useUpdateProfile(profile?.userId, (res) => {
+    toast.success(res.message);
+  });
+
+  useEffect(() => {
+    console.log('isValid changed ', isValid);
+  }, [isValid]);
+
+  useEffect(() => {
+    console.log("err changed")
+  }, [errors]);
+
   if (isInitialProfileLoading) {
     return (
       <Card className="mx-auto w-full max-w-2xl shadow-lg">
@@ -83,38 +138,6 @@ export function EditProfileForm() {
     );
   }
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isValid },
-  } = useForm<UpdateProfileBody>({
-    resolver: zodResolver(updateProfileSchema),
-    defaultValues: {
-      fullName: profile.fullName ?? '',
-      phoneNumber: profile.phoneNumber ?? '',
-      bio: profile.bio ?? '',
-      dateOfBirth: profile.dateOfBirth
-        ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
-        : '',
-      gender: profile.gender ?? undefined,
-    },
-    mode: 'onChange',
-  });
-
-  const updateProfileMutation = useUpdateProfile(profile.userId, (res) => {
-    reset({
-      fullName: res.data.fullName ?? '',
-      phoneNumber: res.data.phoneNumber ?? '',
-      bio: res.data.bio ?? '',
-      dateOfBirth: res.data.dateOfBirth
-        ? new Date(res.data.dateOfBirth).toISOString().split('T')[0]
-        : '',
-      gender: res.data.gender ?? undefined,
-    });
-  });
-
   const onSubmit = (values: UpdateProfileBody) => {
     updateProfileMutation.mutate({
       fullName: values.fullName || null,
@@ -126,6 +149,12 @@ export function EditProfileForm() {
       gender: values.gender ?? null,
     });
   }
+
+  if (!isOwner) {
+    return <Navigate to="/" replace />;
+  }
+
+  console.count('edit form');
 
   return (
     <Card className="mx-auto w-full max-w-2xl shadow-lg">
@@ -249,37 +278,37 @@ export function EditProfileForm() {
                 <FieldLabel htmlFor="gender" className="text-sm font-medium">
                   Gender
                 </FieldLabel>
-                <Controller
-                  control={control}
-                  name="gender"
-                  render={({ field }) => (
-                    <div className="relative">
-                      <VenusAndMars className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
-                      <Select
-                        value={field.value ?? undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="h-14 pl-10">
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {GENDER_OPTIONS.map((item) => (
-                              <SelectItem key={item.value} value={item.value}>
-                                {item.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                />
-                {errors.gender && (
-                  <FieldError className="text-xs leading-tight text-red-500">
-                    {errors.gender.message}
-                  </FieldError>
-                )}
+                {/*<Controller*/}
+                {/*  control={control}*/}
+                {/*  name="gender"*/}
+                {/*  render={({ field }) => (*/}
+                {/*    <div className="relative">*/}
+                {/*      <VenusAndMars className="text-muted-foreground absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />*/}
+                {/*      <Select*/}
+                {/*        value={field.value ?? undefined}*/}
+                {/*        onValueChange={field.onChange}*/}
+                {/*      >*/}
+                {/*        <SelectTrigger className="h-14 pl-10">*/}
+                {/*          <SelectValue placeholder="Select gender" />*/}
+                {/*        </SelectTrigger>*/}
+                {/*        <SelectContent>*/}
+                {/*          <SelectGroup>*/}
+                {/*            {GENDER_OPTIONS.map((item) => (*/}
+                {/*              <SelectItem key={item.value} value={item.value}>*/}
+                {/*                {item.label}*/}
+                {/*              </SelectItem>*/}
+                {/*            ))}*/}
+                {/*          </SelectGroup>*/}
+                {/*        </SelectContent>*/}
+                {/*      </Select>*/}
+                {/*    </div>*/}
+                {/*  )}*/}
+                {/*/>*/}
+                {/*{errors.gender && (*/}
+                {/*  <FieldError className="text-xs leading-tight text-red-500">*/}
+                {/*    {errors.gender.message}*/}
+                {/*  </FieldError>*/}
+                {/*)}*/}
               </Field>
             </div>
             <Field>

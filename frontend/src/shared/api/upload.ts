@@ -23,17 +23,10 @@ export async function createPresignedUrls(
 export async function uploadFile(
   uploadUrl: string,
   file: File,
-  onProgress?: (percent: number) => void,
 ): Promise<void> {
   await api.put(uploadUrl, file, {
     headers: {
       'Content-Type': file.type,
-    },
-    onUploadProgress: (event) => {
-      if (event.total && onProgress) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-        onProgress(percent);
-      }
     },
   });
 }

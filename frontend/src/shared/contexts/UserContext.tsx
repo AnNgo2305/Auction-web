@@ -2,21 +2,44 @@ import {
   createContext,
   type PropsWithChildren,
   useCallback,
-  useContext,
+  useContext, useEffect,
   useMemo,
   useState,
 } from 'react';
 import type { UserContextValue } from '@/shared/types/user.context';
-import { type CurrentUser, UserRole } from '@/shared/types/current-user';
+import type { CurrentUser, UserRole } from '@/shared/types/current-user';
+import { getMe } from '@/shared/api/me';
+import { Loader2 } from 'lucide-react';
 
 const UserContext = createContext<UserContextValue | null>(null);
 
 export function UserProvider({ children }: PropsWithChildren) {
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  console.count('UserProvider');
 
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const clearCurrentUser = useCallback(() => {
     setCurrentUser(null);
   }, []);
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const response = await getMe();
+        if (response.data) {
+          setCurrentUser(response.data);
+        } else {
+          clearCurrentUser();
+        }
+      } catch {
+        clearCurrentUser();
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    void loadCurrentUser();
+  }, [setCurrentUser, clearCurrentUser, setIsInitializing]);
 
   const isCurrentUser = useCallback(
     (userId: string) => {
@@ -78,6 +101,14 @@ export function UserProvider({ children }: PropsWithChildren) {
       hasRole,
     ],
   );
+
+  if (isInitializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <UserContext.Provider value={value}>

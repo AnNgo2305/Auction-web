@@ -6,12 +6,12 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage';
 import VerifyResetPasswordPage from '@/pages/auth/VerifyResetPasswordPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
-import GuestRoute from '@/routes/guards/GuestRoute';
+import PublicRoute from '@/routes/guards/PublicRoute';
 
 export default function AuthRoutes() {
   return (
     <Routes>
-      <Route element={<GuestRoute />}>
+      <Route element={<PublicRoute />}>
         <Route path={AUTH_ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={AUTH_ROUTES.REGISTER} element={<RegisterPage />} />
         <Route

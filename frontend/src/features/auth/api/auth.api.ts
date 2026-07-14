@@ -33,7 +33,6 @@ export const authApi = {
       `${AUTH_API_PREFIX}/register`,
       body
     );
-    console.log(res.data);
     return res.data;
   },
 

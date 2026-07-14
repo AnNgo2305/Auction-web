@@ -24,6 +24,8 @@ type ProfileItem = {
 export function ProfileInfoCard() {
   const { isOwner, profile, isInitialProfileLoading } = useOutletContext<ProfileOutletContext>();
 
+  const navigate = useNavigate();
+
   if (isInitialProfileLoading) {
     return (
       <Card>
@@ -47,8 +49,6 @@ export function ProfileInfoCard() {
       </Card>
     );
   }
-
-  const navigate = useNavigate();
 
   const handleEdit = () => {
     navigate(profilePaths.edit(profile.userId));
@@ -96,7 +96,7 @@ export function ProfileInfoCard() {
           <Info className="text-primary h-5 w-5" />
           <span>About</span>
         </CardTitle>
-        {!isOwner && (
+        {isOwner && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -105,7 +105,7 @@ export function ProfileInfoCard() {
                 onClick={handleEdit}
                 className="absolute top-1/2 right-6 -translate-y-1/2"
               >
-                <Edit className="mr-2 h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">

@@ -15,6 +15,7 @@ import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { toast } from 'sonner';
 
 export function ProfileLayout() {
+  console.count("pro lay")
   const { userId } = useParams<{ userId: string }>();
   const [uploadAvatarImageDialogOpen, setUploadAvatarImageDialogOpen] =
     useState(false);
@@ -145,7 +146,11 @@ export function ProfileLayout() {
           </div>
         </div>
       </div>
-      <ProfileTabs isOwner={isOwner} role={profile?.role} />
+      <ProfileTabs
+        isOwner={isOwner}
+        role={profile?.role}
+        isLoading={isInitialProfileLoading}
+      />
       <div className="px-6 pb-8">
         <Outlet
           context={{

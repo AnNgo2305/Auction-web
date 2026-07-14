@@ -1,18 +1,32 @@
 import { NavLink, useLocation, useParams } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
 import type { Role } from '@/features/profile/types/profile/profile.type.ts';
+import { Skeleton } from '@/shared/ui/skeleton.tsx';
 
 interface ProfileTabsProps {
   isOwner: boolean;
   role: Role | undefined;
+  isLoading: boolean;
 }
 
-export function ProfileTabs({ isOwner, role }: ProfileTabsProps) {
+export function ProfileTabs({ isOwner, role, isLoading }: ProfileTabsProps) {
   const { pathname } = useLocation();
   const { userId } = useParams<{ userId: string }>();
 
   if (!userId) {
     return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="border-b">
+        <div className="flex gap-6 px-6 py-3">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+      </div>
+    );
   }
 
   const currentTab = pathname.split('/').filter(Boolean)[2] ?? 'overview';

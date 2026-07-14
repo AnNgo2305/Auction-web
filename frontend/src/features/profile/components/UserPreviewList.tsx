@@ -58,33 +58,6 @@ export function UserPreviewList({
   isFetchingNextPage = false,
   onLoadMore,
 }: UserPreviewListProps) {
-  if (isInitialLoading) {
-    return (
-      <div
-        className={cn(
-          'grid gap-4',
-          columns === 1 ? 'grid-cols-1' : 'grid-cols-2',
-        )}
-      >
-        {Array.from({ length: columns === 2 ? 6 : 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between rounded-lg border p-4"
-          >
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-            </div>
-            <Skeleton className="h-9 w-24 rounded-md" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   const { currentUser } = useUser();
   const [searchText, setSearchText] = useState('');
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -121,6 +94,33 @@ export function UserPreviewList({
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, onLoadMore, isSearching]);
+
+  if (isInitialLoading) {
+    return (
+      <div
+        className={cn(
+          'grid gap-4',
+          columns === 1 ? 'grid-cols-1' : 'grid-cols-2',
+        )}
+      >
+        {Array.from({ length: columns === 2 ? 6 : 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between rounded-lg border p-4"
+          >
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-9 w-24 rounded-md" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

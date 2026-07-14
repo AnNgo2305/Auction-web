@@ -8,14 +8,18 @@ export class LoginData {
 
     username: string;
 
-    role: string;
+    role: 'BIDDER' | 'SELLER';
 
     isVerified: boolean;
 
     isBanned: boolean;
 
     provider: string;
-  }
+
+    profileImageUrl: string | null;
+
+    coverImageUrl: string | null;
+  };
 
   otpRequired?: boolean;
 }

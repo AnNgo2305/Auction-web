@@ -49,6 +49,9 @@ export function ProfileHeader({
   relationshipStatus,
   isInitialProfileLoading = false,
 }: ProfileHeaderProps) {
+  const { currentUser } = useUser();
+  const { handleRelationshipAction } = useRelationshipActions();
+
   if (isInitialProfileLoading) {
     return (
       <div className="-mt-5 flex flex-1 items-start justify-between gap-6">
@@ -77,8 +80,6 @@ export function ProfileHeader({
     );
   }
 
-  const { currentUser } = useUser();
-
   const relationshipLabel = getRelationshipLabel({
     relationship: relationshipStatus!,
     currentUserRole: currentUser?.role,
@@ -90,8 +91,6 @@ export function ProfileHeader({
     currentUserRole: currentUser?.role,
     profileRole: role!,
   });
-
-  const { handleRelationshipAction } = useRelationshipActions();
 
   return (
     <div className="-mt-5 flex flex-1 items-start justify-between gap-6">

@@ -7,6 +7,7 @@ import { PrismaService } from '@common/services/prisma.service';
 import {
   ERROR_USER_ALREADY_BANNED,
   ERROR_USER_NOT_BANNED,
+  ERROR_USER_NOT_EXIST,
   ERROR_USER_NOT_FOUND,
   ERROR_WARNING_NOT_FOUND,
 } from '@modules/user/user.constant';
@@ -19,10 +20,14 @@ import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 import { BanUserResponseDto } from '@modules/user/dtos/ban-user.response.dto';
 import { UserWarningStatusDto } from '@modules/user/dtos/get-warning.response.dto';
 import { MeResponseDto } from '@modules/user/dtos/me.response.dto';
+import { FileService } from '@common/services/file.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileService: FileService,
+  ) {}
 
   async findUser(email: string): Promise<UserInfoResponseDto | null> {
     return this.prisma.user.findUnique({
@@ -409,7 +414,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_FOUND);
+      throw new NotFoundException(ERROR_USER_NOT_EXIST);
     }
 
     return {
@@ -417,8 +422,12 @@ export class UserService {
       email: user.email,
       username: user.username,
       role: user.role,
-      profileImageUrl: user.profile?.profileImageUrl ?? null,
-      coverImageUrl: user.profile?.coverImageUrl ?? null,
+      profileImageUrl: user.profile?.profileImageUrl
+        ? this.fileService.getPublicUrl(user.profile.profileImageUrl)
+        : null,
+      coverImageUrl: user.profile?.coverImageUrl
+        ? this.fileService.getPublicUrl(user.profile.coverImageUrl)
+        : null,
     };
   }
 }
