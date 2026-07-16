@@ -4,6 +4,9 @@ import {
   LogOut,
   Settings,
   User,
+  History,
+  Heart,
+  MessageCircle,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/images/bid-market.png';
@@ -22,6 +25,7 @@ import { useUser } from '@/shared/contexts/UserContext';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { authPaths } from '@/features/auth/constants/auth.routes';
+import { Badge } from '@/shared/ui/badge'
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -70,8 +74,14 @@ export default function AuthHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <button className="relative rounded-md p-2 transition hover:bg-white/10">
-            <Bell size={20} />
+          <button className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
+            <MessageCircle className="h-5 w-5" />
+          </button>
+          <button className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
+            <Heart className="h-5 w-5" />
+          </button>
+          <button className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
+            <Bell className="h-5 w-5" />
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -85,14 +95,25 @@ export default function AuthHeader() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col justify-center leading-tight">
-                  <span className="max-w-32 truncate text-sm font-medium">
-                    {currentUser.username}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs text-white/70">
-                    <span className="truncate">{currentUser.email}</span>
-                    <span>•</span>
-                    <span>{currentUser.role}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="max-w-28 truncate text-sm font-semibold">
+                      {currentUser.username}
+                    </span>
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        'h-5 rounded-full border-0 px-2 text-[10px] font-semibold',
+                        currentUser.role === 'SELLER'
+                          ? 'bg-red-600 text-white hover:bg-red-700'
+                          : 'bg-sky-600 text-white hover:bg-sky-700',
+                      )}
+                    >
+                      {currentUser.role}
+                    </Badge>
                   </div>
+                  <span className="max-w-40 truncate text-xs text-white/70">
+                    {currentUser.email}
+                  </span>
                 </div>
                 <ChevronDown size={16} />
               </button>
@@ -105,6 +126,13 @@ export default function AuthHeader() {
                 >
                   <User className="h-4 w-4" />
                   <span>My Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/my-activity" className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  <span>My Activity</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

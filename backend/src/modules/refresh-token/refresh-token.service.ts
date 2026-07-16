@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { ERROR_REFRESH_TOKEN_NOT_FOUND_OR_REVOKED } from '@modules/refresh-token/refresh-token.constant';
+import { ActiveSessionResponseDto } from '@modules/refresh-token/dtos/active-session.response.dto';
 
 @Injectable()
 export class RefreshTokenService {
@@ -54,7 +55,7 @@ export class RefreshTokenService {
     });
   }
 
-  async findRefreshToken(
+  async existsRefreshToken(
     userId: string,
     token: string,
     provider = 'local',
@@ -105,6 +106,55 @@ export class RefreshTokenService {
       where: {
         userId,
         revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+        lastUsedAt: new Date(),
+      },
+    });
+  }
+
+  async getActiveSessions(userId: string): Promise<ActiveSessionResponseDto[]> {
+    return this.prisma.refreshToken.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        lastUsedAt: 'desc',
+      },
+      select: {
+        id: true,
+        provider: true,
+        deviceId: true,
+        ip: true,
+        userAgent: true,
+        createdAt: true,
+        lastUsedAt: true,
+        expiresAt: true,
+      },
+    });
+  }
+
+  async revokeSession(userId: string, sessionId: string): Promise<void> {
+    const session = await this.prisma.refreshToken.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+        revokedAt: null,
+      },
+    });
+
+    if (!session) {
+      throw new UnauthorizedException(ERROR_REFRESH_TOKEN_NOT_FOUND_OR_REVOKED);
+    }
+
+    await this.prisma.refreshToken.update({
+      where: {
+        id: session.id,
       },
       data: {
         revokedAt: new Date(),

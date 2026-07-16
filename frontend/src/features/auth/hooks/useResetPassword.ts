@@ -29,7 +29,6 @@ export function useResetPassword(onCallback?: () => void) {
         RESET_PASSWORD_ERROR_MESSAGES.DEFAULT;
 
       toast.error(message);
-      onCallback?.();
     },
   });
 }

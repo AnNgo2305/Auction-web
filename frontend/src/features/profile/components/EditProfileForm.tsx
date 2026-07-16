@@ -12,7 +12,6 @@ import {
   Phone,
   Cake,
   VenusAndMars,
-  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
@@ -32,6 +31,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 import { GENDERS } from '@/shared/types/user.ts';
+import { Select, SelectTrigger, SelectValue, SelectItem, SelectContent } from '@/shared/ui/select';
 
 const GENDER_OPTIONS = [
   {
@@ -274,18 +274,22 @@ export function EditProfileForm() {
                   render={({ field }) => (
                     <div className="relative">
                       <VenusAndMars className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2" />
-                      <select
-                        className="bg-background h-14 w-full appearance-none rounded-md border pr-10 pl-10"
+                      <Select
+                        key={field.value ?? ''}
                         value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value)}
+                        onValueChange={field.onChange}
                       >
-                        {GENDER_OPTIONS.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
+                        <SelectTrigger className="h-14 pl-10">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GENDER_OPTIONS.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
                 />

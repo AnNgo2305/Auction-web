@@ -304,7 +304,7 @@ export class AuthService {
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
     const { userId, provider } = payload;
     this.logger.log('Refresh token request validated');
-    const tokenExists = await this.refreshTokenService.findRefreshToken(
+    const tokenExists = await this.refreshTokenService.existsRefreshToken(
       userId,
       refreshToken,
       provider,
@@ -557,7 +557,7 @@ export class AuthService {
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
     const { userId, provider } = payload;
 
-    const tokenExists = await this.refreshTokenService.findRefreshToken(
+    const tokenExists = await this.refreshTokenService.existsRefreshToken(
       userId,
       refreshToken,
       provider,
@@ -604,7 +604,7 @@ export class AuthService {
     const payload = await this.tokenService.verifyRefreshToken(refreshToken);
     const { userId, provider } = payload;
 
-    const tokenExists = await this.refreshTokenService.findRefreshToken(
+    const tokenExists = await this.refreshTokenService.existsRefreshToken(
       userId,
       refreshToken,
       provider,

@@ -21,10 +21,14 @@ import { ResponsePayload } from '@common/types/response.interface';
 import { ChangePasswordDto } from '@modules/profile/dtos/change-password.body.dto';
 import { UpdateCoverImageDto } from '@modules/profile/dtos/update-cover-image.body.dto';
 import { UpdateProfileImageDto } from '@modules/profile/dtos/update-profile-image.body.dto';
+import { RefreshTokenService } from '@modules/refresh-token/refresh-token.service';
 
 @Controller('profile')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    private readonly profileService: ProfileService,
+    private readonly refreshTokenService: RefreshTokenService,
+  ) {}
 
   @Patch('password')
   @Auth(AuthType.ACCESS_TOKEN)
@@ -39,6 +43,37 @@ export class ProfileController {
 
     return {
       message: 'Password changed successfully',
+      data: {},
+    };
+  }
+
+  @Get('sessions')
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async getActiveSessions(@Req() request: Request): Promise<ResponsePayload> {
+    const userId = request.user!.userId;
+
+    const sessions = await this.refreshTokenService.getActiveSessions(userId);
+
+    return {
+      message: 'Active sessions retrieved successfully',
+      data: sessions,
+    };
+  }
+
+  @Delete('sessions/:sessionId')
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async revokeSession(
+    @Req() request: Request,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<ResponsePayload> {
+    const userId = request.user!.userId;
+
+    await this.refreshTokenService.revokeSession(userId, sessionId);
+
+    return {
+      message: 'Session revoked successfully',
       data: {},
     };
   }
