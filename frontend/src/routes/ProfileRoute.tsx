@@ -5,7 +5,7 @@ import { ProfileOverviewPage } from '@/pages/profile/ProfileOverviewPage';
 import { ProfileFollowersPage } from '@/pages/profile/ProfileFollowersPage';
 import { ProfileFollowingPage } from '@/pages/profile/ProfileFollowingPage';
 import { EditProfilePage } from '@/pages/profile/EditProfilePage';
-
+import { ProfileAddressesPage } from '@/pages/profile/ProfileAddressPage';
 import PublicRoute from '@/routes/guards/PublicRoute';
 import ProtectedRoute from '@/routes/guards/ProtectedRoute';
 
@@ -26,14 +26,15 @@ export default function ProfileRoutes() {
             path={PROFILE_ROUTES.FOLLOWING}
             element={<ProfileFollowingPage />}
           />
+          <Route
+            path={PROFILE_ROUTES.ADDRESSES}
+            element={<ProfileAddressesPage />}
+          />
         </Route>
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route element={<ProfileLayout />}>
-          <Route
-            path={PROFILE_ROUTES.EDIT}
-            element={<EditProfilePage />}
-          />
+          <Route path={PROFILE_ROUTES.EDIT} element={<EditProfilePage />} />
         </Route>
       </Route>
     </Routes>

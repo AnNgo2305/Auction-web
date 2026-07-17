@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { securityApi } from '@/features/setting/api/security.api';
-import type { ApiResponseError } from '@/shared/types/error';
+import { securityApi } from '@/features/setting/api/security.api.ts';
+import type { ApiResponseError } from '@/shared/types/error.ts';
 import type {
   GetActiveSessionsResponse,
   ActiveSessionData,
-} from '@/features/setting/types/get-active-sessions.response';
+} from '@/features/setting/types/get-active-sessions.response.ts';
 import { sessionKeys } from '@/features/setting/constants/sesion-query-key.ts';
 
 export function useGetActiveSessions() {

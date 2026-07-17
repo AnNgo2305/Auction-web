@@ -17,4 +17,6 @@ export class FollowUserDto {
   profileImageUrl?: string | null;
 
   relation?: RelationshipStatusResult;
+
+  createdAt?: Date;
 }

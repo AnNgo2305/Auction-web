@@ -33,3 +33,50 @@ export function formatDateInputToIso(
 
   return new Date(date).toISOString();
 }
+
+/**
+ * ISO -> relative time
+ * Examples:
+ * - Just now
+ * - 5 minutes ago
+ * - 2 hours ago
+ * - 3 days ago
+ * - 2 months ago
+ * - 1 year ago
+ */
+export function formatIsoToNow(
+  iso: string | null | undefined,
+): string {
+  if (!iso) return '';
+
+  const date = new Date(iso);
+  const now = new Date();
+
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 10) return 'Just now';
+
+  const rtf = new Intl.RelativeTimeFormat('en', {
+    numeric: 'auto',
+  });
+
+  const intervals = [
+    { unit: 'year', seconds: 60 * 60 * 24 * 365 },
+    { unit: 'month', seconds: 60 * 60 * 24 * 30 },
+    { unit: 'week', seconds: 60 * 60 * 24 * 7 },
+    { unit: 'day', seconds: 60 * 60 * 24 },
+    { unit: 'hour', seconds: 60 * 60 },
+    { unit: 'minute', seconds: 60 },
+    { unit: 'second', seconds: 1 },
+  ] as const;
+
+  for (const interval of intervals) {
+    const value = Math.floor(diffInSeconds / interval.seconds);
+
+    if (value >= 1) {
+      return rtf.format(-value, interval.unit);
+    }
+  }
+
+  return 'Just now';
+}

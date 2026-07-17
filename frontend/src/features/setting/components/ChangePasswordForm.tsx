@@ -23,7 +23,7 @@ import {
   changePasswordSchema,
 } from '@/features/setting/schemas/change-password.schema';
 import { Spinner } from '@/shared/ui/spinner';
-import { useChangePassword } from '@/features/setting/hooks/useChangePassword';
+import { useChangePassword } from '@/features/setting/hooks/security/useChangePassword.ts';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/shared/contexts/AuthContext.tsx';
 import { authPaths } from '@/features/auth/constants/auth.routes.ts';

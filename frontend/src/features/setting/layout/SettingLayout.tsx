@@ -25,15 +25,22 @@ import {
   ChevronDown,
   KeyRound,
   Monitor,
-  Palette,
+  UsersRound,
   Shield,
+  Clock3,
+  Send,
+  Ban,
 } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { settingsPaths } from '@/features/setting/constants/setting.routes.ts';
+import { settingsPaths } from '@/features/setting/constants/setting.routes';
 import { cn } from '@/shared/lib/utils';
+import { useUser } from '@/shared/contexts/UserContext';
+import { ROLES } from '@/shared/types/user';
 
 export function SettingLayout ()  {
   const [securityOpen, setSecurityOpen] = useState(false);
+  const [relationshipOpen, setRelationshipOpen] = useState(false);
+  const { currentUser } = useUser();
 
   return (
     <SidebarProvider>
@@ -50,37 +57,43 @@ export function SettingLayout ()  {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <Collapsible open={securityOpen} onOpenChange={setSecurityOpen}>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton>
-                          <Shield />
-                          <span>Security</span>
-                          <ChevronDown className="ml-auto" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuButton asChild>
-                              <NavLink to={settingsPaths.password()}>
-                                <KeyRound />
-                                Change Password
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </SidebarMenuSubItem>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuButton asChild>
-                              <NavLink to={settingsPaths.sessions()}>
-                                <Monitor />
-                                Your Sessions
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </SidebarMenuItem>
+                  <Collapsible
+                    open={securityOpen}
+                    onOpenChange={setSecurityOpen}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton>
+                        <Shield />
+                        <span>Security</span>
+                        <ChevronDown
+                          className={cn(
+                            'ml-auto transition-transform',
+                            securityOpen && 'rotate-180',
+                          )}
+                        />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuButton asChild>
+                            <NavLink to={settingsPaths.password()}>
+                              <KeyRound />
+                              Change Password
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuButton asChild>
+                            <NavLink to={settingsPaths.sessions()}>
+                              <Monitor />
+                              Your Sessions
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuSubItem>
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
@@ -101,22 +114,53 @@ export function SettingLayout ()  {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={settingsPaths.preferences()}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                          isActive
-                            ? 'bg-muted text-foreground'
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                        )
-                      }
-                    >
-                      <Palette className="h-4 w-4" />
-                      <span>Preferences</span>
-                    </NavLink>
-                  </SidebarMenuButton>
+                  <Collapsible open={relationshipOpen} onOpenChange={setRelationshipOpen}>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton>
+                        <UsersRound />
+                        <span>Privacy</span>
+                        <ChevronDown
+                          className={cn(
+                            'ml-auto transition-transform',
+                            relationshipOpen && 'rotate-180',
+                          )}
+                        />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {currentUser?.role === ROLES.SELLER ? (
+                          <>
+                            <SidebarMenuSubItem>
+                              <SidebarMenuButton asChild>
+                                <NavLink to={settingsPaths.pendingRequests()}>
+                                  <Clock3 className="h-4 w-4" />
+                                  Pending Requests
+                                </NavLink>
+                              </SidebarMenuButton>
+                            </SidebarMenuSubItem>
+                            <SidebarMenuSubItem>
+                              <SidebarMenuButton asChild>
+                                <NavLink to={settingsPaths.blockedUsers()}>
+                                  <Ban className="h-4 w-4" />
+                                  Blocked Users
+                                </NavLink>
+                              </SidebarMenuButton>
+                            </SidebarMenuSubItem>
+                          </>
+                        ) : (
+                          <SidebarMenuSubItem>
+                            <SidebarMenuButton asChild>
+                              <NavLink to={settingsPaths.sentRequests()}>
+                                <Send className="h-4 w-4" />
+                                Sent Requests
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuSubItem>
+                        )}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>

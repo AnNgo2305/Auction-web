@@ -14,6 +14,9 @@ import type {
   CancelFollowRequestResponse
 } from '@/features/profile/types/relationship/cancel-follow-request.response';
 import type { GetFollowingsResponse } from '@/features/profile/types/relationship/get-following.response';
+import type {
+  GetSentFollowRequestsResponse
+} from '@/features/profile/types/relationship/get-sent-follow-requests.response.ts';
 
 const FOLLOW_API_PREFIX = '/follows';
 
@@ -100,6 +103,23 @@ export const relationApi = {
         },
       },
     );
+    return res.data;
+  },
+
+  getSentFollowRequests: async (
+    limit?: number,
+    cursor?: string,
+  ): Promise<GetSentFollowRequestsResponse> => {
+    const res = await api.get<GetSentFollowRequestsResponse>(
+      `${FOLLOW_API_PREFIX}/sent`,
+      {
+        params: {
+          limit,
+          cursor,
+        },
+      },
+    );
+
     return res.data;
   },
 

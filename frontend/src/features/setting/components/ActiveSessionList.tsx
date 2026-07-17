@@ -12,7 +12,7 @@ interface ActiveSessionListProps {
   isRevoking?: boolean;
 }
 
-export function ActiveSessions({
+export function ActiveSessionList({
   sessions,
   isLoading,
   onRevoke,
@@ -25,7 +25,6 @@ export function ActiveSessions({
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-4 w-72" />
         </CardHeader>
-
         <CardContent className="space-y-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="space-y-3 rounded-lg border p-4">
@@ -64,7 +63,7 @@ export function ActiveSessions({
               </Button>
             </div>
             <div className="text-muted-foreground space-y-2 text-sm">
-              <div className="flex items-center gap-2 truncate max-w-md">
+              <div className="flex max-w-md items-center gap-2 truncate">
                 <MonitorSmartphone size={15} />
                 <span>{session.userAgent ?? 'Unknown device'}</span>
               </div>

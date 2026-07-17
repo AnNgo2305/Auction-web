@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { securityApi } from '@/features/setting/api/security.api';
-import type { ApiResponseError } from '@/shared/types/error';
-import type { RevokeSessionResponse } from '@/features/setting/types/revoke-session.response';
+import { securityApi } from '@/features/setting/api/security.api.ts';
+import type { ApiResponseError } from '@/shared/types/error.ts';
+import type { RevokeSessionResponse } from '@/features/setting/types/revoke-session.response.ts';
 import { toast } from 'sonner';
 import { sessionKeys } from '@/features/setting/constants/sesion-query-key.ts';
 import { REVOKE_SESSION_ERROR_MESSAGES } from '@/features/setting/constants/security-error.messages.ts';

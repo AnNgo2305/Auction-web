@@ -1,12 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { securityApi } from '@/features/setting/api/security.api';
+import { securityApi } from '@/features/setting/api/security.api.ts';
 
-import type { ApiResponseError } from '@/shared/types/error';
-import type { ChangePasswordBody } from '@/features/setting/schemas/change-password.schema';
-import type { ChangePasswordResponse } from '@/features/setting/types/change-password.response';
-import { CHANGE_PASSWORD_ERROR_MESSAGES } from '@/features/setting/constants/security-error.messages';
+import type { ApiResponseError } from '@/shared/types/error.ts';
+import type { ChangePasswordBody } from '@/features/setting/schemas/change-password.schema.ts';
+import type { ChangePasswordResponse } from '@/features/setting/types/change-password.response.ts';
+import { CHANGE_PASSWORD_ERROR_MESSAGES } from '@/features/setting/constants/security-error.messages.ts';
 
 export function useChangePassword(onCallback?: () => void) {
   return useMutation<

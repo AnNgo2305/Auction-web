@@ -15,9 +15,11 @@ export class FollowUserData {
 
   role!: Role;
 
-  profileImageUrl?: string | null;
+  profileImageUrl!: string | null;
 
   relation?: RelationshipStatusData;
+
+  createdAt!: string ;
 }
 
 export class GetSentFollowRequestsData {

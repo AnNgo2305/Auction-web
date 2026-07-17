@@ -609,6 +609,7 @@ export class FollowService {
       },
       select: {
         followId: true,
+        createdAt: true,
         follower: {
           select: {
             userId: true,
@@ -643,6 +644,7 @@ export class FollowService {
         username: blockedUser.follower.username,
         role: blockedUser.follower.role,
         profileImageUrl: blockedUser.follower.profile?.profileImageUrl ?? null,
+        createdAt: blockedUser.createdAt,
       })),
       nextCursor: hasMore ? sliced[sliced.length - 1].followId : null,
     };
@@ -660,11 +662,13 @@ export class FollowService {
       },
       select: {
         followId: true,
+        createdAt: true,
         follower: {
           select: {
             userId: true,
             username: true,
             role: true,
+            createdAt: true,
             profile: {
               select: {
                 profileImageUrl: true,
@@ -697,6 +701,7 @@ export class FollowService {
         role: receivedFollowRequest.follower.role,
         profileImageUrl:
           receivedFollowRequest.follower.profile?.profileImageUrl ?? null,
+        createdAt: receivedFollowRequest.createdAt,
       })),
       nextCursor: hasMore ? sliced[sliced.length - 1].followId : null,
     };
@@ -714,6 +719,7 @@ export class FollowService {
       },
       select: {
         followId: true,
+        createdAt: true,
         seller: {
           select: {
             userId: true,
@@ -751,6 +757,7 @@ export class FollowService {
         role: sendFollowRequest.seller.role,
         profileImageUrl:
           sendFollowRequest.seller.profile?.profileImageUrl ?? null,
+        createdAt: sendFollowRequest.createdAt,
       })),
       nextCursor: hasMore ? sliced[sliced.length - 1].followId : null,
     };

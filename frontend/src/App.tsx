@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import AuthRoutes from '@/routes/AuthRoute';
 import AboutRoutes from '@/routes/AboutRoute';
 import ProfileRoutes from '@/routes/ProfileRoute';
+import SettingRoutes from '@/routes/SettingRoute';
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Route path="/auth/*" element={<AuthRoutes />} />
         <Route path="/about/*" element={<AboutRoutes />} />
         <Route path="/profile/*" element={<ProfileRoutes />} />
+        <Route path="/setting/*" element={<SettingRoutes />}/>
       </Routes>
     </BrowserRouter>
   );
