@@ -3,6 +3,7 @@ export const PROFILE_ROUTES = {
   FOLLOWERS: ':userId/followers',
   FOLLOWING: ':userId/following',
   EDIT: ':userId/edit',
+  ADDRESSES: ':userId/addresses',
 } as const;
 
 export const profilePaths = {
@@ -10,4 +11,5 @@ export const profilePaths = {
   edit: (userId: string) => `/profile/${userId}/edit`,
   followers: (userId: string) => `/profile/${userId}/followers`,
   following: (userId: string) => `/profile/${userId}/following`,
+  addresses: (userId: string) => `/profile/${userId}/addresses`,
 } as const;

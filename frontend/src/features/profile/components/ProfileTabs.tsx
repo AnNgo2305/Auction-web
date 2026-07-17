@@ -36,6 +36,11 @@ export function ProfileTabs({ isOwner, role, isLoading }: ProfileTabsProps) {
       label: 'Overview',
       to: profilePaths.overview(userId),
     },
+    {
+      key: 'addresses',
+      label: 'Addresses',
+      to: profilePaths.addresses(userId),
+    },
     ...(role === ROLES.SELLER
       ? [
           {

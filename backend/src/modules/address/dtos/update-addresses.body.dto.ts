@@ -1,6 +1,6 @@
 import type { AddressType } from '@generated/prisma/enums';
 
-export class CreateAddressDto {
+export class UpdateAddressesDto {
   streetAddress!: string;
 
   city!: string;

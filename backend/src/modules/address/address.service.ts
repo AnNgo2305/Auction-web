@@ -1,18 +1,24 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { AddressResponseDto } from '@modules/address/dtos/address.response.dto';
-import { CreateAddressDto } from '@modules/address/dtos/create-address.body.dto';
+import { UpdateAddressesDto } from '@modules/address/dtos/update-addresses.body.dto';
 import {
   MAX_ADDRESS_COUNT,
   ERROR_TOO_MANY_ADDRESSES,
 } from '@modules/address/address.constant';
+import { LoggerService } from '@common/services/logger.service';
 
 @Injectable()
 export class AddressService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
+  ) {}
 
   async getAddressesByUserId(userId: string): Promise<AddressResponseDto[]> {
-    return this.prisma.address.findMany({
+    this.logger.log(`Getting addresses for user ${userId}`);
+
+    const addresses = await this.prisma.address.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -27,13 +33,26 @@ export class AddressService {
         updatedAt: true,
       },
     });
+
+    this.logger.log(
+      `Retrieved ${addresses.length} address(es) for user ${userId}`,
+    );
+
+    return addresses;
   }
 
-  async replaceAddresses(
+  async updateAddresses(
     userId: string,
-    newAddresses: CreateAddressDto[],
+    newAddresses: UpdateAddressesDto[],
   ): Promise<void> {
+    this.logger.log(
+      `Replacing addresses for user ${userId}. New address count: ${newAddresses.length}`,
+    );
+
     if (newAddresses.length > MAX_ADDRESS_COUNT) {
+      this.logger.warn(
+        `User ${userId} exceeded maximum address count (${newAddresses.length}/${MAX_ADDRESS_COUNT})`,
+      );
       throw new BadRequestException(ERROR_TOO_MANY_ADDRESSES);
     }
 
@@ -56,5 +75,9 @@ export class AddressService {
         });
       }
     });
+
+    this.logger.log(
+      `Successfully replaced addresses for user ${userId}. Total addresses: ${newAddresses.length}`,
+    );
   }
 }

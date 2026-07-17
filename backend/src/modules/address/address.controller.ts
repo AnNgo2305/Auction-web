@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AddressService } from '@modules/address/address.service';
 import { AddressResponseDto } from '@modules/address/dtos/address.response.dto';
-import { CreateAddressDto } from '@modules/address/dtos/create-address.body.dto';
+import { UpdateAddressesDto } from '@modules/address/dtos/update-addresses.body.dto';
 import { Auth } from '@common/decorators/auth.decorator';
 import { AuthType } from '@common/types/auth-type.enum';
 import { ResponsePayload } from '@common/types/response.interface';
@@ -36,12 +36,12 @@ export class AddressController {
   @Put()
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
-  async replaceUserAddresses(
+  async updateUserAddresses(
     @Req() req: Request,
-    @Body() addresses: CreateAddressDto[],
+    @Body() addresses: UpdateAddressesDto[],
   ): Promise<ResponsePayload> {
     const userId = req.user?.userId;
-    await this.addressService.replaceAddresses(userId as string, addresses);
+    await this.addressService.updateAddresses(userId as string, addresses);
     return {
       message: 'Addresses updated successfully',
       data: {},
