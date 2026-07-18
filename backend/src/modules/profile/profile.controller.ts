@@ -52,8 +52,12 @@ export class ProfileController {
   @HttpCode(HttpStatus.OK)
   async getActiveSessions(@Req() request: Request): Promise<ResponsePayload> {
     const userId = request.user!.userId;
+    const currentSessionId = request.sessionId!;
 
-    const sessions = await this.refreshTokenService.getActiveSessions(userId);
+    const sessions = await this.refreshTokenService.getActiveSessions(
+      userId,
+      currentSessionId,
+    );
 
     return {
       message: 'Active sessions retrieved successfully',

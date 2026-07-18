@@ -14,6 +14,8 @@ import { formatIsoToNow } from '@/shared/utils/format-time';
 import { useUser } from '@/shared/contexts/UserContext';
 import { useRelationshipActions } from '@/features/profile/hooks/relationship/useRelationshipActions';
 import { Button } from '@/shared/ui/button'
+import { useNavigate } from 'react-router-dom';
+import { profilePaths } from '@/features/profile/constants/profile.routes';
 
 type UserRelationshipCardProps = {
   userId: string;
@@ -51,35 +53,50 @@ export function UserRelationshipCard({
 }: UserRelationshipCardProps) {
   const { currentUser } = useUser();
   const { handleRelationshipAction } = useRelationshipActions();
+  const navigate = useNavigate();
 
   const actions = RELATIONSHIP_ACTIONS[relationshipStatus] ?? [];
   const timeLabel = RELATIONSHIP_TIME_LABELS[relationshipStatus];
 
+  const handleNavigateProfile = () => {
+    navigate(profilePaths.overview(userId));
+  };
+
   return (
     <Card>
       <CardContent className="flex items-center justify-between gap-4 p-5">
-        <div className="flex min-w-0 items-center gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={profileImageUrl ?? defaultAvatarImageUrl} />
-            <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="truncate font-medium">{username}</p>
-              <Badge
-                className={
-                  role === ROLES.SELLER
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                    : 'border-blue-200 bg-blue-50 text-blue-700'
-                }
-              >
-                {role === ROLES.SELLER ? 'Seller' : 'Bidder'}
-              </Badge>
+        <div className="min-w-0">
+          <button
+            type="button"
+            onClick={handleNavigateProfile}
+            className="flex items-center gap-4 rounded-md transition-opacity hover:opacity-80 cursor-pointer"
+          >
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={profileImageUrl ?? defaultAvatarImageUrl} />
+              <AvatarFallback>
+                {username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 text-left">
+              <div className="flex items-center gap-2">
+                <p className="truncate font-medium hover:underline">
+                  {username}
+                </p>
+                <Badge
+                  className={
+                    role === ROLES.SELLER
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-blue-200 bg-blue-50 text-blue-700'
+                  }
+                >
+                  {role === ROLES.SELLER ? 'Seller' : 'Bidder'}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {timeLabel} {formatIsoToNow(createdAt)}
+              </p>
             </div>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {timeLabel} {formatIsoToNow(createdAt)}
-            </p>
-          </div>
+          </button>
         </div>
         <div className="flex shrink-0 gap-2">
           {actions.map((action) => {

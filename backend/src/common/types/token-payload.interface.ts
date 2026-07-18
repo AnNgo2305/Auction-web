@@ -12,6 +12,8 @@ export interface AccessTokenPayloadInput {
   isVerified: boolean;
 
   isBanned: boolean;
+
+  sessionId: string;
 }
 
 export interface AccessTokenPayload extends AccessTokenPayloadInput {

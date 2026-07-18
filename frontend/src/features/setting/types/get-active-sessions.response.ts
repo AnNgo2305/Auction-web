@@ -1,21 +1,23 @@
 import type { ApiResponse } from '@/shared/types/response';
 
 export class ActiveSessionData {
-  id: string;
+  id!: string;
 
-  provider: string;
+  provider!: string;
 
-  deviceId: string | null;
+  deviceId!: string | null;
 
-  ip: string | null;
+  ip!: string | null;
 
-  userAgent: string | null;
+  userAgent!: string | null;
 
-  createdAt: string;
+  createdAt!: string;
 
-  lastUsedAt: string;
+  lastUsedAt!: string;
 
-  expiresAt: string;
+  expiresAt!: string;
+
+  isCurrent!: boolean;
 }
 
 export type GetActiveSessionsResponse = ApiResponse<ActiveSessionData[]>;

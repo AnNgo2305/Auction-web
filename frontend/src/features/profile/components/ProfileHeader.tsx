@@ -14,7 +14,7 @@ import { type Role, ROLES } from '@/shared/types/user.ts';
 import {
   ACTION_CONFIG,
   type RelationshipStatus,
-} from '@/shared/types/relationship.ts';
+} from '@/shared/types/relationship';
 
 interface ProfileHeaderProps {
   userId: string | undefined;
@@ -136,17 +136,17 @@ export function ProfileHeader({
                   Following
                 </Link>
               )}
-              {mutualFollowedSellerCount !== undefined && (
-                <Link
-                  to={profilePaths.following(userId!)}
-                  className="hover:text-primary transition-colors"
-                >
-                  <span className="font-semibold">
-                    {formatCount(mutualFollowedSellerCount)}
-                  </span>{' '}
-                  Mutual Following
-                </Link>
-              )}
+              {(mutualFollowedSellerCount !== undefined && currentUser?.role == ROLES.BIDDER) && (
+                  <Link
+                    to={profilePaths.following(userId!)}
+                    className="hover:text-primary transition-colors"
+                  >
+                    <span className="font-semibold">
+                      {formatCount(mutualFollowedSellerCount)}
+                    </span>{' '}
+                    Mutual Following
+                  </Link>
+                )}
             </div>
           </div>
           {/* Right */}

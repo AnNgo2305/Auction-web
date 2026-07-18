@@ -3,7 +3,14 @@ import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { Skeleton } from '@/shared/ui/skeleton';
-import { Calendar, Clock, Globe, MonitorSmartphone, Timer } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Fingerprint,
+  Globe,
+  MonitorSmartphone,
+  Timer,
+} from 'lucide-react';
 
 interface ActiveSessionListProps {
   sessions: ActiveSessionData[];
@@ -40,7 +47,7 @@ export function ActiveSessionList({
   }
 
   return (
-    <Card className="mx-auto w-full max-w-2xl shadow-lg">
+    <Card className="mx-auto w-full max-w-6xl shadow-lg">
       <CardHeader>
         <h2 className="text-xl font-semibold">Active Sessions</h2>
       </CardHeader>
@@ -52,20 +59,32 @@ export function ActiveSessionList({
                 <MonitorSmartphone size={18} />
                 <span className="font-medium">{session.provider}</span>
                 <Badge variant="secondary">Active</Badge>
+                {session.isCurrent && <Badge variant="default">Current</Badge>}
               </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={isRevoking}
-                onClick={() => onRevoke(session.id)}
-              >
-                Revoke
-              </Button>
+              {session.isCurrent ? (
+                <Button size="sm" disabled>
+                  Current Device
+                </Button>
+              ) : (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isRevoking}
+                  onClick={() => onRevoke(session.id)}
+                >
+                  Revoke
+                </Button>
+                )
+              }
             </div>
             <div className="text-muted-foreground space-y-2 text-sm">
-              <div className="flex max-w-md items-center gap-2 truncate">
+              <div className="flex items-center gap-2 truncate">
                 <MonitorSmartphone size={15} />
                 <span>{session.userAgent ?? 'Unknown device'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Fingerprint size={15} />
+                <span>Device ID: {session.deviceId ?? 'Unknown'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Globe size={15} />

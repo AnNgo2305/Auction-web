@@ -57,6 +57,7 @@ export class JwtGuard implements CanActivate {
       }
 
       request['user'] = payload;
+      request.sessionId = payload.sessionId;
       return true;
     } catch (err) {
       if (authType === AuthType.OPTIONAL) return true;

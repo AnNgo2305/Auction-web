@@ -138,7 +138,7 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
               variant="ghost"
               className="gap-2 rounded-xl"
               onClick={handleCancel}
-              disabled={updateAddressesMutation.isPending || !isDirty}
+              disabled={updateAddressesMutation.isPending}
             >
               <X className="h-4 w-4" />
               Cancel

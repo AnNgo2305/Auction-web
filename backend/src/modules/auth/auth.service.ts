@@ -26,10 +26,6 @@ import {
   ERROR_MISSING_REFRESH_TOKEN,
   ERROR_INVALID_REFRESH_TOKEN,
 } from '@modules/auth/auth.constant';
-import {
-  AccessTokenPayloadInput,
-  RefreshTokenPayloadInput,
-} from '@common/types/token-payload.interface';
 import { LoginBodyDto } from '@modules/auth/dtos/login.body.dto';
 import { LoginResponseDto } from '@modules/auth/dtos/login.response.dto';
 import { RegisterBodyDto } from '@modules/auth/dtos/register.body.dto';
@@ -163,25 +159,21 @@ export class AuthService {
     }
 
     this.logger.log(`Login attempts reset: ${user.email}`);
-    const { accessToken, refreshToken } = await this.generateTokens(
-      user.userId,
-      user.email,
-      user.role,
-      user.username,
-      provider,
-      user.isVerified,
-      user.isBanned,
-    );
 
     const ip = req.ip;
     const userAgent = req.headers['user-agent'];
     const deviceId = req.headers['x-device-id'] as string | undefined;
-
-    await this.refreshTokenService.saveRefreshToken(
-      user.userId,
-      refreshToken,
+    const { accessToken, refreshToken } = await this.generateTokens(
+      {
+        userId: user.userId,
+        email: user.email,
+        role: user.role,
+        username: user.username,
+        provider,
+        isVerified: user.isVerified,
+        isBanned: user.isBanned,
+      },
       deviceId,
-      provider,
       ip,
       userAgent,
     );
@@ -323,29 +315,25 @@ export class AuthService {
       throw new UnauthorizedException(ERROR_INVALID_REFRESH_TOKEN);
     }
 
-    const { accessToken, refreshToken: newRefreshToken } =
-      await this.generateTokens(
-        user.userId,
-        user.email,
-        user.role,
-        user.username,
-        provider,
-        user.isVerified,
-        user.isBanned,
-      );
-
     const ip = req.ip;
     const userAgent = req.headers['user-agent'];
     const deviceId = req.headers['x-device-id'] as string | undefined;
 
-    await this.refreshTokenService.saveRefreshToken(
-      userId,
-      newRefreshToken,
-      deviceId,
-      provider,
-      ip,
-      userAgent,
-    );
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.generateTokens(
+        {
+          userId: user.userId,
+          email: user.email,
+          role: user.role,
+          username: user.username,
+          provider,
+          isVerified: user.isVerified,
+          isBanned: user.isBanned,
+        },
+        deviceId,
+        ip,
+        userAgent,
+      );
 
     this.logger.log(`Refresh token rotated successfully | userId=${userId}`);
 
@@ -665,33 +653,46 @@ export class AuthService {
   }
 
   private async generateTokens(
-    userId: string,
-    email: string,
-    role: string,
-    username: string,
-    provider = 'local',
-    isVerified: boolean,
-    isBanned: boolean,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const accessTokenPayload: AccessTokenPayloadInput = {
-      userId,
-      email,
-      role,
-      username,
-      provider,
-      isVerified,
-      isBanned,
-    };
+    user: {
+      userId: string;
+      email: string;
+      role: string;
+      username: string;
+      provider: string;
+      isVerified: boolean;
+      isBanned: boolean;
+    },
+    deviceId?: string,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    const refreshToken = await this.tokenService.generateRefreshToken({
+      userId: user.userId,
+      provider: user.provider,
+    });
 
-    const refreshTokenPayload: RefreshTokenPayloadInput = {
-      userId,
-      provider,
-    };
+    const session = await this.refreshTokenService.saveRefreshToken(
+      user.userId,
+      refreshToken,
+      deviceId,
+      user.provider,
+      ip,
+      userAgent,
+    );
 
-    const [accessToken, refreshToken] = await Promise.all([
-      this.tokenService.generateAccessToken(accessTokenPayload),
-      this.tokenService.generateRefreshToken(refreshTokenPayload),
-    ]);
+    const accessToken = await this.tokenService.generateAccessToken({
+      userId: user.userId,
+      email: user.email,
+      role: user.role,
+      username: user.username,
+      provider: user.provider,
+      isVerified: user.isVerified,
+      isBanned: user.isBanned,
+      sessionId: session.id,
+    });
 
     return { accessToken, refreshToken };
   }

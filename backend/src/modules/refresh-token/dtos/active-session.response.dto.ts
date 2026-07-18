@@ -14,4 +14,6 @@ export class ActiveSessionResponseDto {
   lastUsedAt: Date;
 
   expiresAt: Date;
+
+  isCurrent: boolean;
 }

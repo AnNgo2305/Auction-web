@@ -26,6 +26,7 @@ import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { authPaths } from '@/features/auth/constants/auth.routes';
 import { Badge } from '@/shared/ui/badge'
+import { settingsPaths } from '@/features/setting/constants/setting.routes.ts';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -137,7 +138,7 @@ export default function AuthHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/settings" className="flex items-center gap-2">
+                <Link to={settingsPaths.password()} className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
                 </Link>

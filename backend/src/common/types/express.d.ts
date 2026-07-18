@@ -4,5 +4,6 @@ declare module 'express' {
   export interface Request {
     user?: AccessTokenPayload;
     requestId?: string;
+    sessionId?: string;
   }
 }
