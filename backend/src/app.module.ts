@@ -18,6 +18,7 @@ import { AddressModule } from '@modules/address/address.module';
 import { ProductModule } from '@modules/product/product.module';
 import { AuctionModule } from '@modules/auction/auction.module';
 import { UploadModule } from '@modules/upload/upload.module';
+import { ProductCategoryModule } from '@modules/product-category/product-category.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UploadModule } from '@modules/upload/upload.module';
     ProductModule,
     AuctionModule,
     UploadModule,
+    ProductCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

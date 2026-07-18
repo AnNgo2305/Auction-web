@@ -58,6 +58,7 @@ model User {
 
   productComments     ProductComment[]     @relation("User_Has_ProductComments")
   passwordResetTokens PasswordResetToken[] @relation("User_Has_PasswordResetTokens")
+  createdCategories   Category[]           @relation("User_Created_Categories")
 
   @@map("users")
 }
@@ -212,9 +213,11 @@ model Follow {
 }
 
 enum ProductStatus {
-  ACTIVE
-  INACTIVE
+  DRAFT
+  READY
+  AUCTIONING
   SOLD
+  REMOVED
 }
 
 model Product {
@@ -225,7 +228,7 @@ model Product {
   sellerId String @map("seller_id") @db.Char(36)
   seller   User   @relation("Seller_Sell_Products", fields: [sellerId], references: [userId], onDelete: Cascade)
 
-  status        ProductStatus @default(INACTIVE)
+  status        ProductStatus @default(DRAFT)
   stockQuantity Int           @default(0) @map("stock_quantity")
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -239,30 +242,16 @@ model Product {
   @@map("products")
 }
 
-enum CategoryType {
-  ELECTRONICS
-  FASHION
-  COLLECTIBLES
-  HOME_APPLIANCES
-  SPORTS_EQUIPMENT
-  TOYS_AND_GAMES
-  VEHICLES
-  REAL_ESTATE
-  ART_AND_CRAFTS
-  JEWELRY_AND_ACCESSORIES
-  HEALTH_AND_BEAUTY
-  GARDEN_AND_OUTDOORS
-  MUSIC_INSTRUMENTS
-  PET_SUPPLIES
-  OFFICE_SUPPLIES
-  OTHER
-}
-
 model Category {
-  categoryId String       @id @default(uuid()) @map("category_id") @db.Char(36)
-  name       CategoryType
-  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
+  categoryId String @id @default(uuid()) @map("category_id") @db.Char(36)
+  name       String @unique @db.VarChar(100)
+  color      String @default("#3B82F6") @db.VarChar(7)
+
+  createdById String @map("created_by_id") @db.Char(36)
+  createdBy   User   @relation("User_Created_Categories", fields: [createdById], references: [userId], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   productCategories ProductCategory[] @relation("Categories_Contain_Products")
 
