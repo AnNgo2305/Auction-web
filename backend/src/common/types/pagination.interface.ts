@@ -1,21 +1,15 @@
-export class PaginationMeta {
-  totalItems!: number;
+export class CursorPaginationMetaDto {
+  limit!: number;
 
   itemCount!: number;
 
-  itemsPerPage!: number;
-
-  totalPages!: number;
-
-  currentPage!: number;
-
   hasNextPage!: boolean;
 
-  hasPrevPage!: boolean;
+  nextCursor?: string;
 }
 
 export class PaginationResult<T> {
   data!: T[];
 
-  meta!: PaginationMeta;
+  meta!: CursorPaginationMetaDto;
 }

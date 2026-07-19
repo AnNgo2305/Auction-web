@@ -12,7 +12,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { ProductStatus } from '@generated/prisma/enums';
+import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 
 export class CreateProductImageDto {
   @IsNotEmpty({ message: 'Image key is required' })
@@ -54,6 +54,11 @@ export class CreateProductDto {
     message: 'Stock quantity must be greater than or equal to 0',
   })
   stockQuantity!: number;
+
+  @IsEnum(PublicCategory, {
+    message: 'Invalid public category',
+  })
+  publicCategory!: PublicCategory;
 
   @IsOptional()
   @IsArray({ message: 'Category IDs must be an array' })

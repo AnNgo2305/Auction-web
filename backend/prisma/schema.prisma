@@ -220,6 +220,28 @@ enum ProductStatus {
   REMOVED
 }
 
+enum PublicCategory {
+  ELECTRONICS
+  COMPUTERS
+  PHONES
+  CAMERAS
+  FASHION
+  JEWELRY
+  WATCHES
+  HOME
+  FURNITURE
+  BOOKS
+  ART
+  TOYS
+  FIGURES
+  COLLECTIBLES
+  ANTIQUES
+  SPORTS
+  AUTOMOTIVE
+  MUSICAL_INSTRUMENTS
+  OTHER
+}
+
 model Product {
   productId   String  @id @default(uuid()) @map("product_id") @db.Char(36)
   name        String  @db.VarChar(255)
@@ -228,10 +250,11 @@ model Product {
   sellerId String @map("seller_id") @db.Char(36)
   seller   User   @relation("Seller_Sell_Products", fields: [sellerId], references: [userId], onDelete: Cascade)
 
-  status        ProductStatus @default(DRAFT)
-  stockQuantity Int           @default(0) @map("stock_quantity")
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
+  publicCategory PublicCategory @default(OTHER) @map("public_category")
+  status         ProductStatus  @default(DRAFT)
+  stockQuantity  Int            @default(0) @map("stock_quantity")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
 
   productCategories ProductCategory[] @relation("Products_Have_Categories")
   images            ProductImage[]    @relation("Product_Has_Images")

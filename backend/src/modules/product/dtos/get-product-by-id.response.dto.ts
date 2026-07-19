@@ -1,4 +1,4 @@
-import type { ProductStatus } from '@generated/prisma/enums';
+import type { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 
 export class ProductImageDto {
   imageId!: string;
@@ -28,7 +28,7 @@ export class ProductDocumentDto {
   documentUrl!: string;
 }
 
-export class GetProductResponseDto {
+export class GetProductByIdResponseDto {
   productId!: string;
 
   name!: string;
@@ -38,6 +38,8 @@ export class GetProductResponseDto {
   stockQuantity!: number;
 
   status!: ProductStatus;
+
+  publicCategory!: PublicCategory;
 
   seller!: UserResponseDto;
 

@@ -6,25 +6,26 @@ import {
 import { PrismaService } from '@common/services/prisma.service';
 import { FileService } from '@common/services/file.service';
 import { CreateProductDto } from '@modules/product/dtos/create-product.body.dto';
-import { GetProductResponseDto } from '@modules/product/dtos/get-product.response.dto';
+import { GetProductByIdResponseDto } from '@modules/product/dtos/get-product-by-id.response.dto';
 import {
   ERROR_CANNOT_UPDATE_PRODUCT,
   ERROR_CATEGORIES_NOT_FOUND,
-  ERROR_NO_PRODUCTS_PROVIDED,
   ERROR_PRODUCT_NOT_AVAILABLE,
   ERROR_PRODUCT_NOT_FOUND,
   ERROR_PRODUCT_STOCK_INSUFFICIENT,
 } from '@modules/product/product.constant';
 import { Prisma } from '@generated/prisma/client';
 import { ProductStatus } from '@generated/prisma/enums';
-import { ProductDto } from '@modules/product/dtos/multi-products.response.dto';
 import { ProductImageService } from '@modules/product-image/product-image.service';
 import { ProductCategoryService } from '@modules/product-category/product-category.service';
 import { UpdateProductDto } from '@modules/product/dtos/update-product.body.dto';
-import { GetProductsQueryDto } from '@modules/product/dtos/get-product.query.dto';
+import { GetMyProductsQueryDto } from '@modules/product/dtos/get-my-products.query.dto';
 import { PaginationResult } from '@common/types/pagination.interface';
 import { LoggerService } from '@common/services/logger.service';
 import { ERROR_CANNOT_SET_PRODUCT_STATUS } from '@modules/product/product.constant';
+import { GetMyProductsResponseDto } from '@modules/product/dtos/get-my-products.response.dto';
+import { GetProductsResponseDto } from '@modules/product/dtos/get-products.response.dto';
+import { GetProductsQueryDto } from '@modules/product/dtos/get-products.query.dto';
 
 @Injectable()
 export class ProductService {
@@ -39,7 +40,7 @@ export class ProductService {
   async getProductById(
     productId: string,
     currentUserId?: string,
-  ): Promise<GetProductResponseDto> {
+  ): Promise<GetProductByIdResponseDto> {
     this.logger.log(
       `Retrieving product ${productId} for user ${currentUserId ?? 'anonymous'}`,
     );
@@ -105,6 +106,7 @@ export class ProductService {
       },
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
+      publicCategory: product.publicCategory,
       categories: product.productCategories.map((pc) => ({
         categoryId: pc.category.categoryId,
         name: pc.category.name,
@@ -297,7 +299,7 @@ export class ProductService {
         stockQuantity: productData.stockQuantity,
         sellerId: userId,
         status: productData.status,
-
+        publicCategory: productData.publicCategory,
         productCategories: productData.categoryIds?.length
           ? {
               create: productData.categoryIds.map((categoryId) => ({
@@ -408,65 +410,208 @@ export class ProductService {
 
   async getMyProducts(
     userId: string,
-    query: GetProductsQueryDto,
-    currentUserId?: string,
-  ): Promise<PaginationResult<ProductDto>> {
-    const { offset = 0, limit = 10, status, name, categoryId } = query;
-    const where = {
-      sellerId: userId,
-      name: name ? { contains: name } : undefined,
-      productCategories: categoryId ? { some: { categoryId } } : undefined,
-      status: currentUserId === userId ? status || undefined : 'ACTIVE',
-    };
+    query: GetMyProductsQueryDto,
+  ): Promise<PaginationResult<GetMyProductsResponseDto>> {
+    const {
+      keyword,
+      status,
+      publicCategory,
+      categoryId,
+      cursor,
+      limit,
+      sortBy,
+      sortOrder,
+    } = query;
 
-    const [products, totalProducts] = await this.prisma.$transaction([
-      this.prisma.product.findMany({
-        where,
-        include: {
-          images: {
-            select: { imageId: true, imageUrl: true, isPrimary: true },
-          },
-          productCategories: {
-            include: { category: { select: { categoryId: true, name: true } } },
+    this.logger.debug(
+      `User ${userId} is fetching products (keyword=${keyword ?? '-'}, status=${status ?? '-'}, publicCategory=${publicCategory ?? '-'}, categoryId=${categoryId ?? '-'}, cursor=${cursor ?? '-'}, limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder})`,
+    );
+
+    const where: Prisma.ProductWhereInput = {
+      sellerId: userId,
+      ...(keyword && {
+        name: {
+          contains: keyword,
+        },
+      }),
+      ...(status && { status }),
+      ...(publicCategory && {
+        publicCategory,
+      }),
+      ...(categoryId && {
+        productCategories: {
+          some: {
+            categoryId,
           },
         },
-        orderBy: { createdAt: 'desc' },
-        skip: offset,
-        take: limit,
       }),
-      this.prisma.product.count({ where }),
-    ]);
+    };
 
-    const currentPage = Math.floor(offset / limit) + 1;
-    const totalPages = Math.ceil(totalProducts / limit);
+    const products = await this.prisma.product.findMany({
+      where,
+      include: {
+        images: {
+          where: {
+            isPrimary: true,
+          },
+          select: {
+            imageUrl: true,
+          },
+          take: 1,
+        },
+        productCategories: {
+          include: {
+            category: {
+              select: {
+                categoryId: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      cursor: cursor
+        ? {
+            productId: cursor,
+          }
+        : undefined,
+      skip: cursor ? 1 : 0,
+      take: limit + 1,
+    });
+
+    const hasNextPage = products.length > limit;
+    const items = hasNextPage ? products.slice(0, limit) : products;
+
+    this.logger.debug(
+      `User ${userId} fetched ${items.length} products (hasNextPage=${hasNextPage})`,
+    );
 
     return {
-      data: products.map((p) => ({
-        productId: p.productId,
-        name: p.name,
-        description: p.description ?? undefined,
-        stockQuantity: p.stockQuantity,
-        status: p.status,
-        categories: p.productCategories.map((pc) => ({
+      data: items.map((product) => ({
+        productId: product.productId,
+        name: product.name,
+        description: product.description ?? undefined,
+        stockQuantity: product.stockQuantity,
+        publicCategory: product.publicCategory,
+        status: product.status,
+        thumbnail: product.images[0]?.imageUrl,
+        categories: product.productCategories.map((pc) => ({
           categoryId: pc.category.categoryId,
           name: pc.category.name,
         })),
-        images: p.images.map((img) => ({
-          imageId: img.imageId,
-          imageUrl: img.imageUrl,
-          isPrimary: img.isPrimary,
-        })),
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
       })),
       meta: {
-        totalItems: totalProducts,
-        itemCount: products.length,
-        itemsPerPage: limit,
-        totalPages,
-        currentPage,
-        hasNextPage: currentPage < totalPages,
-        hasPrevPage: currentPage > 1,
+        limit: limit,
+        itemCount: items.length,
+        hasNextPage,
+        nextCursor: hasNextPage ? items[items.length - 1].productId : undefined,
+      },
+    };
+  }
+
+  async getProducts(
+    query: GetProductsQueryDto,
+  ): Promise<PaginationResult<GetProductsResponseDto>> {
+    const {
+      keyword,
+      publicCategory,
+      status,
+      cursor,
+      limit,
+      sortBy,
+      sortOrder,
+    } = query;
+
+    const where: Prisma.ProductWhereInput = {
+      ...(keyword && {
+        name: {
+          contains: keyword,
+        },
+      }),
+
+      ...(publicCategory && {
+        publicCategory,
+      }),
+
+      ...(status && {
+        status,
+      }),
+    };
+
+    const products = await this.prisma.product.findMany({
+      where,
+      take: limit + 1,
+      ...(cursor && {
+        cursor: {
+          productId: cursor,
+        },
+        skip: 1,
+      }),
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      include: {
+        seller: {
+          select: {
+            username: true,
+          },
+        },
+        productCategories: {
+          include: {
+            category: {
+              select: {
+                categoryId: true,
+                name: true,
+              },
+            },
+          },
+        },
+        images: {
+          where: {
+            isPrimary: true,
+          },
+          take: 1,
+          select: {
+            imageUrl: true,
+          },
+        },
+      },
+    });
+
+    const hasNextPage = products.length > limit;
+    const data = hasNextPage ? products.slice(0, limit) : products;
+    const nextCursor = hasNextPage
+      ? data[data.length - 1].productId
+      : undefined;
+
+    return {
+      data: data.map((product) => ({
+        sellerId: product.sellerId,
+        sellerName: product.seller.username,
+        productId: product.productId,
+        name: product.name,
+        description: product.description ?? undefined,
+        publicCategory: product.publicCategory,
+        status: product.status,
+        thumbnail: product.images[0]?.imageUrl,
+        categories: product.productCategories.map((item) => ({
+          categoryId: item.category.categoryId,
+          name: item.category.name,
+        })),
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+      })),
+
+      meta: {
+        limit,
+        itemCount: data.length,
+        hasNextPage,
+        nextCursor,
       },
     };
   }

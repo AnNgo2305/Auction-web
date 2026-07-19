@@ -23,7 +23,7 @@ import { ResponsePayload } from '@common/types/response.interface';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateProductDto } from '@modules/product/dtos/create-product.body.dto';
 import { UpdateProductDto } from '@modules/product/dtos/update-product.body.dto';
-import { GetProductsQueryDto } from '@modules/product/dtos/get-product.query.dto';
+import { GetProductsQueryDto } from '@modules/product/dtos/get-my-products.query.dto';
 
 @Controller('products')
 export class ProductController {
