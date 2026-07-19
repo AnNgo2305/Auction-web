@@ -15,22 +15,19 @@ export class UpdateProductDto {
   @IsUUID()
   productId!: string;
 
-  @IsOptional()
   @IsString()
-  name?: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
   description?: string;
 
-  @IsOptional()
   @IsInt()
   @Min(0)
-  stockQuantity?: number;
+  stockQuantity!: number;
 
-  @IsOptional()
   @IsEnum(ProductStatus)
-  status?: ProductStatus;
+  status!: ProductStatus;
 
   @IsArray()
   @ArrayNotEmpty()

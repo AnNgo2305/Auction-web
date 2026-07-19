@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { LoggerService } from '@common/services/logger.service';
 import { GetMyProductCategoriesResponseDto } from '@modules/product-category/dtos/get-my-product-categories.response.dto';
 import {
   ERROR_CATEGORY_NOT_FOUND,
   ERROR_CATEGORIES_NOT_FOUND,
+  ERROR_CATEGORY_ALREADY_EXISTS,
 } from '@modules/product-category/product-category.constant';
 
 @Injectable()
@@ -102,6 +107,21 @@ export class ProductCategoryService {
     name: string,
     color?: string,
   ): Promise<void> {
+    const existingCategory = await this.prisma.category.findFirst({
+      where: {
+        createdById: userId,
+        name,
+      },
+      select: {
+        categoryId: true,
+      },
+    });
+
+    if (existingCategory) {
+      this.logger.error(`This category already exists`);
+      throw new ConflictException(ERROR_CATEGORY_ALREADY_EXISTS);
+    }
+
     const category = await this.prisma.category.create({
       data: {
         createdById: userId,
@@ -110,8 +130,6 @@ export class ProductCategoryService {
       },
       select: {
         categoryId: true,
-        name: true,
-        color: true,
       },
     });
 

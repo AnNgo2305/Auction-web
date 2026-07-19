@@ -3,13 +3,12 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { FileService } from '@common/services/file.service';
 import { PrismaService } from '@common/services/prisma.service';
+import { FileService } from '@common/services/file.service';
 import { CreateProductDto } from '@modules/product/dtos/create-product.body.dto';
 import { GetProductResponseDto } from '@modules/product/dtos/get-product.response.dto';
 import {
-  ERROR_CANNOT_SET_STATUS_SOLD,
-  ERROR_CANNOT_UPDATE_SOLD_PRODUCT,
+  ERROR_CANNOT_UPDATE_PRODUCT,
   ERROR_CATEGORIES_NOT_FOUND,
   ERROR_NO_PRODUCTS_PROVIDED,
   ERROR_PRODUCT_NOT_AVAILABLE,
@@ -24,12 +23,15 @@ import { ProductCategoryService } from '@modules/product-category/product-catego
 import { UpdateProductDto } from '@modules/product/dtos/update-product.body.dto';
 import { GetProductsQueryDto } from '@modules/product/dtos/get-product.query.dto';
 import { PaginationResult } from '@common/types/pagination.interface';
+import { LoggerService } from '@common/services/logger.service';
+import { ERROR_CANNOT_SET_PRODUCT_STATUS } from '@modules/product/product.constant';
 
 @Injectable()
 export class ProductService {
   constructor(
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
     private readonly productCategoryService: ProductCategoryService,
     private readonly productImageService: ProductImageService,
   ) {}
@@ -38,26 +40,58 @@ export class ProductService {
     productId: string,
     currentUserId?: string,
   ): Promise<GetProductResponseDto> {
+    this.logger.log(
+      `Retrieving product ${productId} for user ${currentUserId ?? 'anonymous'}`,
+    );
     const product = await this.prisma.product.findUnique({
       where: { productId },
       include: {
-        seller: { select: { userId: true, username: true } },
+        seller: {
+          select: {
+            userId: true,
+            username: true,
+          },
+        },
         productCategories: {
-          include: { category: { select: { categoryId: true, name: true } } },
+          include: {
+            category: {
+              select: {
+                categoryId: true,
+                name: true,
+              },
+            },
+          },
         },
         images: true,
+        productDocuments: {
+          select: {
+            documentId: true,
+            documentUrl: true,
+            documentName: true,
+          },
+        },
       },
     });
 
-    if (!product) throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    if (!product) {
+      this.logger.warn(`Product ${productId} not found`);
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
 
     if (
       product.seller.userId !== currentUserId &&
-      (product.status === ProductStatus.SOLD ||
-        product.status === ProductStatus.INACTIVE)
+      product.status !== ProductStatus.READY &&
+      product.status !== ProductStatus.AUCTIONING
     ) {
+      this.logger.warn(
+        `User ${currentUserId ?? 'anonymous'} attempted to access unavailable product ${productId} (status: ${product.status})`,
+      );
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
+
+    this.logger.debug(
+      `Retrieved product ${productId} successfully for user ${currentUserId ?? 'anonymous'}`,
+    );
 
     return {
       productId: product.productId,
@@ -80,6 +114,11 @@ export class ProductService {
         imageUrl: img.imageUrl,
         isPrimary: img.isPrimary,
       })),
+      documents: product.productDocuments.map((doc) => ({
+        documentId: doc.documentId,
+        documentName: doc.documentName,
+        documentUrl: doc.documentUrl,
+      })),
     };
   }
 
@@ -87,138 +126,287 @@ export class ProductService {
     userId: string,
     productIds: string[],
   ): Promise<void> {
-    if (!productIds || productIds.length === 0) return;
+    if (productIds.length === 0) return;
 
     const existingProducts = await this.prisma.product.findMany({
-      where: { productId: { in: productIds }, sellerId: userId },
-      include: { images: true },
+      where: {
+        sellerId: userId,
+        productId: {
+          in: productIds,
+        },
+      },
+      include: {
+        images: {
+          select: {
+            imageUrl: true,
+          },
+        },
+        productDocuments: {
+          select: {
+            documentUrl: true,
+          },
+        },
+      },
     });
 
     const existingIds = existingProducts.map((p) => p.productId);
     const missingIds = productIds.filter((id) => !existingIds.includes(id));
-
     if (missingIds.length > 0) {
+      this.logger.warn(
+        `User ${userId} attempted to delete non-existing products: ${missingIds.join(', ')}`,
+      );
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    // for (const product of existingProducts) {
-    //   for (const img of product.images) {
-    //     await this.fileService.deleteFile(img.imageUrl);
-    //   }
-    // }
+    this.logger.debug(
+      `Deleting files for ${existingProducts.length} products owned by user ${userId}`,
+    );
+
+    try {
+      await Promise.all([
+        ...existingProducts.flatMap((product) =>
+          product.images.map((image) =>
+            this.fileService.deleteObject(image.imageUrl),
+          ),
+        ),
+        ...existingProducts.flatMap((product) =>
+          product.productDocuments.map((document) =>
+            this.fileService.deleteObject(document.documentUrl),
+          ),
+        ),
+      ]);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete product files for user ${userId}`,
+        error,
+      );
+
+      throw new Error('Failed to delete product files');
+    }
 
     await this.prisma.product.deleteMany({
       where: {
-        productId: { in: productIds },
         sellerId: userId,
+        productId: {
+          in: productIds,
+        },
       },
     });
+
+    this.logger.debug(
+      `Deleted ${productIds.length} products by user ${userId}`,
+    );
+  }
+
+  async deleteProductById(userId: string, productId: string): Promise<void> {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        productId,
+        sellerId: userId,
+      },
+      include: {
+        images: {
+          select: {
+            imageUrl: true,
+          },
+        },
+        productDocuments: {
+          select: {
+            documentUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      this.logger.warn(
+        `User ${userId} attempted to delete non-existing product ${productId}`,
+      );
+
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    this.logger.debug(
+      `Deleting files for product ${productId} by user ${userId}`,
+    );
+
+    try {
+      await Promise.all([
+        ...product.images.map((image) =>
+          this.fileService.deleteObject(image.imageUrl),
+        ),
+        ...product.productDocuments.map((document) =>
+          this.fileService.deleteObject(document.documentUrl),
+        ),
+      ]);
+
+      this.logger.debug(`Deleted all files for product ${productId}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete files for product ${productId}`,
+        error,
+      );
+
+      throw new Error('Failed to delete product files');
+    }
+
+    await this.prisma.product.delete({
+      where: {
+        productId,
+      },
+    });
+
+    this.logger.debug(`Deleted product ${productId} by user ${userId}`);
   }
 
   async createProduct(
     userId: string,
     productData: CreateProductDto,
-    files?: Express.Multer.File[],
   ): Promise<void> {
-    if (!productData) {
-      throw new BadRequestException(ERROR_NO_PRODUCTS_PROVIDED);
-    }
+    if (productData.categoryIds?.length) {
+      const existingCategories = await this.prisma.category.findMany({
+        where: {
+          categoryId: {
+            in: productData.categoryIds,
+          },
+        },
+        select: {
+          categoryId: true,
+        },
+      });
 
-    const existingCategories = await this.prisma.category.findMany({
-      where: { categoryId: { in: productData.categoryIds } },
-      select: { categoryId: true },
-    });
-    const existingIds = existingCategories.map((c) => c.categoryId);
-    const missingIds = productData.categoryIds.filter(
-      (id) => !existingIds.includes(id),
-    );
-    if (missingIds.length) {
-      throw new BadRequestException(ERROR_CATEGORIES_NOT_FOUND);
-    }
+      const existingIds = existingCategories.map((c) => c.categoryId);
 
-    const imagesData: { imageUrl: string; isPrimary: boolean }[] = [];
-    if (files && files.length > 0) {
-      const MAX_SIZE = 5 * 1024 * 1024;
-      const allowedMimeTypes = [
-        'image/jpeg',
-        'image/png',
-        'image/webp',
-        'image/gif',
-      ];
+      const missingIds = productData.categoryIds.filter(
+        (id) => !existingIds.includes(id),
+      );
 
-      for (const [index, file] of files.entries()) {
-        if (file.size > MAX_SIZE)
-          throw new Error('File size exceeds 5MB limit');
-        if (!allowedMimeTypes.includes(file.mimetype))
-          throw new Error(
-            'Invalid file type. Only JPEG, PNG, GIF, WEBP are allowed.',
-          );
+      if (missingIds.length) {
+        this.logger.warn(
+          `User ${userId} attempted to create a product with invalid category IDs: ${missingIds.join(', ')}`,
+        );
 
-        // const imageUrl = await this.fileService.uploadFile('products', file);
-        // imagesData.push({ imageUrl, isPrimary: index === 0 });
+        throw new BadRequestException(ERROR_CATEGORIES_NOT_FOUND);
       }
     }
 
-    await this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: {
         name: productData.name,
         description: productData.description ?? null,
         stockQuantity: productData.stockQuantity,
         sellerId: userId,
-        status: ProductStatus.INACTIVE,
-        productCategories: {
-          create: productData.categoryIds.map((categoryId) => ({
-            category: { connect: { categoryId } },
-          })),
-        },
-        images: imagesData.length > 0 ? { create: imagesData } : undefined,
+        status: productData.status,
+
+        productCategories: productData.categoryIds?.length
+          ? {
+              create: productData.categoryIds.map((categoryId) => ({
+                category: {
+                  connect: {
+                    categoryId,
+                  },
+                },
+              })),
+            }
+          : undefined,
+
+        images: productData.images?.length
+          ? {
+              create: productData.images.map((image) => ({
+                imageUrl: image.imageKey,
+                isPrimary: image.isPrimary,
+              })),
+            }
+          : undefined,
+
+        productDocuments: productData.documents?.length
+          ? {
+              create: productData.documents.map((document) => ({
+                documentName: document.documentName,
+                documentUrl: document.documentKey,
+              })),
+            }
+          : undefined,
+      },
+      select: {
+        productId: true,
       },
     });
+
+    this.logger.debug(`Created product ${product.productId} by user ${userId}`);
   }
 
-  async updateProduct(
-    userId: string,
-    dto: UpdateProductDto,
-    files?: Express.Multer.File[],
-  ): Promise<void> {
+  async updateProduct(userId: string, dto: UpdateProductDto): Promise<void> {
     const product = await this.prisma.product.findUnique({
-      where: { productId: dto.productId },
+      where: {
+        productId: dto.productId,
+      },
     });
 
     if (!product || product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to update unavailable product ${dto.productId}`,
+      );
+
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.status === ProductStatus.SOLD) {
-      throw new BadRequestException(ERROR_CANNOT_UPDATE_SOLD_PRODUCT);
+    if (
+      product.status === ProductStatus.SOLD ||
+      product.status === ProductStatus.REMOVED
+    ) {
+      this.logger.warn(
+        `User ${userId} cannot update product ${dto.productId} because product status is ${product.status}`,
+      );
+
+      throw new BadRequestException(ERROR_CANNOT_UPDATE_PRODUCT);
     }
-    if (dto.status === ProductStatus.SOLD) {
-      throw new BadRequestException(ERROR_CANNOT_SET_STATUS_SOLD);
+
+    if (
+      dto.status &&
+      (dto.status === ProductStatus.SOLD ||
+        dto.status === ProductStatus.AUCTIONING)
+    ) {
+      this.logger.warn(
+        `User ${userId} attempted to set invalid product status ${dto.status} for product ${dto.productId}`,
+      );
+      throw new BadRequestException(ERROR_CANNOT_SET_PRODUCT_STATUS);
     }
 
     await this.prisma.product.update({
-      where: { productId: dto.productId },
+      where: {
+        productId: dto.productId,
+      },
       data: {
-        name: dto.name,
-        description: dto.description ?? null,
-        stockQuantity: dto.stockQuantity,
-        status: dto.status,
+        ...(dto.name !== undefined && {
+          name: dto.name,
+        }),
+
+        ...(dto.description !== undefined && {
+          description: dto.description,
+        }),
+
+        ...(dto.stockQuantity !== undefined && {
+          stockQuantity: dto.stockQuantity,
+        }),
+
+        ...(dto.status !== undefined && {
+          status: dto.status,
+        }),
       },
     });
 
-    if (dto.categoryIds && dto.categoryIds.length > 0) {
+    if (dto.categoryIds !== undefined) {
       await this.productCategoryService.updateProductCategories(
         dto.productId,
         dto.categoryIds,
       );
     }
 
-    // if (files && files.length > 0) {
-    //   await this.productImageService.updateProductImages(dto.productId, files);
-    // }
+    this.logger.debug(`Updated product ${dto.productId} by user ${userId}`);
   }
 
-  async getProductsByUserId(
+  async getMyProducts(
     userId: string,
     query: GetProductsQueryDto,
     currentUserId?: string,

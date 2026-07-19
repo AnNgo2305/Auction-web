@@ -16,16 +16,16 @@ export const ERROR_CATEGORIES_NOT_FOUND = {
   message: 'One or more categories do not exist',
 };
 
-export const ERROR_CANNOT_UPDATE_SOLD_PRODUCT = {
+export const ERROR_CANNOT_UPDATE_PRODUCT = {
   statusCode: 400,
-  errorCode: 'CANNOT_UPDATE_SOLD_PRODUCT',
-  message: 'Cannot update a sold product',
+  errorCode: 'CANNOT_UPDATE_PRODUCT',
+  message: 'Product cannot be updated in its current status',
 };
 
-export const ERROR_CANNOT_SET_STATUS_SOLD = {
+export const ERROR_CANNOT_SET_PRODUCT_STATUS = {
   statusCode: 400,
-  errorCode: 'CANNOT_SET_STATUS_SOLD',
-  message: 'Cannot manually set status to SOLD',
+  errorCode: 'CANNOT_SET_PRODUCT_STATUS',
+  message: 'This product status cannot be set manually',
 };
 
 export const ERROR_PRODUCT_STOCK_INSUFFICIENT = (productId: string) => ({

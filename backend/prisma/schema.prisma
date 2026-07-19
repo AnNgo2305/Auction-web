@@ -237,7 +237,8 @@ model Product {
   images            ProductImage[]    @relation("Product_Has_Images")
   auctionProducts   AuctionProduct[]  @relation("Product_In_Auctions")
 
-  comments ProductComment[] @relation("Product_Has_Comments")
+  comments         ProductComment[]  @relation("Product_Has_Comments")
+  productDocuments ProductDocument[] @relation("Product_Has_Documents")
 
   @@map("products")
 }
@@ -280,6 +281,21 @@ model ProductImage {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   @@map("product_images")
+}
+
+model ProductDocument {
+  documentId String @id @default(uuid()) @map("product_document_id") @db.Char(36)
+
+  productId String  @map("product_id") @db.Char(36)
+  product   Product @relation("Product_Has_Documents", fields: [productId], references: [productId], onDelete: Cascade)
+
+  documentName String @map("document_name") @db.VarChar(255)
+  documentUrl  String @map("document_url") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@index([productId])
+  @@map("product_documents")
 }
 
 enum AuctionStatus {

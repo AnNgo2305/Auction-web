@@ -20,6 +20,14 @@ export class UserResponseDto {
   username!: string;
 }
 
+export class ProductDocumentDto {
+  documentId!: string;
+
+  documentName!: string;
+
+  documentUrl!: string;
+}
+
 export class GetProductResponseDto {
   productId!: string;
 
@@ -40,4 +48,6 @@ export class GetProductResponseDto {
   categories!: ProductCategoryDto[];
 
   images!: ProductImageDto[];
+
+  documents!: ProductDocumentDto[];
 }
