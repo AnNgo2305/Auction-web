@@ -1,6 +1,8 @@
-export type UploadPurpose = 'avatar' | 'cover';
-
-export type ObjectAcl = 'public-read' | 'private';
+export type UploadPurpose =
+  | 'avatar'
+  | 'cover'
+  | 'productImage'
+  | 'productDocument';
 
 export interface FileMetadata {
   mimeType: string;

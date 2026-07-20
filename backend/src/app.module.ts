@@ -19,6 +19,7 @@ import { ProductModule } from '@modules/product/product.module';
 import { UploadModule } from '@modules/upload/upload.module';
 import { ProductCategoryModule } from '@modules/product-category/product-category.module';
 import { ProductImageModule } from '@modules/product-image/product-image.module';
+import { ProductDocumentModule } from '@modules/product-document/product-document.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProductImageModule } from '@modules/product-image/product-image.module'
     UploadModule,
     ProductCategoryModule,
     ProductImageModule,
+    ProductDocumentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

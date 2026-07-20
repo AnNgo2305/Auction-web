@@ -22,6 +22,41 @@ export const UPLOAD_RULES: Record<
     maxFiles: 1,
     roles: ['BIDDER', 'SELLER'],
   },
+
+  productImage: {
+    maxSize: 10 * 1024 * 1024,
+    allowedMime: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
+    maxFiles: 10,
+    roles: ['SELLER'],
+  },
+
+  productDocument: {
+    maxSize: 100 * 1024 * 1024,
+    allowedMime: [
+      // PDF
+      'application/pdf',
+
+      // Microsoft Word
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+
+      // Microsoft Excel
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+
+      // Microsoft PowerPoint
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
+      // Text
+      'text/plain',
+
+      // CSV
+      'text/csv',
+    ],
+    maxFiles: 10,
+    roles: ['SELLER'],
+  },
 };
 
 export const ERROR_INVALID_MIME_TYPE = {

@@ -39,13 +39,30 @@ export class FileService {
       'image/png': 'png',
       'image/webp': 'webp',
       'image/jpg': 'jpg',
+
+      'application/pdf': 'pdf',
+
+      'application/msword': 'doc',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        'docx',
+
+      'application/vnd.ms-excel': 'xls',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        'xlsx',
+
+      'application/vnd.ms-powerpoint': 'ppt',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+        'pptx',
+
+      'text/plain': 'txt',
+      'text/csv': 'csv',
     };
 
     return map[mimeType] ?? '';
   }
 
   private buildKey(
-    userId: string,
+    entityId: string,
     purpose: UploadPurpose,
     mimeType: string,
   ): string {
@@ -54,10 +71,16 @@ export class FileService {
 
     switch (purpose) {
       case 'avatar':
-        return `public/users/${userId}/avatar/${uuid}.${ext}`;
+        return `public/users/${entityId}/avatar/${uuid}.${ext}`;
 
       case 'cover':
-        return `public/users/${userId}/cover/${uuid}.${ext}`;
+        return `public/users/${entityId}/cover/${uuid}.${ext}`;
+
+      case 'productImage':
+        return `public/products/${entityId}/images/${uuid}.${ext}`;
+
+      case 'productDocument':
+        return `public/products/${entityId}/documents/${uuid}.${ext}`;
 
       default:
         return '';
