@@ -176,7 +176,7 @@ export class ProductService {
         productDocuments: {
           select: {
             documentId: true,
-            documentUrl: true,
+            documentKey: true,
             documentName: true,
           },
         },
@@ -222,13 +222,13 @@ export class ProductService {
       })),
       images: product.images.map((img) => ({
         imageId: img.imageId,
-        imageUrl: img.imageUrl,
+        imageUrl: this.fileService.getPublicUrl(img.imageKey),
         isPrimary: img.isPrimary,
       })),
       documents: product.productDocuments.map((doc) => ({
         documentId: doc.documentId,
         documentName: doc.documentName,
-        documentUrl: doc.documentUrl,
+        documentUrl: this.fileService.getPublicUrl(doc.documentKey),
       })),
     };
   }
@@ -249,12 +249,12 @@ export class ProductService {
       include: {
         images: {
           select: {
-            imageUrl: true,
+            imageKey: true,
           },
         },
         productDocuments: {
           select: {
-            documentUrl: true,
+            documentKey: true,
           },
         },
       },
@@ -277,12 +277,12 @@ export class ProductService {
       await Promise.all([
         ...existingProducts.flatMap((product) =>
           product.images.map((image) =>
-            this.fileService.deleteObject(image.imageUrl),
+            this.fileService.deleteObject(image.imageKey),
           ),
         ),
         ...existingProducts.flatMap((product) =>
           product.productDocuments.map((document) =>
-            this.fileService.deleteObject(document.documentUrl),
+            this.fileService.deleteObject(document.documentKey),
           ),
         ),
       ]);
@@ -318,12 +318,12 @@ export class ProductService {
       include: {
         images: {
           select: {
-            imageUrl: true,
+            imageKey: true,
           },
         },
         productDocuments: {
           select: {
-            documentUrl: true,
+            documentKey: true,
           },
         },
       },
@@ -344,10 +344,10 @@ export class ProductService {
     try {
       await Promise.all([
         ...product.images.map((image) =>
-          this.fileService.deleteObject(image.imageUrl),
+          this.fileService.deleteObject(image.imageKey),
         ),
         ...product.productDocuments.map((document) =>
-          this.fileService.deleteObject(document.documentUrl),
+          this.fileService.deleteObject(document.documentKey),
         ),
       ]);
 
@@ -401,50 +401,55 @@ export class ProductService {
       }
     }
 
-    const product = await this.prisma.product.create({
-      data: {
-        name: productData.name,
-        description: productData.description ?? null,
-        stockQuantity: productData.stockQuantity,
-        sellerId: userId,
-        status: productData.status,
-        publicCategory: productData.publicCategory,
-        productCategories: productData.categoryIds?.length
-          ? {
-              create: productData.categoryIds.map((categoryId) => ({
-                category: {
-                  connect: {
-                    categoryId,
+    await this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.create({
+        data: {
+          name: productData.name,
+          description: productData.description ?? null,
+          stockQuantity: productData.stockQuantity,
+          sellerId: userId,
+          status: productData.status,
+          publicCategory: productData.publicCategory,
+
+          productCategories: productData.categoryIds?.length
+            ? {
+                create: productData.categoryIds.map((categoryId) => ({
+                  category: {
+                    connect: {
+                      categoryId,
+                    },
                   },
-                },
-              })),
-            }
-          : undefined,
+                })),
+              }
+            : undefined,
+        },
+        select: {
+          productId: true,
+        },
+      });
 
-        images: productData.images?.length
-          ? {
-              create: productData.images.map((image) => ({
-                imageUrl: image.imageKey,
-                isPrimary: image.isPrimary,
-              })),
-            }
-          : undefined,
+      if (productData.images?.length) {
+        await tx.productImage.createMany({
+          data: productData.images.map((image) => ({
+            productId: product.productId,
+            imageKey: image.imageKey,
+            isPrimary: image.isPrimary,
+          })),
+        });
+      }
 
-        productDocuments: productData.documents?.length
-          ? {
-              create: productData.documents.map((document) => ({
-                documentName: document.documentName,
-                documentUrl: document.documentKey,
-              })),
-            }
-          : undefined,
-      },
-      select: {
-        productId: true,
-      },
+      if (productData.documents?.length) {
+        await tx.productDocument.createMany({
+          data: productData.documents.map((document) => ({
+            productId: product.productId,
+            documentName: document.documentName,
+            documentKey: document.documentKey,
+          })),
+        });
+      }
     });
 
-    this.logger.debug(`Created product ${product.productId} by user ${userId}`);
+    this.logger.debug(`Created product by user ${userId}`);
   }
 
   async updateProduct(userId: string, dto: UpdateProductDto): Promise<void> {
@@ -564,7 +569,7 @@ export class ProductService {
             isPrimary: true,
           },
           select: {
-            imageUrl: true,
+            imageKey: true,
           },
           take: 1,
         },
@@ -606,7 +611,7 @@ export class ProductService {
         stockQuantity: product.stockQuantity,
         publicCategory: product.publicCategory,
         status: product.status,
-        thumbnail: product.images[0]?.imageUrl,
+        thumbnail: this.fileService.getPublicUrl(product.images[0]?.imageKey),
         categories: product.productCategories.map((pc) => ({
           categoryId: pc.category.categoryId,
           name: pc.category.name,
@@ -686,7 +691,7 @@ export class ProductService {
           },
           take: 1,
           select: {
-            imageUrl: true,
+            imageKey: true,
           },
         },
       },
@@ -707,7 +712,7 @@ export class ProductService {
         description: product.description ?? undefined,
         publicCategory: product.publicCategory,
         status: product.status,
-        thumbnail: product.images[0]?.imageUrl,
+        thumbnail: this.fileService.getPublicUrl(product.images[0]?.imageKey),
         categories: product.productCategories.map((item) => ({
           categoryId: item.category.categoryId,
           name: item.category.name,

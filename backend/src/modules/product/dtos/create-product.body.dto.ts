@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
@@ -13,6 +14,10 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
+import {
+  MAX_PRODUCT_DOCUMENTS,
+  MAX_PRODUCT_IMAGES,
+} from '@modules/product/product.constant';
 
 export class CreateProductImageDto {
   @IsNotEmpty({ message: 'Image key is required' })
@@ -77,12 +82,18 @@ export class CreateProductDto {
   @ArrayNotEmpty({
     message: 'At least one product image is required',
   })
+  @ArrayMaxSize(MAX_PRODUCT_IMAGES, {
+    message: `A product can have at most ${MAX_PRODUCT_IMAGES} images`,
+  })
   @ValidateNested({ each: true })
   @Type(() => CreateProductImageDto)
   images!: CreateProductImageDto[];
 
   @IsOptional()
   @IsArray({ message: 'Documents must be an array' })
+  @ArrayMaxSize(MAX_PRODUCT_DOCUMENTS, {
+    message: `A product can have at most ${MAX_PRODUCT_DOCUMENTS} documents`,
+  })
   @ValidateNested({ each: true })
   @Type(() => CreateProductDocumentDto)
   documents?: CreateProductDocumentDto[];

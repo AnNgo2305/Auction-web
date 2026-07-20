@@ -299,7 +299,7 @@ model ProductImage {
   productId String  @map("product_id") @db.Char(36)
   product   Product @relation("Product_Has_Images", fields: [productId], references: [productId], onDelete: Cascade)
 
-  imageUrl  String   @map("image_url") @db.VarChar(255)
+  imageKey  String   @map("image_key") @db.VarChar(255)
   isPrimary Boolean  @default(false) @map("is_primary")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
@@ -313,7 +313,7 @@ model ProductDocument {
   product   Product @relation("Product_Has_Documents", fields: [productId], references: [productId], onDelete: Cascade)
 
   documentName String @map("document_name") @db.VarChar(255)
-  documentUrl  String @map("document_url") @db.VarChar(255)
+  documentKey  String @map("document_key") @db.VarChar(255)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 

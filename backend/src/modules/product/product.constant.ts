@@ -33,3 +33,6 @@ export const ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED = {
   errorCode: 'PRODUCT_STATUS_TRANSITION_NOT_ALLOWED',
   message: 'Product status transition is not allowed',
 };
+
+export const MAX_PRODUCT_IMAGES = 10;
+export const MAX_PRODUCT_DOCUMENTS = 10;

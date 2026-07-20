@@ -12,14 +12,11 @@ import {
   Req,
 } from '@nestjs/common';
 import { Request } from 'express';
-
 import { Role } from '@generated/prisma/enums';
-
 import { Auth } from '@common/decorators/auth.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
 import { AuthType } from '@common/types/auth-type.enum';
 import { ResponsePayload } from '@common/types/response.interface';
-
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dtos/create-product.body.dto';
 import { UpdateProductDto } from './dtos/update-product.body.dto';
