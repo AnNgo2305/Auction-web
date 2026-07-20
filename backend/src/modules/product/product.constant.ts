@@ -4,12 +4,6 @@ export const ERROR_PRODUCT_NOT_FOUND = {
   message: 'Product not found',
 };
 
-export const ERROR_NO_PRODUCTS_PROVIDED = {
-  statusCode: 400,
-  errorCode: 'NO_PRODUCTS_PROVIDED',
-  message: 'No products provided',
-};
-
 export const ERROR_CATEGORIES_NOT_FOUND = {
   statusCode: 400,
   errorCode: 'CATEGORIES_NOT_FOUND',
@@ -28,14 +22,14 @@ export const ERROR_CANNOT_SET_PRODUCT_STATUS = {
   message: 'This product status cannot be set manually',
 };
 
-export const ERROR_PRODUCT_STOCK_INSUFFICIENT = (productId: string) => ({
-  statusCode: 400,
-  message: `Insufficient stock for product ${productId}`,
-  errorCode: 'INSUFFICIENT_PRODUCT_STOCK',
-});
+export const ERROR_PRODUCT_ACCESS_DENIED = {
+  statusCode: 403,
+  errorCode: 'PRODUCT_ACCESS_DENIED',
+  message: 'You do not have permission to access this product',
+};
 
-export const ERROR_PRODUCT_NOT_AVAILABLE = (productName: string) => ({
-  statusCode: 404,
-  message: `Product not available: ${productName}`,
-  errorCode: 'PRODUCT_NOT_AVAILABLE',
-});
+export const ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED = {
+  statusCode: 400,
+  errorCode: 'PRODUCT_STATUS_TRANSITION_NOT_ALLOWED',
+  message: 'Product status transition is not allowed',
+};

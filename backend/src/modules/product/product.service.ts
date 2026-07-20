@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { FileService } from '@common/services/file.service';
@@ -10,13 +11,12 @@ import { GetProductByIdResponseDto } from '@modules/product/dtos/get-product-by-
 import {
   ERROR_CANNOT_UPDATE_PRODUCT,
   ERROR_CATEGORIES_NOT_FOUND,
-  ERROR_PRODUCT_NOT_AVAILABLE,
+  ERROR_PRODUCT_ACCESS_DENIED,
   ERROR_PRODUCT_NOT_FOUND,
-  ERROR_PRODUCT_STOCK_INSUFFICIENT,
+  ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED,
 } from '@modules/product/product.constant';
 import { Prisma } from '@generated/prisma/client';
 import { ProductStatus } from '@generated/prisma/enums';
-import { ProductImageService } from '@modules/product-image/product-image.service';
 import { ProductCategoryService } from '@modules/product-category/product-category.service';
 import { UpdateProductDto } from '@modules/product/dtos/update-product.body.dto';
 import { GetMyProductsQueryDto } from '@modules/product/dtos/get-my-products.query.dto';
@@ -34,8 +34,117 @@ export class ProductService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly productCategoryService: ProductCategoryService,
-    private readonly productImageService: ProductImageService,
   ) {}
+
+  private async changeProductStatus(
+    userId: string,
+    productId: string,
+    allowedStatuses: ProductStatus[],
+    targetStatus: ProductStatus,
+  ): Promise<void> {
+    const product = await this.prisma.product.findUnique({
+      where: {
+        productId,
+      },
+      select: {
+        productId: true,
+        sellerId: true,
+        status: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
+    if (!allowedStatuses.includes(product.status)) {
+      throw new BadRequestException(
+        ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED,
+      );
+    }
+
+    await this.prisma.product.update({
+      where: {
+        productId,
+      },
+      data: {
+        status: targetStatus,
+      },
+    });
+
+    this.logger.log(
+      `User ${userId} changed product ${productId} status from ${product.status} to ${targetStatus}.`,
+    );
+  }
+
+  private async changeProductsStatus(
+    userId: string,
+    productIds: string[],
+    allowedStatuses: ProductStatus[],
+    targetStatus: ProductStatus,
+  ): Promise<void> {
+    if (productIds.length === 0) {
+      return;
+    }
+
+    const products = await this.prisma.product.findMany({
+      where: {
+        sellerId: userId,
+        productId: {
+          in: productIds,
+        },
+      },
+      select: {
+        productId: true,
+        status: true,
+      },
+    });
+
+    const existingIds = products.map((product) => product.productId);
+    const missingIds = productIds.filter((id) => !existingIds.includes(id));
+
+    if (missingIds.length > 0) {
+      this.logger.warn(
+        `User ${userId} attempted to update unavailable products: ${missingIds.join(', ')}`,
+      );
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    const invalidProducts = products.filter(
+      (product) => !allowedStatuses.includes(product.status),
+    );
+
+    if (invalidProducts.length > 0) {
+      this.logger.warn(
+        `User ${userId} attempted invalid status transition for products: ${invalidProducts
+          .map((p) => p.productId)
+          .join(', ')}`,
+      );
+      throw new BadRequestException(
+        ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED,
+      );
+    }
+
+    await this.prisma.product.updateMany({
+      where: {
+        sellerId: userId,
+        productId: {
+          in: productIds,
+        },
+      },
+      data: {
+        status: targetStatus,
+      },
+    });
+
+    this.logger.log(
+      `User ${userId} changed status of ${productIds.length} products to ${targetStatus}.`,
+    );
+  }
 
   async getProductById(
     productId: string,
@@ -616,50 +725,57 @@ export class ProductService {
     };
   }
 
-  async adjustProductStock(
-    tx: Prisma.TransactionClient,
-    products: { productId: string; quantity: number }[],
-    action: 'decrement' | 'increment' = 'decrement',
-  ): Promise<void> {
-    const productIds = products.map((p) => p.productId);
+  async publishProduct(userId: string, productId: string): Promise<void> {
+    await this.changeProductStatus(
+      userId,
+      productId,
+      [ProductStatus.DRAFT],
+      ProductStatus.READY,
+    );
+  }
 
-    const foundProducts = await tx.product.findMany({
-      where: { productId: { in: productIds } },
-    });
+  async removeProduct(userId: string, productId: string): Promise<void> {
+    await this.changeProductStatus(
+      userId,
+      productId,
+      [ProductStatus.DRAFT, ProductStatus.READY],
+      ProductStatus.REMOVED,
+    );
+  }
 
-    if (foundProducts.length !== productIds.length) {
-      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
-    }
+  async restoreProduct(userId: string, productId: string): Promise<void> {
+    await this.changeProductStatus(
+      userId,
+      productId,
+      [ProductStatus.REMOVED],
+      ProductStatus.DRAFT,
+    );
+  }
 
-    const productMap = new Map(foundProducts.map((p) => [p.productId, p]));
+  async publishProducts(userId: string, productIds: string[]): Promise<void> {
+    await this.changeProductsStatus(
+      userId,
+      productIds,
+      [ProductStatus.DRAFT],
+      ProductStatus.READY,
+    );
+  }
 
-    for (const { productId, quantity } of products) {
-      const product = productMap.get(productId);
-      if (!product) continue;
+  async removeProducts(userId: string, productIds: string[]): Promise<void> {
+    await this.changeProductsStatus(
+      userId,
+      productIds,
+      [ProductStatus.DRAFT, ProductStatus.READY],
+      ProductStatus.REMOVED,
+    );
+  }
 
-      if (product.status !== 'ACTIVE') {
-        const { statusCode, message, errorCode } = ERROR_PRODUCT_NOT_AVAILABLE(
-          product.name,
-        );
-        throw new BadRequestException({ statusCode, message, errorCode });
-      }
-
-      if (action === 'decrement') {
-        if (product.stockQuantity < quantity) {
-          const { statusCode, message, errorCode } =
-            ERROR_PRODUCT_STOCK_INSUFFICIENT(productId);
-          throw new BadRequestException({ statusCode, message, errorCode });
-        }
-        await tx.product.update({
-          where: { productId },
-          data: { stockQuantity: { decrement: quantity } },
-        });
-      } else {
-        await tx.product.update({
-          where: { productId },
-          data: { stockQuantity: { increment: quantity } },
-        });
-      }
-    }
+  async restoreProducts(userId: string, productIds: string[]): Promise<void> {
+    await this.changeProductsStatus(
+      userId,
+      productIds,
+      [ProductStatus.REMOVED],
+      ProductStatus.DRAFT,
+    );
   }
 }

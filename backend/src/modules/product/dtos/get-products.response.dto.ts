@@ -1,4 +1,4 @@
-import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
+import type { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 
 export class ProductCategoryDto {
   categoryId!: string;

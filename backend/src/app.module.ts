@@ -16,7 +16,6 @@ import { FollowModule } from '@modules/follow/follow.module';
 import { ProfileModule } from '@modules/profile/profile.module';
 import { AddressModule } from '@modules/address/address.module';
 import { ProductModule } from '@modules/product/product.module';
-import { AuctionModule } from '@modules/auction/auction.module';
 import { UploadModule } from '@modules/upload/upload.module';
 import { ProductCategoryModule } from '@modules/product-category/product-category.module';
 
@@ -30,7 +29,6 @@ import { ProductCategoryModule } from '@modules/product-category/product-categor
     ProfileModule,
     AddressModule,
     ProductModule,
-    AuctionModule,
     UploadModule,
     ProductCategoryModule,
   ],
