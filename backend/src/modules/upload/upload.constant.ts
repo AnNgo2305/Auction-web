@@ -1,61 +1,75 @@
-import type { UploadPurpose } from '@common/types/upload-file';
+import type {
+  DocumentMimeType,
+  ImageMimeType,
+  UploadPurpose,
+} from '@common/types/upload-file';
+import { DOCUMENT_MIME_TYPE, IMAGE_MIME_TYPE } from '@common/types/upload-file';
+import { Role } from '@generated/prisma/enums';
+import {
+  MAX_PRODUCT_DOCUMENTS,
+  MAX_PRODUCT_IMAGES,
+} from '@modules/product/product.constant';
 
 export const UPLOAD_RULES: Record<
   UploadPurpose,
   {
     maxSize: number;
-    allowedMime: string[];
+    allowedMime: ImageMimeType[] | DocumentMimeType[];
     maxFiles: number;
-    roles: string[];
+    roles: Role[];
   }
 > = {
   avatar: {
     maxSize: 5 * 1024 * 1024,
-    allowedMime: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
+    allowedMime: [
+      IMAGE_MIME_TYPE.JPEG,
+      IMAGE_MIME_TYPE.JPG,
+      IMAGE_MIME_TYPE.PNG,
+      IMAGE_MIME_TYPE.WEBP,
+    ],
     maxFiles: 1,
-    roles: ['BIDDER', 'SELLER'],
+    roles: [Role.SELLER, Role.BIDDER],
   },
 
   cover: {
     maxSize: 10 * 1024 * 1024,
-    allowedMime: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
+    allowedMime: [
+      IMAGE_MIME_TYPE.JPEG,
+      IMAGE_MIME_TYPE.JPG,
+      IMAGE_MIME_TYPE.PNG,
+      IMAGE_MIME_TYPE.WEBP,
+    ],
     maxFiles: 1,
-    roles: ['BIDDER', 'SELLER'],
+    roles: [Role.SELLER, Role.BIDDER],
   },
 
   productImage: {
     maxSize: 10 * 1024 * 1024,
-    allowedMime: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
-    maxFiles: 10,
-    roles: ['SELLER'],
+    allowedMime: [
+      IMAGE_MIME_TYPE.JPEG,
+      IMAGE_MIME_TYPE.JPG,
+      IMAGE_MIME_TYPE.PNG,
+      IMAGE_MIME_TYPE.WEBP,
+    ],
+    maxFiles: MAX_PRODUCT_IMAGES,
+    roles: [Role.SELLER],
   },
 
   productDocument: {
     maxSize: 100 * 1024 * 1024,
     allowedMime: [
-      // PDF
-      'application/pdf',
-
-      // Microsoft Word
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-
-      // Microsoft Excel
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-
-      // Microsoft PowerPoint
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-
-      // Text
-      'text/plain',
-
-      // CSV
-      'text/csv',
+      DOCUMENT_MIME_TYPE.PDF,
+      DOCUMENT_MIME_TYPE.DOC,
+      DOCUMENT_MIME_TYPE.DOCX,
+      DOCUMENT_MIME_TYPE.XLS,
+      DOCUMENT_MIME_TYPE.XLSX,
+      DOCUMENT_MIME_TYPE.PPT,
+      DOCUMENT_MIME_TYPE.PPTX,
+      DOCUMENT_MIME_TYPE.TXT,
+      DOCUMENT_MIME_TYPE.CSV,
     ],
-    maxFiles: 10,
-    roles: ['SELLER'],
+    maxFiles: MAX_PRODUCT_DOCUMENTS,
+    roles: [Role.SELLER],
   },
 };
 

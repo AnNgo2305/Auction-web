@@ -34,5 +34,11 @@ export const ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED = {
   message: 'Product status transition is not allowed',
 };
 
+export const ERROR_PRODUCT_NAME_ALREADY_EXISTS = {
+  statusCode: 409,
+  errorCode: 'PRODUCT_NAME_ALREADY_EXISTS',
+  message: 'You already have a product with this name',
+};
+
 export const MAX_PRODUCT_IMAGES = 10;
 export const MAX_PRODUCT_DOCUMENTS = 10;

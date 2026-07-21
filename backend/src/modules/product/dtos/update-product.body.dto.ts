@@ -8,7 +8,7 @@ import {
   ArrayNotEmpty,
   IsUUID,
 } from 'class-validator';
-import { ProductStatus } from '@generated/prisma/enums';
+import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 import { Transform } from 'class-transformer';
 
 export class UpdateProductDto {
@@ -56,4 +56,9 @@ export class UpdateProductDto {
     return Array.isArray(value) ? (value as string[]) : [value as string];
   })
   categoryIds?: string[];
+
+  @IsEnum(PublicCategory, {
+    message: 'Invalid public category.',
+  })
+  publicCategory!: PublicCategory;
 }

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { FileService } from '@common/services/file.service';
@@ -14,6 +15,7 @@ import {
   ERROR_PRODUCT_ACCESS_DENIED,
   ERROR_PRODUCT_NOT_FOUND,
   ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED,
+  ERROR_PRODUCT_NAME_ALREADY_EXISTS,
 } from '@modules/product/product.constant';
 import { Prisma } from '@generated/prisma/client';
 import { ProductStatus } from '@generated/prisma/enums';
@@ -401,6 +403,23 @@ export class ProductService {
       }
     }
 
+    const existingProduct = await this.prisma.product.findFirst({
+      where: {
+        sellerId: userId,
+        name: productData.name.trim(),
+      },
+      select: {
+        productId: true,
+      },
+    });
+
+    if (existingProduct) {
+      this.logger.warn(
+        `User ${userId} attempted to create a duplicate product name: ${productData.name}`,
+      );
+      throw new ConflictException(ERROR_PRODUCT_NAME_ALREADY_EXISTS);
+    }
+
     await this.prisma.$transaction(async (tx) => {
       const product = await tx.product.create({
         data: {
@@ -458,13 +477,17 @@ export class ProductService {
         productId: dto.productId,
       },
     });
-
-    if (!product || product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to update unavailable product ${dto.productId}`,
-      );
+    if (!product) {
+      this.logger.warn(`Product ${dto.productId} not found`);
 
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to update product ${dto.productId} owned by another user`,
+      );
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
     }
 
     if (
@@ -504,6 +527,10 @@ export class ProductService {
 
         ...(dto.stockQuantity !== undefined && {
           stockQuantity: dto.stockQuantity,
+        }),
+
+        ...(dto.publicCategory !== undefined && {
+          publicCategory: dto.publicCategory,
         }),
 
         ...(dto.status !== undefined && {

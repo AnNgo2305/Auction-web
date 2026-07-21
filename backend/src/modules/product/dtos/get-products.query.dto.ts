@@ -10,6 +10,14 @@ import {
 } from 'class-validator';
 import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 
+export const PUBLIC_PRODUCT_STATUS = {
+  READY: ProductStatus.READY,
+  AUCTIONING: ProductStatus.AUCTIONING,
+} as const;
+
+export type PublicProductStatus =
+  (typeof PUBLIC_PRODUCT_STATUS)[keyof typeof PUBLIC_PRODUCT_STATUS];
+
 export enum ProductSortBy {
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
@@ -35,10 +43,10 @@ export class GetProductsQueryDto {
   publicCategory?: PublicCategory;
 
   @IsOptional()
-  @IsEnum(ProductStatus, {
+  @IsEnum(PUBLIC_PRODUCT_STATUS, {
     message: 'Invalid product status.',
   })
-  status?: ProductStatus;
+  status?: PublicProductStatus;
 
   @IsOptional()
   @IsUUID('4', {

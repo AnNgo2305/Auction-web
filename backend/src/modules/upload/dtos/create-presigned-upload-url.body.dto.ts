@@ -7,13 +7,28 @@ import {
   IsInt,
   Min,
   IsString,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UploadPurpose } from '@common/types/upload-file';
+import {
+  DOCUMENT_MIME_TYPE,
+  IMAGE_MIME_TYPE,
+  UPLOAD_PURPOSE,
+} from '@common/types/upload-file';
+import type {
+  ImageMimeType,
+  UploadPurpose,
+  DocumentMimeType,
+} from '@common/types/upload-file';
+
+const ALL_MIME_TYPES = [
+  ...Object.values(IMAGE_MIME_TYPE),
+  ...Object.values(DOCUMENT_MIME_TYPE),
+];
 
 export class FileMetadataDto {
-  @IsEnum(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
-  mimeType: string;
+  @IsIn(ALL_MIME_TYPES)
+  mimeType: ImageMimeType | DocumentMimeType;
 
   @IsInt({ message: 'size must be an integer' })
   @Min(1, { message: 'size must be greater than 0' })
@@ -31,6 +46,8 @@ export class PresignedUrlRequestDto {
   @ArrayMaxSize(5)
   files: FileMetadataDto[];
 
-  @IsEnum(['avatar', 'cover'])
+  @IsEnum(UPLOAD_PURPOSE, {
+    message: 'Invalid upload purpose',
+  })
   purpose: UploadPurpose;
 }
