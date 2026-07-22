@@ -95,13 +95,13 @@ export class ProductService {
 
     const products = await this.prisma.product.findMany({
       where: {
-        sellerId: userId,
         productId: {
           in: productIds,
         },
       },
       select: {
         productId: true,
+        sellerId: true,
         status: true,
       },
     });
@@ -111,9 +111,24 @@ export class ProductService {
 
     if (missingIds.length > 0) {
       this.logger.warn(
-        `User ${userId} attempted to update unavailable products: ${missingIds.join(', ')}`,
+        `User ${userId} attempted to update non-existent products: ${missingIds.join(', ')}`,
       );
+
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    const forbiddenProducts = products.filter(
+      (product) => product.sellerId !== userId,
+    );
+
+    if (forbiddenProducts.length > 0) {
+      this.logger.warn(
+        `User ${userId} attempted to update products owned by another user: ${forbiddenProducts
+          .map((p) => p.productId)
+          .join(', ')}`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
     }
 
     const invalidProducts = products.filter(
@@ -126,6 +141,7 @@ export class ProductService {
           .map((p) => p.productId)
           .join(', ')}`,
       );
+
       throw new BadRequestException(
         ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED,
       );
@@ -133,7 +149,6 @@ export class ProductService {
 
     await this.prisma.product.updateMany({
       where: {
-        sellerId: userId,
         productId: {
           in: productIds,
         },

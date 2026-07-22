@@ -60,91 +60,6 @@ export class ProductController {
     };
   }
 
-  @Get(':id')
-  @Auth(AuthType.OPTIONAL)
-  @HttpCode(HttpStatus.OK)
-  async getProductById(
-    @Param('id') productId: string,
-    @Req() req: Request,
-  ): Promise<ResponsePayload> {
-    const product = await this.productService.getProductById(
-      productId,
-      req.user?.userId,
-    );
-
-    return {
-      message: 'Product retrieved successfully',
-      data: product,
-    };
-  }
-
-  @Auth(AuthType.ACCESS_TOKEN)
-  @Roles(Role.SELLER)
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async createProduct(
-    @Req() req: Request,
-    @Body() dto: CreateProductDto,
-  ): Promise<ResponsePayload> {
-    await this.productService.createProduct(req.user!.userId, dto);
-
-    return {
-      message: 'Product created successfully',
-      data: {},
-    };
-  }
-
-  @Auth(AuthType.ACCESS_TOKEN)
-  @Roles(Role.SELLER)
-  @Put()
-  @HttpCode(HttpStatus.OK)
-  async updateProduct(
-    @Req() req: Request,
-    @Body() dto: UpdateProductDto,
-  ): Promise<ResponsePayload> {
-    await this.productService.updateProduct(req.user!.userId, dto);
-
-    return {
-      message: 'Product updated successfully',
-      data: {},
-    };
-  }
-
-  @Auth(AuthType.ACCESS_TOKEN)
-  @Roles(Role.SELLER)
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  async deleteProduct(
-    @Req() req: Request,
-    @Param('id') productId: string,
-  ): Promise<ResponsePayload> {
-    await this.productService.deleteProductById(req.user!.userId, productId);
-
-    return {
-      message: 'Product deleted successfully',
-      data: {},
-    };
-  }
-
-  @Auth(AuthType.ACCESS_TOKEN)
-  @Roles(Role.SELLER)
-  @Delete(':ids')
-  @HttpCode(HttpStatus.OK)
-  async deleteMultipleProducts(
-    @Req() req: Request,
-    @Param('ids') ids: string,
-  ): Promise<ResponsePayload> {
-    await this.productService.deleteMultipleProducts(
-      req.user!.userId,
-      ids.split(',').map((id) => id.trim()),
-    );
-
-    return {
-      message: 'Products deleted successfully',
-      data: {},
-    };
-  }
-
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Post(':id/publish')
@@ -237,6 +152,91 @@ export class ProductController {
 
     return {
       message: 'Products restored successfully',
+      data: {},
+    };
+  }
+
+  @Get(':id')
+  @Auth(AuthType.OPTIONAL)
+  @HttpCode(HttpStatus.OK)
+  async getProductById(
+    @Param('id') productId: string,
+    @Req() req: Request,
+  ): Promise<ResponsePayload> {
+    const product = await this.productService.getProductById(
+      productId,
+      req.user?.userId,
+    );
+
+    return {
+      message: 'Product retrieved successfully',
+      data: product,
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async createProduct(
+    @Req() req: Request,
+    @Body() dto: CreateProductDto,
+  ): Promise<ResponsePayload> {
+    await this.productService.createProduct(req.user!.userId, dto);
+
+    return {
+      message: 'Product created successfully',
+      data: {},
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @Put()
+  @HttpCode(HttpStatus.OK)
+  async updateProduct(
+    @Req() req: Request,
+    @Body() dto: UpdateProductDto,
+  ): Promise<ResponsePayload> {
+    await this.productService.updateProduct(req.user!.userId, dto);
+
+    return {
+      message: 'Product updated successfully',
+      data: {},
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async deleteProduct(
+    @Req() req: Request,
+    @Param('id') productId: string,
+  ): Promise<ResponsePayload> {
+    await this.productService.deleteProductById(req.user!.userId, productId);
+
+    return {
+      message: 'Product deleted successfully',
+      data: {},
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @Delete(':ids')
+  @HttpCode(HttpStatus.OK)
+  async deleteMultipleProducts(
+    @Req() req: Request,
+    @Param('ids') ids: string,
+  ): Promise<ResponsePayload> {
+    await this.productService.deleteMultipleProducts(
+      req.user!.userId,
+      ids.split(',').map((id) => id.trim()),
+    );
+
+    return {
+      message: 'Products deleted successfully',
       data: {},
     };
   }

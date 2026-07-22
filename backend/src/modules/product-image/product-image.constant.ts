@@ -15,3 +15,9 @@ export const ERROR_PRODUCT_IMAGE_CANNOT_DELETE_LAST_IMAGE = {
   errorCode: 'PRODUCT_IMAGE_CANNOT_DELETE_LAST_IMAGE',
   message: 'A product must have at least one image',
 };
+
+export const ERROR_PRODUCT_IMAGE_CANNOT_DELETE_ALL_IMAGES = {
+  statusCode: 400,
+  errorCode: 'PRODUCT_IMAGE_CANNOT_DELETE_ALL_IMAGES',
+  message: 'Cannot delete all product images',
+};

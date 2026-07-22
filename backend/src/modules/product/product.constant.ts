@@ -40,5 +40,11 @@ export const ERROR_PRODUCT_NAME_ALREADY_EXISTS = {
   message: 'You already have a product with this name',
 };
 
+export const ERROR_PRODUCT_IMAGE_ALREADY_PRIMARY = {
+  statusCode: 409,
+  errorCode: 'PRODUCT_IMAGE_ALREADY_PRIMARY',
+  message: 'The selected image is already the primary image',
+};
+
 export const MAX_PRODUCT_IMAGES = 10;
 export const MAX_PRODUCT_DOCUMENTS = 10;

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,11 +9,16 @@ import { PrismaService } from '@common/services/prisma.service';
 import { FileService } from '@common/services/file.service';
 import { LoggerService } from '@common/services/logger.service';
 import {
+  ERROR_PRODUCT_IMAGE_CANNOT_DELETE_ALL_IMAGES,
   ERROR_PRODUCT_IMAGE_CANNOT_DELETE_LAST_IMAGE,
   ERROR_PRODUCT_IMAGE_NOT_FOUND,
   ERROR_PRODUCT_IMAGE_PRIMARY_REQUIRED,
 } from '@modules/product-image/product-image.constant';
-import { ERROR_PRODUCT_NOT_FOUND } from '@modules/product/product.constant';
+import {
+  ERROR_PRODUCT_ACCESS_DENIED,
+  ERROR_PRODUCT_IMAGE_ALREADY_PRIMARY,
+  ERROR_PRODUCT_NOT_FOUND,
+} from '@modules/product/product.constant';
 
 @Injectable()
 export class ProductImageService {
@@ -22,6 +29,7 @@ export class ProductImageService {
   ) {}
 
   async updateProductImages(
+    userId: string,
     productId: string,
     images: {
       imageKey: string;
@@ -33,23 +41,31 @@ export class ProductImageService {
         productId,
       },
       select: {
-        productId: true,
+        sellerId: true,
       },
     });
 
     if (!product) {
-      this.logger.warn(
-        `Attempted to update images for non-existing product ${productId}`,
-      );
+      this.logger.warn(`Product ${productId} not found`);
+
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to update images of product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
     const primaryCount = images.filter((image) => image.isPrimary).length;
+
     if (primaryCount !== 1) {
       throw new BadRequestException(ERROR_PRODUCT_IMAGE_PRIMARY_REQUIRED);
     }
 
-    const oldImages = await this.prisma.productImage.findMany({
+    const currentImages = await this.prisma.productImage.findMany({
       where: {
         productId,
       },
@@ -58,56 +74,99 @@ export class ProductImageService {
       },
     });
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.productImage.deleteMany({
-        where: {
-          productId,
-        },
-      });
+    const currentKeys = new Set(currentImages.map((image) => image.imageKey));
+    const newKeys = new Set(images.map((image) => image.imageKey));
 
-      await tx.productImage.createMany({
-        data: images.map((image) => ({
-          productId,
-          imageKey: image.imageKey,
-          isPrimary: image.isPrimary,
-        })),
-      });
+    const deletedKeys = [...currentKeys].filter((key) => !newKeys.has(key));
+
+    const addedImages = images.filter(
+      (image) => !currentKeys.has(image.imageKey),
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      if (deletedKeys.length > 0) {
+        await tx.productImage.deleteMany({
+          where: {
+            productId,
+            imageKey: {
+              in: deletedKeys,
+            },
+          },
+        });
+      }
+
+      if (addedImages.length > 0) {
+        await tx.productImage.createMany({
+          data: addedImages.map((image) => ({
+            productId,
+            imageKey: image.imageKey,
+            isPrimary: image.isPrimary,
+          })),
+        });
+      }
+
+      for (const image of images) {
+        await tx.productImage.updateMany({
+          where: {
+            productId,
+            imageKey: image.imageKey,
+          },
+          data: {
+            isPrimary: image.isPrimary,
+          },
+        });
+      }
     });
 
-    try {
-      await Promise.all(
-        oldImages.map((image) => this.fileService.deleteObject(image.imageKey)),
-      );
-    } catch (error) {
-      this.logger.error(
-        `Updated product ${productId} but failed to delete old images from S3`,
-        error,
-      );
-
-      throw error;
-    }
-
     this.logger.debug(
-      `Updated ${images.length} images for product ${productId}`,
+      `Synchronized ${images.length} images for product ${productId}`,
     );
   }
 
-  async deleteProductImage(productId: string, imageId: string): Promise<void> {
-    const image = await this.prisma.productImage.findUnique({
+  async deleteProductImage(
+    userId: string,
+    productId: string,
+    imageId: string,
+  ): Promise<void> {
+    const product = await this.prisma.product.findUnique({
+      where: {
+        productId,
+      },
+      select: {
+        sellerId: true,
+      },
+    });
+
+    if (!product) {
+      this.logger.warn(`Product ${productId} not found`);
+
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to delete image from product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
+    const image = await this.prisma.productImage.findFirst({
       where: {
         imageId,
         productId,
       },
       select: {
-        imageId: true,
         imageKey: true,
+        isPrimary: true,
       },
     });
 
     if (!image) {
       this.logger.warn(
-        `Attempted to delete non-existing product image ${imageId}`,
+        `Product image ${imageId} not found for product ${productId}`,
       );
+
       throw new NotFoundException(ERROR_PRODUCT_IMAGE_NOT_FOUND);
     }
 
@@ -118,6 +177,10 @@ export class ProductImageService {
     });
 
     if (imageCount <= 1) {
+      this.logger.warn(
+        `User ${userId} attempted to delete the last image of product ${productId}`,
+      );
+
       throw new BadRequestException(
         ERROR_PRODUCT_IMAGE_CANNOT_DELETE_LAST_IMAGE,
       );
@@ -133,16 +196,46 @@ export class ProductImageService {
       throw error;
     }
 
-    await this.prisma.productImage.delete({
-      where: {
-        imageId,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.productImage.delete({
+        where: {
+          imageId,
+        },
+      });
+
+      if (image.isPrimary) {
+        const nextPrimary = await tx.productImage.findFirst({
+          where: {
+            productId,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+          select: {
+            imageId: true,
+          },
+        });
+
+        if (nextPrimary) {
+          await tx.productImage.update({
+            where: {
+              imageId: nextPrimary.imageId,
+            },
+            data: {
+              isPrimary: true,
+            },
+          });
+        }
+      }
     });
 
-    this.logger.debug(`Deleted product image ${imageId}`);
+    this.logger.debug(
+      `Deleted product image ${imageId} from product ${productId}`,
+    );
   }
 
   async deleteMultipleProductImages(
+    userId: string,
     productId: string,
     imageIds: string[],
   ): Promise<void> {
@@ -150,13 +243,33 @@ export class ProductImageService {
       return;
     }
 
-    const [existingImages, imagesToDelete] = await Promise.all([
-      this.prisma.productImage.findMany({
+    const product = await this.prisma.product.findUnique({
+      where: {
+        productId,
+      },
+      select: {
+        sellerId: true,
+      },
+    });
+
+    if (!product) {
+      this.logger.warn(`Product ${productId} not found`);
+
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to delete images from product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
+    const [totalImages, imagesToDelete] = await Promise.all([
+      this.prisma.productImage.count({
         where: {
           productId,
-        },
-        select: {
-          imageId: true,
         },
       }),
 
@@ -170,6 +283,7 @@ export class ProductImageService {
         select: {
           imageId: true,
           imageKey: true,
+          isPrimary: true,
         },
       }),
     ]);
@@ -182,12 +296,14 @@ export class ProductImageService {
       throw new NotFoundException(ERROR_PRODUCT_IMAGE_NOT_FOUND);
     }
 
-    if (existingImages.length === imagesToDelete.length) {
+    if (totalImages - imagesToDelete.length < 1) {
       this.logger.warn(
-        `Attempted to delete all images of product ${productId}`,
+        `User ${userId} attempted to delete all images of product ${productId}`,
       );
 
-      throw new BadRequestException(ERROR_PRODUCT_IMAGE_PRIMARY_REQUIRED);
+      throw new BadRequestException(
+        ERROR_PRODUCT_IMAGE_CANNOT_DELETE_ALL_IMAGES,
+      );
     }
 
     try {
@@ -205,35 +321,103 @@ export class ProductImageService {
       throw error;
     }
 
-    await this.prisma.productImage.deleteMany({
+    const deletingPrimary = imagesToDelete.some((image) => image.isPrimary);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.productImage.deleteMany({
+        where: {
+          productId,
+          imageId: {
+            in: imageIds,
+          },
+        },
+      });
+
+      if (deletingPrimary) {
+        const nextPrimary = await tx.productImage.findFirst({
+          where: {
+            productId,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+          select: {
+            imageId: true,
+          },
+        });
+
+        if (nextPrimary) {
+          await tx.productImage.update({
+            where: {
+              imageId: nextPrimary.imageId,
+            },
+            data: {
+              isPrimary: true,
+            },
+          });
+        }
+      }
+    });
+
+    this.logger.debug(
+      `Deleted ${imageIds.length} product images from product ${productId}`,
+    );
+  }
+
+  async setPrimaryImage(
+    userId: string,
+    productId: string,
+    imageId: string,
+  ): Promise<void> {
+    const product = await this.prisma.product.findUnique({
       where: {
         productId,
-        imageId: {
-          in: imageIds,
-        },
+      },
+      select: {
+        productId: true,
+        sellerId: true,
       },
     });
 
-    this.logger.debug(`Deleted ${imageIds.length} product images`);
-  }
+    if (!product) {
+      this.logger.warn(`Product ${productId} not found`);
 
-  async setPrimaryImage(productId: string, imageId: string): Promise<void> {
-    const image = await this.prisma.productImage.findUnique({
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to modify product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
+    const image = await this.prisma.productImage.findFirst({
       where: {
         imageId,
         productId,
       },
       select: {
         imageId: true,
-        productId: true,
+        isPrimary: true,
       },
     });
 
     if (!image) {
       this.logger.warn(
-        `Attempted to set primary for non-existing product image ${imageId}`,
+        `Product image ${imageId} not found for product ${productId}`,
       );
+
       throw new NotFoundException(ERROR_PRODUCT_IMAGE_NOT_FOUND);
+    }
+
+    if (image.isPrimary) {
+      this.logger.warn(
+        `User ${userId} attempted to set product image ${imageId} as primary, but it is already the primary image`,
+      );
+
+      throw new ConflictException(ERROR_PRODUCT_IMAGE_ALREADY_PRIMARY);
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -257,7 +441,7 @@ export class ProductImageService {
     });
 
     this.logger.debug(
-      `Set product image ${imageId} as primary for product ${image.productId}`,
+      `Set product image ${imageId} as primary for product ${productId}`,
     );
   }
 }
