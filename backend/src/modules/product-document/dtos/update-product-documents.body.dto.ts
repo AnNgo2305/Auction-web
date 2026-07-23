@@ -7,6 +7,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+import { MAX_PRODUCT_DOCUMENTS } from '@modules/product/product.constant';
 
 export class ProductDocumentDto {
   @IsNotEmpty({
@@ -36,8 +37,8 @@ export class UpdateProductDocumentsDto {
   @IsArray({
     message: 'Documents must be an array.',
   })
-  @ArrayMaxSize(10, {
-    message: 'A product can have at most 10 documents.',
+  @ArrayMaxSize(MAX_PRODUCT_DOCUMENTS, {
+    message: `A product can have at most ${MAX_PRODUCT_DOCUMENTS} documents.`,
   })
   @ValidateNested({
     each: true,

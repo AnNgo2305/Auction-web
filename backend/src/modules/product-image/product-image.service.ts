@@ -74,30 +74,34 @@ export class ProductImageService {
       },
     });
 
-    const currentKeys = new Set(currentImages.map((image) => image.imageKey));
-    const newKeys = new Set(images.map((image) => image.imageKey));
+    const currentImageKeys = new Set(
+      currentImages.map((image) => image.imageKey),
+    );
+    const newImageKeys = new Set(images.map((image) => image.imageKey));
 
-    const deletedKeys = [...currentKeys].filter((key) => !newKeys.has(key));
+    const deletedImageKeys = [...currentImageKeys].filter(
+      (key) => !newImageKeys.has(key),
+    );
 
-    const addedImages = images.filter(
-      (image) => !currentKeys.has(image.imageKey),
+    const addedImageKeys = images.filter(
+      (image) => !currentImageKeys.has(image.imageKey),
     );
 
     await this.prisma.$transaction(async (tx) => {
-      if (deletedKeys.length > 0) {
+      if (deletedImageKeys.length > 0) {
         await tx.productImage.deleteMany({
           where: {
             productId,
             imageKey: {
-              in: deletedKeys,
+              in: deletedImageKeys,
             },
           },
         });
       }
 
-      if (addedImages.length > 0) {
+      if (addedImageKeys.length > 0) {
         await tx.productImage.createMany({
-          data: addedImages.map((image) => ({
+          data: addedImageKeys.map((image) => ({
             productId,
             imageKey: image.imageKey,
             isPrimary: image.isPrimary,
@@ -119,7 +123,7 @@ export class ProductImageService {
     });
 
     this.logger.debug(
-      `Synchronized ${images.length} images for product ${productId}`,
+      `Updated ${images.length} images for product ${productId}`,
     );
   }
 

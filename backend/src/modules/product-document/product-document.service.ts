@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { FileService } from '@common/services/file.service';
 import { LoggerService } from '@common/services/logger.service';
 import { ERROR_PRODUCT_DOCUMENT_NOT_FOUND } from '@modules/product-document/product-document.constant';
-import { ERROR_PRODUCT_NOT_FOUND } from '@modules/product/product.constant';
+import {
+  ERROR_PRODUCT_ACCESS_DENIED,
+  ERROR_PRODUCT_NOT_FOUND,
+} from '@modules/product/product.constant';
 
 @Injectable()
 export class ProductDocumentService {
@@ -14,6 +21,7 @@ export class ProductDocumentService {
   ) {}
 
   async updateProductDocuments(
+    userId: string,
     productId: string,
     documents: {
       documentName: string;
@@ -25,37 +33,65 @@ export class ProductDocumentService {
         productId,
       },
       select: {
-        productId: true,
+        sellerId: true,
       },
     });
 
     if (!product) {
-      this.logger.warn(
-        `Attempted to update documents for non-existing product ${productId}`,
-      );
+      this.logger.warn(`Product ${productId} not found`);
 
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    const oldDocuments = await this.prisma.productDocument.findMany({
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to update documents of product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
+    const currentDocuments = await this.prisma.productDocument.findMany({
       where: {
         productId,
       },
       select: {
         documentKey: true,
+        documentName: true,
       },
     });
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.productDocument.deleteMany({
-        where: {
-          productId,
-        },
-      });
+    const currentDocumentKeys = new Set(
+      currentDocuments.map((document) => document.documentKey),
+    );
 
-      if (documents.length) {
+    const newDocumentKeys = new Set(
+      documents.map((document) => document.documentKey),
+    );
+
+    const deletedDocumentKeys = [...currentDocumentKeys].filter(
+      (key) => !newDocumentKeys.has(key),
+    );
+
+    const addedDocumentKeys = documents.filter(
+      (document) => !currentDocumentKeys.has(document.documentKey),
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      if (deletedDocumentKeys.length > 0) {
+        await tx.productDocument.deleteMany({
+          where: {
+            productId,
+            documentKey: {
+              in: deletedDocumentKeys,
+            },
+          },
+        });
+      }
+
+      if (addedDocumentKeys.length > 0) {
         await tx.productDocument.createMany({
-          data: documents.map((document) => ({
+          data: addedDocumentKeys.map((document) => ({
             productId,
             documentName: document.documentName,
             documentKey: document.documentKey,
@@ -64,33 +100,38 @@ export class ProductDocumentService {
       }
     });
 
-    try {
-      await Promise.all(
-        oldDocuments.map((document) =>
-          this.fileService.deleteObject(document.documentKey),
-        ),
-      );
-    } catch (error) {
-      this.logger.error(
-        `Updated product ${productId} but failed to delete old documents from S3`,
-        error,
-      );
-
-      throw error;
-    }
-
     this.logger.debug(
       `Updated ${documents.length} documents for product ${productId}`,
     );
   }
 
   async deleteProductDocument(
+    userId: string,
     productId: string,
     documentId: string,
   ): Promise<void> {
-    this.logger.log(
-      `Deleting product document. Product ID: ${productId}, Document ID: ${documentId}`,
-    );
+    const product = await this.prisma.product.findUnique({
+      where: {
+        productId,
+      },
+      select: {
+        sellerId: true,
+      },
+    });
+
+    if (!product) {
+      this.logger.warn(`Product ${productId} not found`);
+
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to delete document from product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
 
     const document = await this.prisma.productDocument.findFirst({
       where: {
@@ -142,9 +183,33 @@ export class ProductDocumentService {
   }
 
   async deleteMultipleProductDocuments(
+    userId: string,
     productId: string,
     documentIds: string[],
   ): Promise<void> {
+    const product = await this.prisma.product.findUnique({
+      where: {
+        productId,
+      },
+      select: {
+        sellerId: true,
+      },
+    });
+
+    if (!product) {
+      this.logger.warn(`Product ${productId} not found`);
+
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    if (product.sellerId !== userId) {
+      this.logger.warn(
+        `User ${userId} attempted to delete documents from product ${productId} owned by another user`,
+      );
+
+      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
+    }
+
     const documents = await this.prisma.productDocument.findMany({
       where: {
         productId,
