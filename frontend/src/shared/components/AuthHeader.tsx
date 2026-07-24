@@ -27,6 +27,8 @@ import { useAuth } from '@/shared/contexts/AuthContext';
 import { authPaths } from '@/features/auth/constants/auth.routes';
 import { Badge } from '@/shared/ui/badge'
 import { settingsPaths } from '@/features/setting/constants/setting.routes.ts';
+import { ROLES } from '@/shared/types/user.ts';
+import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes.ts';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -49,7 +51,7 @@ export default function AuthHeader() {
   };
 
   return (
-    <header className="border-b border-white/10 bg-(--footer)/90 text-white backdrop-blur-md">
+    <header className="z-50 border-b sticky top-0 border-white/10 bg-(--footer)/90 text-white backdrop-blur-md">
       <div className="mx-auto flex h-16 items-center justify-between px-8">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
@@ -72,6 +74,19 @@ export default function AuthHeader() {
             >
               About
             </Link>
+            {currentUser.role === ROLES.SELLER && (
+              <Link
+                to={sellerHubPaths.products()}
+                className={cn(
+                  'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  location.pathname.startsWith('/sellerhub')
+                    ? 'text-white'
+                    : 'text-white/80 hover:text-white',
+                )}
+              >
+                Seller Hub
+              </Link>
+            )}
           </nav>
         </div>
         <div className="flex items-center gap-3">
@@ -138,7 +153,10 @@ export default function AuthHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to={settingsPaths.password()} className="flex items-center gap-2">
+                <Link
+                  to={settingsPaths.password()}
+                  className="flex items-center gap-2"
+                >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
                 </Link>

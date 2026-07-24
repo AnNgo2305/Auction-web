@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/shared/ui/sidebar';
 import {
@@ -22,7 +21,6 @@ import {
 } from '@/shared/ui/collapsible';
 import {
   Bell,
-  ChevronDown,
   KeyRound,
   Monitor,
   UsersRound,
@@ -32,6 +30,8 @@ import {
   Ban,
   Settings,
   X,
+  Menu,
+  ChevronRight,
 } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { settingsPaths } from '@/features/setting/constants/setting.routes';
@@ -44,35 +44,44 @@ export function SettingLayoutContent() {
   const [securityOpen, setSecurityOpen] = useState(false);
   const [relationshipOpen, setRelationshipOpen] = useState(false);
   const { currentUser } = useUser();
-  const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
+  const { toggleSidebar, setOpenMobile, isMobile, state } = useSidebar();
 
   return (
     <>
-      <Sidebar collapsible="offcanvas">
-        <SidebarHeader className="px-4 py-4 text-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2"
-            onClick={() => {
-              if (isMobile) {
-                setOpenMobile(false);
-              } else {
-                toggleSidebar();
-              }
-            }}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center justify-center gap-2">
-            <Settings className="h-6 w-6" />
-            <h2 className="text-lg font-semibold">Settings</h2>
+      <Sidebar
+        collapsible="icon"
+        className="bg-background top-17 h-[calc(100vh-4rem)]"
+      >
+        <SidebarHeader className="py-4">
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={() => setOpenMobile(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+          <div className="mt-15 ml-1">
+            <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center justify-center rounded-xl">
+                <Settings className="h-6 w-6" />
+              </div>
+              {state === 'expanded' && (
+                <h1 className="text-xl font-semibold tracking-tight">
+                  Settings
+                </h1>
+              )}
+            </div>
+            {state === 'expanded' && (
+              <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
+                Manage your account preferences.
+              </p>
+            )}
           </div>
-          <p className="text-muted-foreground text-sm">
-            Manage your account preferences.
-          </p>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="-ml-1">
           <SidebarGroup>
             <SidebarGroupLabel>General</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -84,12 +93,12 @@ export function SettingLayoutContent() {
                   >
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
-                        <Shield />
-                        <span>Security</span>
-                        <ChevronDown
+                        <Shield className="size-10"/>
+                        <span className="font-medium">Security</span>
+                        <ChevronRight
                           className={cn(
                             'ml-auto transition-transform',
-                            securityOpen && 'rotate-180',
+                            securityOpen && 'rotate-90',
                           )}
                         />
                       </SidebarMenuButton>
@@ -108,7 +117,7 @@ export function SettingLayoutContent() {
                           <SidebarMenuButton asChild>
                             <NavLink to={settingsPaths.sessions()}>
                               <Monitor />
-                              Your Sessions
+                              My Sessions
                             </NavLink>
                           </SidebarMenuButton>
                         </SidebarMenuSubItem>
@@ -130,7 +139,7 @@ export function SettingLayoutContent() {
                       }
                     >
                       <Bell className="h-4 w-4" />
-                      <span>Notifications</span>
+                      <span className="-ml-1 font-medium">Notifications</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -142,11 +151,11 @@ export function SettingLayoutContent() {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
                         <UsersRound />
-                        <span>Relationship</span>
-                        <ChevronDown
+                        <span className="font-medium">Relationship</span>
+                        <ChevronRight
                           className={cn(
                             'ml-auto transition-transform',
-                            relationshipOpen && 'rotate-180',
+                            relationshipOpen && 'rotate-90',
                           )}
                         />
                       </SidebarMenuButton>
@@ -176,7 +185,7 @@ export function SettingLayoutContent() {
                           <SidebarMenuSubItem>
                             <SidebarMenuButton asChild>
                               <NavLink to={settingsPaths.sentRequests()}>
-                                <Send className="h-4 w-4" />
+                                <Send className="h-4 w-4 shrink-0" />
                                 Sent Requests
                               </NavLink>
                             </SidebarMenuButton>
@@ -192,8 +201,14 @@ export function SettingLayoutContent() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-16 items-center px-6">
-          <SidebarTrigger className="z-50" />
+        <header className="fixed top-16 ml-1 left-0 z-50 flex h-16 items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            onClick={toggleSidebar}
+          >
+            <Menu className="size-6" />
+          </Button>
         </header>
         <main className="p-6">
           <Outlet />
