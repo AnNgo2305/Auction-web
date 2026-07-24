@@ -1,16 +1,10 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { FileService } from '@common/services/file.service';
 import { LoggerService } from '@common/services/logger.service';
 import { ERROR_PRODUCT_DOCUMENT_NOT_FOUND } from '@modules/product-document/product-document.constant';
-import {
-  ERROR_PRODUCT_ACCESS_DENIED,
-  ERROR_PRODUCT_NOT_FOUND,
-} from '@modules/product/product.constant';
+import { ERROR_PRODUCT_NOT_FOUND } from '@modules/product/product.constant';
+import { ProductPermissionService } from '@modules/permission/product-permission.service';
 
 @Injectable()
 export class ProductDocumentService {
@@ -18,6 +12,7 @@ export class ProductDocumentService {
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
     private readonly logger: LoggerService,
+    private readonly productPermissionService: ProductPermissionService,
   ) {}
 
   async updateProductDocuments(
@@ -43,13 +38,13 @@ export class ProductDocumentService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to update documents of product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const currentDocuments = await this.prisma.productDocument.findMany({
       where: {
@@ -125,13 +120,13 @@ export class ProductDocumentService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to delete document from product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const document = await this.prisma.productDocument.findFirst({
       where: {
@@ -202,13 +197,13 @@ export class ProductDocumentService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to delete documents from product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const documents = await this.prisma.productDocument.findMany({
       where: {

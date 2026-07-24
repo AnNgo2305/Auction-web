@@ -20,6 +20,9 @@ import { UploadModule } from '@modules/upload/upload.module';
 import { ProductCategoryModule } from '@modules/product-category/product-category.module';
 import { ProductImageModule } from '@modules/product-image/product-image.module';
 import { ProductDocumentModule } from '@modules/product-document/product-document.module';
+import { ProductCommentService } from '@modules/product-comment/product-comment.service';
+import { ProductCommentModule } from '@modules/product-comment/product-comment.module';
+import { PermissionModule } from '@modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -32,12 +35,14 @@ import { ProductDocumentModule } from '@modules/product-document/product-documen
     AddressModule,
     ProductModule,
     UploadModule,
+    PermissionModule,
     ProductCategoryModule,
     ProductImageModule,
     ProductDocumentModule,
+    ProductCommentModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ProductCommentService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

@@ -23,10 +23,10 @@ import { FollowService } from '@modules/follow/follow.service';
 import { ChangePasswordDto } from '@modules/profile/dtos/change-password.body.dto';
 import { PasswordService } from '@common/services/password.service';
 import { LoggerService } from '@common/services/logger.service';
-import { RelationshipStatus } from '@modules/follow/follow.constant';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { UpdateProfileImageResponseDto } from '@modules/profile/dtos/update-profile-image.response.dto';
 import { UpdateCoverImageResponseDto } from '@modules/profile/dtos/update-cover-image.response.dto';
+import { ProfilePermissionService } from '@modules/permission/profile-permission.service';
 
 @Injectable()
 export class ProfileService {
@@ -36,6 +36,7 @@ export class ProfileService {
     private readonly followService: FollowService,
     private readonly passwordService: PasswordService,
     private readonly logger: LoggerService,
+    private readonly profilePermissionService: ProfilePermissionService,
   ) {}
 
   async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
@@ -133,13 +134,11 @@ export class ProfileService {
       currentUserId,
     );
 
-    if (relationship.status === RelationshipStatus.BLOCKED) {
-      this.logger.warn(
-        `User ${currentUserId} is blocked by user ${userId} and cannot view the profile`,
-      );
-
-      throw new NotFoundException(ERROR_PROFILE_NOT_FOUND);
-    }
+    this.profilePermissionService.canViewProfile(
+      relationship,
+      userId,
+      currentUserId,
+    );
 
     const info = await this.prisma.user.findUnique({
       where: { userId },

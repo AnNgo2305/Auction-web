@@ -47,7 +47,6 @@ export type DocumentMimeType =
   | DOCUMENT_MIME_TYPE.TXT
   | DOCUMENT_MIME_TYPE.CSV;
 
-
 export interface FileMetadata {
   mimeType: string;
   size: number;

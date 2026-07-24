@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,10 +14,10 @@ import {
   ERROR_PRODUCT_IMAGE_PRIMARY_REQUIRED,
 } from '@modules/product-image/product-image.constant';
 import {
-  ERROR_PRODUCT_ACCESS_DENIED,
   ERROR_PRODUCT_IMAGE_ALREADY_PRIMARY,
   ERROR_PRODUCT_NOT_FOUND,
 } from '@modules/product/product.constant';
+import { ProductPermissionService } from '@modules/permission/product-permission.service';
 
 @Injectable()
 export class ProductImageService {
@@ -26,6 +25,7 @@ export class ProductImageService {
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
     private readonly logger: LoggerService,
+    private readonly productPermissionService: ProductPermissionService,
   ) {}
 
   async updateProductImages(
@@ -51,13 +51,13 @@ export class ProductImageService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to update images of product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const primaryCount = images.filter((image) => image.isPrimary).length;
 
@@ -147,13 +147,13 @@ export class ProductImageService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to delete image from product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const image = await this.prisma.productImage.findFirst({
       where: {
@@ -262,13 +262,13 @@ export class ProductImageService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to delete images from product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const [totalImages, imagesToDelete] = await Promise.all([
       this.prisma.productImage.count({
@@ -389,13 +389,13 @@ export class ProductImageService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to modify product ${productId} owned by another user`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     const image = await this.prisma.productImage.findFirst({
       where: {

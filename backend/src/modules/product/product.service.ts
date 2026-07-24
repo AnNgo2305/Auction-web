@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
@@ -12,7 +11,6 @@ import { GetProductByIdResponseDto } from '@modules/product/dtos/get-product-by-
 import {
   ERROR_CANNOT_UPDATE_PRODUCT,
   ERROR_CATEGORIES_NOT_FOUND,
-  ERROR_PRODUCT_ACCESS_DENIED,
   ERROR_PRODUCT_NOT_FOUND,
   ERROR_PRODUCT_STATUS_TRANSITION_NOT_ALLOWED,
   ERROR_PRODUCT_NAME_ALREADY_EXISTS,
@@ -28,6 +26,7 @@ import { ERROR_CANNOT_SET_PRODUCT_STATUS } from '@modules/product/product.consta
 import { GetMyProductsResponseDto } from '@modules/product/dtos/get-my-products.response.dto';
 import { GetProductsResponseDto } from '@modules/product/dtos/get-products.response.dto';
 import { GetProductsQueryDto } from '@modules/product/dtos/get-products.query.dto';
+import { ProductPermissionService } from '@modules/permission/product-permission.service';
 
 @Injectable()
 export class ProductService {
@@ -36,6 +35,7 @@ export class ProductService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly productCategoryService: ProductCategoryService,
+    private readonly productPermissionService: ProductPermissionService,
   ) {}
 
   private async changeProductStatus(
@@ -59,9 +59,13 @@ export class ProductService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     if (!allowedStatuses.includes(product.status)) {
       throw new BadRequestException(
@@ -117,19 +121,7 @@ export class ProductService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    const forbiddenProducts = products.filter(
-      (product) => product.sellerId !== userId,
-    );
-
-    if (forbiddenProducts.length > 0) {
-      this.logger.warn(
-        `User ${userId} attempted to update products owned by another user: ${forbiddenProducts
-          .map((p) => p.productId)
-          .join(', ')}`,
-      );
-
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProducts(products, userId);
 
     const invalidProducts = products.filter(
       (product) => !allowedStatuses.includes(product.status),
@@ -205,16 +197,14 @@ export class ProductService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (
-      product.seller.userId !== currentUserId &&
-      product.status !== ProductStatus.READY &&
-      product.status !== ProductStatus.AUCTIONING
-    ) {
-      this.logger.warn(
-        `User ${currentUserId ?? 'anonymous'} attempted to access unavailable product ${productId} (status: ${product.status})`,
-      );
-      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
-    }
+    await this.productPermissionService.canViewProduct(
+      {
+        productId,
+        sellerId: product.sellerId,
+        status: product.status,
+      },
+      currentUserId,
+    );
 
     this.logger.debug(
       `Retrieved product ${productId} successfully for user ${currentUserId ?? 'anonymous'}`,
@@ -258,7 +248,6 @@ export class ProductService {
 
     const existingProducts = await this.prisma.product.findMany({
       where: {
-        sellerId: userId,
         productId: {
           in: productIds,
         },
@@ -285,6 +274,8 @@ export class ProductService {
       );
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
+
+    this.productPermissionService.canEditProducts(existingProducts, userId);
 
     this.logger.debug(
       `Deleting files for ${existingProducts.length} products owned by user ${userId}`,
@@ -330,7 +321,6 @@ export class ProductService {
     const product = await this.prisma.product.findFirst({
       where: {
         productId,
-        sellerId: userId,
       },
       include: {
         images: {
@@ -353,6 +343,14 @@ export class ProductService {
 
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
+
+    this.productPermissionService.canEditProduct(
+      {
+        productId: product.productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     this.logger.debug(
       `Deleting files for product ${productId} by user ${userId}`,
@@ -498,12 +496,13 @@ export class ProductService {
       throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
     }
 
-    if (product.sellerId !== userId) {
-      this.logger.warn(
-        `User ${userId} attempted to update product ${dto.productId} owned by another user`,
-      );
-      throw new ForbiddenException(ERROR_PRODUCT_ACCESS_DENIED);
-    }
+    this.productPermissionService.canEditProduct(
+      {
+        productId: dto.productId,
+        sellerId: product.sellerId,
+      },
+      userId,
+    );
 
     if (
       product.status === ProductStatus.SOLD ||
