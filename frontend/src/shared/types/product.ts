@@ -1,5 +1,5 @@
-export const  MAX_PRODUCT_DOCUMENTS = 10
-export const MAX_PRODUCT_IMAGES = 10
+export const MAX_PRODUCT_DOCUMENTS = 10;
+export const MAX_PRODUCT_IMAGES = 10;
 
 export enum PRODUCT_STATUSES {
   DRAFT = 'DRAFT',
@@ -9,7 +9,8 @@ export enum PRODUCT_STATUSES {
   REMOVED = 'REMOVED',
 }
 
-export type ProductStatus = (typeof PRODUCT_STATUSES)[keyof typeof PRODUCT_STATUSES];
+export type ProductStatus =
+  (typeof PRODUCT_STATUSES)[keyof typeof PRODUCT_STATUSES];
 
 export enum PUBLIC_CATEGORIES {
   ELECTRONICS = 'ELECTRONICS',
@@ -35,3 +36,28 @@ export enum PUBLIC_CATEGORIES {
 
 export type PublicCategory =
   (typeof PUBLIC_CATEGORIES)[keyof typeof PUBLIC_CATEGORIES];
+
+export const ProductSortBy = {
+  CREATED_AT: 'createdAt',
+  UPDATED_AT: 'updatedAt',
+  NAME: 'name',
+  STOCK_QUANTITY: 'stockQuantity',
+} as const;
+
+export type ProductSortBy = (typeof ProductSortBy)[keyof typeof ProductSortBy];
+
+export const SortOrder = {
+  ASC: 'asc',
+  DESC: 'desc',
+} as const;
+
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
+
+export const PRODUCT_STATUS_ACTIONS = {
+  PUBLISH: 'publish',
+  RESTORE: 'restore',
+  REMOVE: 'remove',
+} as const;
+
+export type ProductStatusAction =
+  (typeof PRODUCT_STATUS_ACTIONS)[keyof typeof PRODUCT_STATUS_ACTIONS];
