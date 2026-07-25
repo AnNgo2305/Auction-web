@@ -571,7 +571,9 @@ export class ProductService {
       keyword,
       status,
       publicCategory,
-      categoryId,
+      categoryIds,
+      createdAtFrom,
+      createdAtTo,
       cursor,
       limit,
       sortBy,
@@ -579,7 +581,7 @@ export class ProductService {
     } = query;
 
     this.logger.debug(
-      `User ${userId} is fetching products (keyword=${keyword ?? '-'}, status=${status ?? '-'}, publicCategory=${publicCategory ?? '-'}, categoryId=${categoryId ?? '-'}, cursor=${cursor ?? '-'}, limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder})`,
+      `User ${userId} is fetching products (keyword=${keyword ?? '-'}, status=${status ?? '-'}, publicCategory=${publicCategory ?? '-'}, categoryIds=${categoryIds?.join(',') ?? '-'}, createdAtFrom=${createdAtFrom ?? '-'}, createdAtTo=${createdAtTo ?? '-'}, cursor=${cursor ?? '-'}, limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder})`,
     );
 
     const where: Prisma.ProductWhereInput = {
@@ -589,15 +591,29 @@ export class ProductService {
           contains: keyword,
         },
       }),
-      ...(status && { status }),
+      ...(status && {
+        status,
+      }),
       ...(publicCategory && {
         publicCategory,
       }),
-      ...(categoryId && {
+      ...(categoryIds?.length && {
         productCategories: {
           some: {
-            categoryId,
+            categoryId: {
+              in: categoryIds,
+            },
           },
+        },
+      }),
+      ...((createdAtFrom || createdAtTo) && {
+        createdAt: {
+          ...(createdAtFrom && {
+            gte: createdAtFrom,
+          }),
+          ...(createdAtTo && {
+            lte: createdAtTo,
+          }),
         },
       }),
     };
@@ -638,6 +654,7 @@ export class ProductService {
     });
 
     const hasNextPage = products.length > limit;
+
     const items = hasNextPage ? products.slice(0, limit) : products;
 
     this.logger.debug(

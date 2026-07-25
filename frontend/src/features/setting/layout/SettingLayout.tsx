@@ -5,6 +5,8 @@ import { SettingLayoutContent } from '@/features/setting/layout/SettingLayoutCon
 export function SettingLayout() {
   return (
     <SidebarProvider
+      defaultOpen
+      storageKey="settings-sidebar"
       style={
         {
           '--sidebar-width': '20rem',

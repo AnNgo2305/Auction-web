@@ -21,9 +21,27 @@ export const getMyProductsQuerySchema = z.object({
     })
     .optional(),
 
-  categoryId: z
-    .uuid({
-      message: 'Category ID must be a valid UUID.',
+  categoryIds: z
+    .string()
+    .transform((value) => value.split(','))
+    .pipe(
+      z.array(
+        z.uuid({
+          message: 'Category ID must be a valid UUID.',
+        }),
+      ),
+    )
+    .optional(),
+
+  createdAtFrom: z.coerce
+    .date({
+      error: 'Created from must be a valid date.',
+    })
+    .optional(),
+
+  createdAtTo: z.coerce
+    .date({
+      error: 'Created to must be a valid date.',
     })
     .optional(),
 

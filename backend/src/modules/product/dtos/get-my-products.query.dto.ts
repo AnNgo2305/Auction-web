@@ -36,8 +36,22 @@ export class GetMyProductsQueryDto {
   publicCategory?: PublicCategory;
 
   @IsOptional()
-  @IsUUID('4', { message: 'Category ID must be a valid UUID.' })
-  categoryId?: string;
+  @IsArray({ message: 'Category IDs must be an array.' })
+  @IsUUID('4', {
+    each: true,
+    message: 'Each category ID must be a valid UUID.',
+  })
+  categoryIds?: string[];
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate({ message: 'Created from must be a valid date.' })
+  createdAtFrom?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate({ message: 'Created to must be a valid date.' })
+  createdAtTo?: Date;
 
   @IsOptional()
   @IsUUID('4', { message: 'Cursor must be a valid UUID.' })
