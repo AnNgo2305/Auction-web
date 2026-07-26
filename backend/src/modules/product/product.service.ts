@@ -38,6 +38,10 @@ export class ProductService {
     private readonly productPermissionService: ProductPermissionService,
   ) {}
 
+  private formatLogDate(date?: Date | null): string {
+    return date ? date.toISOString() : '-';
+  }
+
   private async changeProductStatus(
     userId: string,
     productId: string,
@@ -580,8 +584,19 @@ export class ProductService {
       sortOrder,
     } = query;
 
-    this.logger.debug(
-      `User ${userId} is fetching products (keyword=${keyword ?? '-'}, status=${status ?? '-'}, publicCategory=${publicCategory ?? '-'}, categoryIds=${categoryIds?.join(',') ?? '-'}, createdAtFrom=${createdAtFrom ?? '-'}, createdAtTo=${createdAtTo ?? '-'}, cursor=${cursor ?? '-'}, limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder})`,
+    this.logger.log(
+      `User ${userId} is fetching products (
+        keyword=${keyword ?? '-'},
+        status=${status ?? '-'},
+        publicCategory=${publicCategory ?? '-'},
+        categoryIds=${categoryIds?.join(',') ?? '-'},
+        createdAtFrom=${this.formatLogDate(createdAtFrom)},
+        createdAtTo=${this.formatLogDate(createdAtTo)},
+        cursor=${cursor ?? '-'},
+        limit=${limit},
+        sortBy=${sortBy},
+        sortOrder=${sortOrder}
+      )`,
     );
 
     const where: Prisma.ProductWhereInput = {
@@ -801,7 +816,7 @@ export class ProductService {
     await this.changeProductStatus(
       userId,
       productId,
-      [ProductStatus.DRAFT, ProductStatus.READY],
+      [ProductStatus.READY],
       ProductStatus.REMOVED,
     );
   }
@@ -828,7 +843,7 @@ export class ProductService {
     await this.changeProductsStatus(
       userId,
       productIds,
-      [ProductStatus.DRAFT, ProductStatus.READY],
+      [ProductStatus.READY],
       ProductStatus.REMOVED,
     );
   }

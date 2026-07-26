@@ -1,6 +1,8 @@
 import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 import { Type } from 'class-transformer';
 import {
+  IsArray,
+  IsDate,
   IsEnum,
   IsInt,
   IsOptional,

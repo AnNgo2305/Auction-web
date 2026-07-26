@@ -7,7 +7,7 @@ import type { ApiResponseError } from '@/shared/types/error';
 type GetMyProductCategoriesData =
   GetMyProductCategoriesResponse['data']['categories'];
 
-export function useGetMyProductCategories() {
+export function useGetMyProductCategories(enabled = true) {
   return useQuery<
     GetMyProductCategoriesResponse,
     ApiResponseError,
@@ -16,6 +16,7 @@ export function useGetMyProductCategories() {
     queryKey: productCategoryKeys.me(),
     queryFn: productCategoryApi.getMyProductCategories,
     staleTime: 1000 * 60 * 5,
+    enabled,
     select: (response) => response.data.categories,
   });
 }
