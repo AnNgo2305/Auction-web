@@ -4,6 +4,6 @@ export const SELLER_HUB_ROUTES = {
 } as const;
 
 export const sellerHubPaths = {
-  products: () => '/sellerhub/products',
-  productCategories: () => '/sellerhub/product-categories',
+  products: () => `/sellerhub/${SELLER_HUB_ROUTES.PRODUCTS}`,
+  productCategories: () => `/sellerhub/${SELLER_HUB_ROUTES.PRODUCT_CATEGORIES}`,
 } as const;

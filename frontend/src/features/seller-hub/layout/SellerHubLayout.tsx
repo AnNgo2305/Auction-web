@@ -6,7 +6,6 @@ export function SellerHubLayout() {
   return (
     <SidebarProvider
       defaultOpen
-      storageKey="seller-hub-sidebar"
       style={
         {
           '--sidebar-width': '16rem',

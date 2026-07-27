@@ -8,10 +8,10 @@ export const SETTING_ROUTES = {
 } as const;
 
 export const settingsPaths = {
-  password: () => '/setting/password',
-  sessions: () => '/setting/sessions',
-  notifications: () => '/setting/notifications',
-  pendingRequests: () => '/setting/pending-requests',
-  sentRequests: () => '/setting/sent-requests',
-  blockedUsers: () => '/setting/blocked-users',
+  password: () => `/setting/${SETTING_ROUTES.PASSWORD}`,
+  sessions: () => `/setting/${SETTING_ROUTES.SESSIONS}`,
+  notifications: () => `/setting/${SETTING_ROUTES.NOTIFICATIONS}`,
+  pendingRequests: () => `/setting/${SETTING_ROUTES.PENDING_REQUESTS}`,
+  sentRequests: () => `/setting/${SETTING_ROUTES.SENT_REQUESTS}`,
+  blockedUsers: () => `/setting/${SETTING_ROUTES.BLOCKED_USERS}`,
 } as const;

@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/shared/ui/sidebar';
+import { SellerHubBreadcrumb } from '@/features/seller-hub/layout/SellerHubBreadcrumb';
 
 export function SellerHubLayoutContent() {
   const { toggleSidebar, setOpenMobile, isMobile, state } = useSidebar();
@@ -76,6 +77,7 @@ export function SellerHubLayoutContent() {
           </Button>
         </header>
         <main className="p-6">
+          <SellerHubBreadcrumb />
           <Outlet />
         </main>
       </SidebarInset>
