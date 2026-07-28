@@ -1,7 +1,25 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/shared/ui/card';
-import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from '@/shared/ui/field';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/shared/ui/card';
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldGroup,
+  FieldError,
+} from '@/shared/ui/field';
 import { RadioGroup, RadioGroupItem } from '@/shared/ui/radio-group';
-import { InputGroup, InputGroupButton, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group.tsx';
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group.tsx';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Separator } from '@/shared/ui/separator';
@@ -33,7 +51,7 @@ export function RegisterForm() {
       confirmPassword: '',
       role: 'BIDDER',
     },
-    mode: "onChange"
+    mode: 'onChange',
   });
   const {
     register,

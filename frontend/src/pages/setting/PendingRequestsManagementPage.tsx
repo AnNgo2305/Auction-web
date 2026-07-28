@@ -8,8 +8,8 @@ import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export function PendingRequestsManagementPage() {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage }
-    = useGetPendingFollowRequests();
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetPendingFollowRequests();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {

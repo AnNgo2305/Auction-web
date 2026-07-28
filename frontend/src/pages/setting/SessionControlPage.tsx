@@ -16,7 +16,9 @@ import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 import { LogOut, MonitorSmartphone, ShieldCheck } from 'lucide-react';
 
 export function SessionControlPage() {
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
 
   const revokeSessionMutation = useRevokeSession(async () => {
     setSelectedSessionId(null);
@@ -32,11 +34,11 @@ export function SessionControlPage() {
     if (!selectedSessionId) return;
 
     revokeSessionMutation.mutate(selectedSessionId);
-  }
+  };
 
   return (
     <>
-      <div className="mx-auto max-w-9/12 w-full space-y-8">
+      <div className="mx-auto w-full max-w-9/12 space-y-8">
         <Card className="from-primary/10 via-primary/5 to-background overflow-hidden border-none bg-linear-to-r shadow-sm">
           <CardContent className="flex flex-col justify-between gap-6 p-8 md:flex-row md:items-center">
             <div className="space-y-2">

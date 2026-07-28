@@ -27,11 +27,11 @@ export function useFollowSeller() {
     FollowSellerVariables,
     FollowSellerContext
   >({
-    mutationFn: async ({sellerId}): Promise<FollowSellerResponse> => {
+    mutationFn: async ({ sellerId }): Promise<FollowSellerResponse> => {
       return relationApi.followSeller(sellerId);
     },
 
-    onMutate: async ({sellerId}): Promise<FollowSellerContext> => {
+    onMutate: async ({ sellerId }): Promise<FollowSellerContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(sellerId),
       });
@@ -93,6 +93,6 @@ export function useFollowSeller() {
       await queryClient.invalidateQueries({
         queryKey: relationKeys.followings(variables.bidderId),
       });
-    }
+    },
   });
 }

@@ -45,8 +45,12 @@ export function ProfileAvatarImage({
   const hasAvatarImage = Boolean(avatarImageUrl);
   const isDisabled = isProfileRefreshing || isSaving;
 
-  const handleOpenUploadDialog = () => {setUploadAvatarImageDialogOpen(true)};
-  const handleOpenDeleteDialog = () => {setDeleteAvatarImageDialogOpen(true)};
+  const handleOpenUploadDialog = () => {
+    setUploadAvatarImageDialogOpen(true);
+  };
+  const handleOpenDeleteDialog = () => {
+    setDeleteAvatarImageDialogOpen(true);
+  };
 
   const avatarContent = (
     <div className="relative size-44 rounded-full">
@@ -81,7 +85,7 @@ export function ProfileAvatarImage({
         <Button
           type="button"
           variant="ghost"
-          className="h-auto w-auto rounded-full p-0 hover:bg-black/10 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="h-auto w-auto rounded-full p-0 hover:bg-black/10 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
           disabled={isDisabled}
         >
           {avatarContent}

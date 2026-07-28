@@ -2,8 +2,17 @@ import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { formatCount } from '@/shared/utils/format-count';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
-import { getRelationshipActions, getRelationshipLabel } from '@/features/profile/utils/relationship';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
+import {
+  getRelationshipActions,
+  getRelationshipLabel,
+} from '@/features/profile/utils/relationship';
 import { useUser } from '@/shared/contexts/UserContext';
 import { Link } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
@@ -136,7 +145,8 @@ export function ProfileHeader({
                   Following
                 </Link>
               )}
-              {(mutualFollowedSellerCount !== undefined && currentUser?.role == ROLES.BIDDER) && (
+              {mutualFollowedSellerCount !== undefined &&
+                currentUser?.role == ROLES.BIDDER && (
                   <Link
                     to={profilePaths.following(userId!)}
                     className="hover:text-primary transition-colors"

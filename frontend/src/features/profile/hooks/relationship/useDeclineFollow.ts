@@ -96,6 +96,6 @@ export function useDeclineFollow() {
       await queryClient.invalidateQueries({
         queryKey: relationKeys.followers(variables.sellerId),
       });
-    }
+    },
   });
 }

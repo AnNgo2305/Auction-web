@@ -4,7 +4,8 @@ import { UserPreviewList } from '@/features/profile/components/UserPreviewList';
 import { useGetFollowing } from '@/features/profile/hooks/relationship/useGetFollowing';
 
 export function ProfileFollowingPage() {
-  const { profile, isInitialProfileLoading } = useOutletContext<ProfileOutletContext>();
+  const { profile, isInitialProfileLoading } =
+    useOutletContext<ProfileOutletContext>();
 
   const {
     data,

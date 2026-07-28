@@ -36,7 +36,14 @@ const techStack = {
 
   database: ['MySQL', 'Redis'],
 
-  infra: ['AWS S3', 'AWS EC2', 'AWS ElastiCache', 'AWS IAM', 'AWS CloudWatch', 'AWS RDS'],
+  infra: [
+    'AWS S3',
+    'AWS EC2',
+    'AWS ElastiCache',
+    'AWS IAM',
+    'AWS CloudWatch',
+    'AWS RDS',
+  ],
 };
 
 const sections = [

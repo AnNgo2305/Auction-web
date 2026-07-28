@@ -47,7 +47,7 @@ interface ProductDocumentsUploaderProps {
   documents: ProductDocumentItem[];
 
   onProductDocumentsChange: (
-    value: ((prev: ProductDocumentItem[]) => ProductDocumentItem[]),
+    value: (prev: ProductDocumentItem[]) => ProductDocumentItem[],
   ) => void;
 
   max?: number;
@@ -179,7 +179,9 @@ export function ProductDocumentsUploader({
       URL.revokeObjectURL(removedDocument.url);
     }
 
-    onProductDocumentsChange((prev) => prev.filter((document) => document.id !== id));
+    onProductDocumentsChange((prev) =>
+      prev.filter((document) => document.id !== id),
+    );
   };
 
   return (

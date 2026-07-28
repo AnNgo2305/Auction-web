@@ -18,7 +18,9 @@ export function useUpdateCoverImage(
     ApiResponseError,
     UpdateImageBody
   >({
-    mutationFn: async (body: UpdateImageBody): Promise<UpdateCoverImageResponse> => {
+    mutationFn: async (
+      body: UpdateImageBody,
+    ): Promise<UpdateCoverImageResponse> => {
       return await profileApi.updateCover(body);
     },
 

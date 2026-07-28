@@ -4,31 +4,81 @@ import {
   TableHeader,
   TableRow,
   TableHead,
+  TableCell,
 } from '@/shared/ui/table.tsx';
 import { Checkbox } from '@/shared/ui/checkbox.tsx';
 import { MyProductsTableRow } from './MyProductsDataTableRow.tsx';
 import type { ProductData } from '@/features/seller-hub/types/product/get-my-products.response.ts';
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@/shared/ui/skeleton.tsx';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/alert-dialog';
+import { Loader2 } from 'lucide-react';
 
-type MyProductsTableProps = {
-  products: ProductData[];
-  selectedProductIds: string[];
-  onSelectionProductChange: (ids: string[]) => void;
-  onDelete?: (productId: string) => void;
-  onPublish?: (productId: string) => void;
-  onRestore?: (productId: string) => void;
-  onArchive?: (productId: string) => void;
+const ACTION_CONTENT: Record<
+  ProductAction,
+  { title: string; description: string; confirmText: string }
+> = {
+  delete: {
+    title: 'Delete product?',
+    description:
+      'This action cannot be undone. The product will be permanently deleted.',
+    confirmText: 'Delete',
+  },
+  publish: {
+    title: 'Publish product?',
+    description: 'The product will become visible to customers.',
+    confirmText: 'Publish',
+  },
+  restore: {
+    title: 'Restore product?',
+    description: 'The product will be restored and become active again.',
+    confirmText: 'Restore',
+  },
+  archive: {
+    title: 'Archive product?',
+    description: 'The product will be removed from the active product list.',
+    confirmText: 'Archive',
+  },
 };
 
-export function MyProductsTable({
-  products,
+type ProductAction = 'delete' | 'publish' | 'restore' | 'archive';
+type PendingAction = { productId: string; action: ProductAction };
+
+type MyProductsDataTableProps = {
+  products?: ProductData[];
+  visibleProducts?: ProductData[];
+  isActionLoading: boolean;
+  isLoading: boolean;
+  selectedProductIds: string[];
+  onSelectionProductChange: (ids: string[]) => void;
+  onDelete: (productId: string) => void;
+  onPublish: (productId: string) => void;
+  onRestore: (productId: string) => void;
+  onArchive: (productId: string) => void;
+};
+
+export function MyProductsDataTable({
+  products = [],
+  visibleProducts = [],
+  isLoading = false,
+  isActionLoading = false,
   selectedProductIds,
   onSelectionProductChange,
   onDelete,
   onPublish,
   onRestore,
   onArchive,
-}: MyProductsTableProps) {
+}: MyProductsDataTableProps) {
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   // Tracks whether selection mode was enabled by clicking "Select All".
   const [isSelectAll, setIsSelectAll] = useState(false);
 
@@ -96,49 +146,130 @@ export function MyProductsTable({
     }
   }, [products, isSelectAll]);
 
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-10">
-            <Checkbox checked={allSelected} onCheckedChange={handleSelectAll} />
-          </TableHead>
-          <TableHead />
-          <TableHead>Name</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead>Tags</TableHead>
-          <TableHead>Stock</TableHead>
-          <TableHead>Created</TableHead>
-          <TableHead>Updated</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
+  const dialogContent = pendingAction
+    ? ACTION_CONTENT[pendingAction.action]
+    : null;
 
-      <TableBody>
-        {products.map((product) => (
-          <MyProductsTableRow
-            key={product.productId}
-            productId={product.productId}
-            name={product.name}
-            description={product.description}
-            thumbnail={product.thumbnail}
-            stockQuantity={product.stockQuantity}
-            status={product.status}
-            publicCategory={product.publicCategory}
-            categories={product.categories}
-            createdAt={product.createdAt}
-            updatedAt={product.updatedAt}
-            onDelete={onDelete}
-            onPublish={onPublish}
-            onRestore={onRestore}
-            onArchive={onArchive}
-            checked={selectedProductIds.includes(product.productId)}
-            onCheckedChange={handleSelectRow}
-          />
-        ))}
-      </TableBody>
-    </Table>
+  const handleConfirmAction = () => {
+    if (!pendingAction) {
+      return;
+    }
+    const { productId, action } = pendingAction;
+    switch (action) {
+      case 'delete':
+        onDelete(productId);
+        break;
+      case 'publish':
+        onPublish(productId);
+        break;
+      case 'restore':
+        onRestore(productId);
+        break;
+      case 'archive':
+        onArchive(productId);
+        break;
+    }
+    setPendingAction(null);
+  };
+
+  return (
+    <>
+      <div className="max-h-150 overflow-y-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
+              <TableHead />
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Tags</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Updated</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {isLoading
+              ? Array.from({ length: 10 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell colSpan={11}>
+                      <Skeleton className="h-10 w-full" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              : visibleProducts.map((product) => (
+                  <MyProductsTableRow
+                    key={product.productId}
+                    productId={product.productId}
+                    name={product.name}
+                    description={product.description}
+                    thumbnail={product.thumbnail}
+                    stockQuantity={product.stockQuantity}
+                    status={product.status}
+                    publicCategory={product.publicCategory}
+                    categories={product.categories}
+                    createdAt={product.createdAt}
+                    updatedAt={product.updatedAt}
+                    checked={selectedProductIds.includes(product.productId)}
+                    onCheckedChange={handleSelectRow}
+                    onDelete={(productId) => {
+                      setPendingAction({ productId, action: 'delete' });
+                    }}
+                    onPublish={(productId) => {
+                      setPendingAction({ productId, action: 'publish' });
+                    }}
+                    onRestore={(productId) => {
+                      setPendingAction({ productId, action: 'restore' });
+                    }}
+                    onArchive={(productId) => {
+                      setPendingAction({ productId, action: 'archive' });
+                    }}
+                  />
+                ))}
+          </TableBody>
+        </Table>
+      </div>
+      <AlertDialog
+        open={pendingAction !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingAction(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle> {dialogContent?.title} </AlertDialogTitle>
+            <AlertDialogDescription>
+              {dialogContent?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isActionLoading}
+              onClick={(event) => {
+                event.preventDefault();
+                if (!isActionLoading) {
+                  handleConfirmAction();
+                }
+              }}
+            >
+              {isActionLoading && <Loader2 className="size-4 animate-spin" />}
+              {dialogContent?.confirmText}
+            </AlertDialogAction>{' '}
+          </AlertDialogFooter>{' '}
+        </AlertDialogContent>{' '}
+      </AlertDialog>
+    </>
   );
 }

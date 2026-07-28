@@ -1,5 +1,5 @@
 import { type Role, ROLES } from '@/shared/types/user.ts';
-import  {
+import {
   PROFILE_ACTIONS,
   type ProfileAction,
   RELATIONSHIP_STATUSES,
@@ -12,7 +12,11 @@ type RelationshipContext = {
   profileRole: Role;
 };
 
-export function getRelationshipLabel({ relationship, currentUserRole, profileRole }: RelationshipContext): string | null {
+export function getRelationshipLabel({
+  relationship,
+  currentUserRole,
+  profileRole,
+}: RelationshipContext): string | null {
   switch (relationship) {
     case RELATIONSHIP_STATUSES.NONE:
       if (currentUserRole === ROLES.BIDDER && profileRole === ROLES.SELLER) {

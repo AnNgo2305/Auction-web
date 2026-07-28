@@ -12,8 +12,9 @@ export async function logout(): Promise<ApiResponse<Record<string, never>>> {
 }
 
 export async function logoutAll(): Promise<ApiResponse<Record<string, never>>> {
-  const response =
-    await api.post<ApiResponse<Record<string, never>>>(`${AUTH_API_PREFIX}/logout-all`);
+  const response = await api.post<ApiResponse<Record<string, never>>>(
+    `${AUTH_API_PREFIX}/logout-all`,
+  );
 
   return response.data;
 }

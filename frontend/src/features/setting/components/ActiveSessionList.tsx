@@ -74,8 +74,7 @@ export function ActiveSessionList({
                 >
                   Revoke
                 </Button>
-                )
-              }
+              )}
             </div>
             <div className="text-muted-foreground space-y-2 text-sm">
               <div className="flex items-center gap-2 truncate">

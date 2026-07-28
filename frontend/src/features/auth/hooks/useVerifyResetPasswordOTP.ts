@@ -5,13 +5,17 @@ import type { VerifyOtpBody } from '@/features/auth/schemas/verify-otp.schema';
 import { authApi } from '@/features/auth/api/auth.api';
 import { toast } from 'sonner';
 
-export function useVerifyResetPasswordlOTP(onSuccessCallback?: (res: VerifyResetPasswordOtpResponse) => void ) {
+export function useVerifyResetPasswordlOTP(
+  onSuccessCallback?: (res: VerifyResetPasswordOtpResponse) => void,
+) {
   return useMutation<
     VerifyResetPasswordOtpResponse,
     ApiResponseError,
     VerifyOtpBody
   >({
-    mutationFn: async (body: VerifyOtpBody): Promise<VerifyResetPasswordOtpResponse> => {
+    mutationFn: async (
+      body: VerifyOtpBody,
+    ): Promise<VerifyResetPasswordOtpResponse> => {
       return await authApi.verifyResetPasswordOTP(body);
     },
 

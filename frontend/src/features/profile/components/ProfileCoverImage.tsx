@@ -36,8 +36,12 @@ export function ProfileCoverImage({
   const hasCoverImage = Boolean(coverImageUrl);
   const isDisabled = isProfileRefreshing || isSaving;
 
-  const handleOpenUploadDialog = () => {setUploadCoverImageDialogOpen(true)};
-  const handleOpenDeleteDialog = () => {setDeleteCoverImageDialogOpen(true)};
+  const handleOpenUploadDialog = () => {
+    setUploadCoverImageDialogOpen(true);
+  };
+  const handleOpenDeleteDialog = () => {
+    setDeleteCoverImageDialogOpen(true);
+  };
 
   return (
     <div className="bg-muted relative aspect-20/7 w-full overflow-hidden rounded-xl">

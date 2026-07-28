@@ -1,4 +1,8 @@
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group.tsx';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group.tsx';
 import {
   ArrowDownUp,
   ArrowUpDown,
@@ -8,8 +12,18 @@ import {
   Search,
   Tags,
 } from 'lucide-react';
-import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/shared/ui/select.tsx';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover.tsx';
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+  SelectItem,
+} from '@/shared/ui/select.tsx';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/ui/popover.tsx';
 import { Checkbox } from '@/shared/ui/checkbox.tsx';
 import { Spinner } from '@/shared/ui/spinner.tsx';
 import { Button } from '@/shared/ui/button.tsx';
@@ -22,7 +36,13 @@ import {
 } from '@/shared/types/product.ts';
 import { formatIsoToDate } from '@/shared/utils/format-time.ts';
 import { Calendar } from '@/shared/ui/calendar.tsx';
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/shared/ui/command.tsx';
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from '@/shared/ui/command.tsx';
 import {
   productStatusOptions,
   productSortFieldOptions,
@@ -32,47 +52,31 @@ import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-c
 import type { DateRange } from 'react-day-picker';
 import { useState } from 'react';
 
-type MyProductsFilterProps = {
+type MyProductsFilterValues = {
   keyword: string;
-  onKeywordChange: (value: string) => void;
-
-  dateRange?: DateRange;
-  onDateRangeChange: (value: DateRange | undefined) => void;
-
-  publicCategory?: PublicCategory;
-  onPublicCategoryChange: (value: PublicCategory) => void;
-
   status?: ProductStatus;
-  onStatusChange: (value: ProductStatus) => void;
-
+  publicCategory?: PublicCategory;
+  dateRange?: DateRange;
   selectedCategoryIds: string[];
-  onSelectedCategoryIdsChange: (value: string[]) => void;
-
   sortBy: ProductSortBy;
-  onSortByChange: (value: ProductSortBy) => void;
-
   sortOrder: SortOrder;
-  onSortOrderChange: (value: SortOrder) => void;
+};
+
+type MyProductsFilterProps = {
+  filters: MyProductsFilterValues;
+  onFilterChange: <K extends keyof MyProductsFilterValues>(
+    key: K,
+    value: MyProductsFilterValues[K],
+  ) => void;
+  onApplyFilters: () => void;
+  onClearFilters: () => void;
 };
 
 export function MyProductsFilterForm({
-  keyword,
-  onKeywordChange,
-
-  status,
-  onStatusChange,
-
-  dateRange,
-  onDateRangeChange,
-
-  selectedCategoryIds,
-  onSelectedCategoryIdsChange,
-
-  sortBy,
-  onSortByChange,
-
-  sortOrder,
-  onSortOrderChange,
+  filters,
+  onFilterChange,
+  onApplyFilters,
+  onClearFilters,
 }: MyProductsFilterProps) {
   const [openCategory, setOpenCategory] = useState(false);
 
@@ -83,6 +87,10 @@ export function MyProductsFilterForm({
     setOpenCategory(open);
   };
 
+  const handleClearFilters = () => {
+    onClearFilters();
+  };
+
   return (
     <div className="space-y-4">
       <InputGroup className="bg-background h-11 w-full max-w-xl rounded-lg border shadow-sm">
@@ -90,14 +98,19 @@ export function MyProductsFilterForm({
           <Search className="text-muted-foreground size-4" />
         </InputGroupAddon>
         <InputGroupInput
-          value={keyword}
-          onChange={(e) => onKeywordChange(e.target.value)}
+          value={filters.keyword}
+          onChange={(e) => onFilterChange('keyword', e.target.value)}
           placeholder="Search products by name..."
           className="placeholder:text-muted-foreground text-sm"
         />
       </InputGroup>
       <div className="bg-muted/20 flex flex-wrap items-center gap-3 rounded-lg border p-3">
-        <Select value={status} onValueChange={onStatusChange}>
+        <Select
+          value={filters.status}
+          onValueChange={(value) =>
+            onFilterChange('status', value as ProductStatus)
+          }
+        >
           <SelectTrigger className="bg-background h-10 w-40">
             <CircleCheck className="text-muted-foreground size-4" />
             <SelectValue placeholder="Status" />
@@ -110,7 +123,12 @@ export function MyProductsFilterForm({
             ))}
           </SelectContent>
         </Select>
-        <Select>
+        <Select
+          value={filters.publicCategory}
+          onValueChange={(value) =>
+            onFilterChange('publicCategory', value as PublicCategory)
+          }
+        >
           <SelectTrigger className="bg-background h-10 w-45">
             <Tags className="text-muted-foreground absolute left-3 size-4" />
             <SelectValue placeholder="Public Category" />
@@ -133,15 +151,15 @@ export function MyProductsFilterForm({
               className="bg-background h-10 w-45 justify-start text-left font-normal"
             >
               <CalendarDays className="mr-2 size-4" />
-              {dateRange?.from ? (
-                dateRange.to ? (
+              {filters.dateRange?.from ? (
+                filters.dateRange.to ? (
                   <>
-                    {formatIsoToDate(dateRange.from.toISOString())}
+                    {formatIsoToDate(filters.dateRange.from.toISOString())}
                     {' - '}
-                    {formatIsoToDate(dateRange.to.toISOString())}
+                    {formatIsoToDate(filters.dateRange.to.toISOString())}
                   </>
                 ) : (
-                  formatIsoToDate(dateRange.from.toISOString())
+                  formatIsoToDate(filters.dateRange.from.toISOString())
                 )
               ) : (
                 'Select date range'
@@ -157,8 +175,8 @@ export function MyProductsFilterForm({
             </div>
             <Calendar
               mode="range"
-              selected={dateRange}
-              onSelect={onDateRangeChange}
+              selected={filters.dateRange}
+              onSelect={(value) => onFilterChange('dateRange', value)}
               numberOfMonths={2}
             />
           </PopoverContent>
@@ -170,8 +188,8 @@ export function MyProductsFilterForm({
               className="bg-background h-10 w-45 justify-start"
             >
               <FolderTree className="mr-2 size-4" />
-              {selectedCategoryIds.length > 0
-                ? `${selectedCategoryIds.length} categories`
+              {filters.selectedCategoryIds.length > 0
+                ? `${filters.selectedCategoryIds.length} categories`
                 : 'Category'}
             </Button>
           </PopoverTrigger>
@@ -186,7 +204,7 @@ export function MyProductsFilterForm({
                 <CommandEmpty>No category found.</CommandEmpty>
                 <CommandGroup>
                   {categories.map((category) => {
-                    const selected = selectedCategoryIds.includes(
+                    const selected = filters.selectedCategoryIds.includes(
                       category.categoryId,
                     );
 
@@ -196,13 +214,16 @@ export function MyProductsFilterForm({
                           checked={selected}
                           className="mr-2"
                           onCheckedChange={() => {
-                            const newCategoryIds = selected
-                              ? selectedCategoryIds.filter(
+                            const ids = selected
+                              ? filters.selectedCategoryIds.filter(
                                   (id) => id !== category.categoryId,
                                 )
-                              : [...selectedCategoryIds, category.categoryId];
+                              : [
+                                  ...filters.selectedCategoryIds,
+                                  category.categoryId,
+                                ];
 
-                            onSelectedCategoryIdsChange(newCategoryIds);
+                            onFilterChange('selectedCategoryIds', ids);
                           }}
                           onClick={(e) => e.stopPropagation()}
                         />
@@ -215,7 +236,12 @@ export function MyProductsFilterForm({
             )}
           </PopoverContent>
         </Popover>
-        <Select value={sortBy} onValueChange={onSortByChange}>
+        <Select
+          value={filters.sortBy}
+          onValueChange={(value) =>
+            onFilterChange('sortBy', value as ProductSortBy)
+          }
+        >
           <SelectTrigger className="bg-background h-10 w-40">
             <ArrowUpDown className="text-muted-foreground size-4" />
             <SelectValue placeholder="Sort by" />
@@ -228,7 +254,12 @@ export function MyProductsFilterForm({
             ))}
           </SelectContent>
         </Select>
-        <Select value={sortOrder} onValueChange={onSortOrderChange}>
+        <Select
+          value={filters.sortOrder}
+          onValueChange={(value) =>
+            onFilterChange('sortOrder', value as SortOrder)
+          }
+        >
           <SelectTrigger className="bg-background h-10 w-35">
             <ArrowDownUp className="text-muted-foreground size-4" />
             <SelectValue placeholder="Order" />
@@ -241,6 +272,14 @@ export function MyProductsFilterForm({
             ))}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" onClick={handleClearFilters}>
+            Clear
+          </Button>
+          <Button type="button" onClick={onApplyFilters}>
+            Apply Filters
+          </Button>
+        </div>
       </div>
     </div>
   );

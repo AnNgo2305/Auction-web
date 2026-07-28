@@ -1,7 +1,7 @@
 import { MAX_PRODUCT_IMAGES } from '@/shared/types/product';
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader2, Upload, X, Star } from 'lucide-react';
-import { Button } from '@/shared/ui/button'
+import { Button } from '@/shared/ui/button';
 import {
   Attachment,
   AttachmentAction,
@@ -49,7 +49,7 @@ export interface ProductImageItem {
 interface ProductImagesUploaderProps {
   productImages: ProductImageItem[];
   onProductImagesChange: (
-    value: ((prev: ProductImageItem[]) => ProductImageItem[])
+    value: (prev: ProductImageItem[]) => ProductImageItem[],
   ) => void;
 
   max?: number;

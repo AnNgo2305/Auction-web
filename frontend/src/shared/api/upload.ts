@@ -20,10 +20,7 @@ export async function createPresignedUrls(
   return response.data;
 }
 
-export async function uploadFile(
-  uploadUrl: string,
-  file: File,
-): Promise<void> {
+export async function uploadFile(uploadUrl: string, file: File): Promise<void> {
   await api.put(uploadUrl, file, {
     headers: {
       'Content-Type': file.type,

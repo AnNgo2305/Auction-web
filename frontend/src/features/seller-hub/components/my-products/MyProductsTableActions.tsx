@@ -1,5 +1,8 @@
 import { Button } from '@/shared/ui/button.tsx';
-import { PRODUCT_STATUSES, type ProductStatus } from '@/shared/types/product.ts';
+import {
+  PRODUCT_STATUSES,
+  type ProductStatus,
+} from '@/shared/types/product.ts';
 
 type MyProductsTableActionsProps = {
   productId: string;

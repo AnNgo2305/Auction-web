@@ -24,7 +24,9 @@ export function useUpdateProfile(
     UpdateProfileBody,
     UpdateProfileContext
   >({
-    mutationFn: async (body: UpdateProfileBody): Promise<UpdateProfileResponse> => {
+    mutationFn: async (
+      body: UpdateProfileBody,
+    ): Promise<UpdateProfileResponse> => {
       return await profileApi.updateProfile(body);
     },
 

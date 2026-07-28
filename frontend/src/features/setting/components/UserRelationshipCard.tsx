@@ -13,7 +13,7 @@ import { Badge } from 'lucide-react';
 import { formatIsoToNow } from '@/shared/utils/format-time';
 import { useUser } from '@/shared/contexts/UserContext';
 import { useRelationshipActions } from '@/features/profile/hooks/relationship/useRelationshipActions';
-import { Button } from '@/shared/ui/button'
+import { Button } from '@/shared/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
 
@@ -69,7 +69,7 @@ export function UserRelationshipCard({
           <button
             type="button"
             onClick={handleNavigateProfile}
-            className="flex items-center gap-4 rounded-md transition-opacity hover:opacity-80 cursor-pointer"
+            className="flex cursor-pointer items-center gap-4 rounded-md transition-opacity hover:opacity-80"
           >
             <Avatar className="h-12 w-12">
               <AvatarImage src={profileImageUrl ?? defaultAvatarImageUrl} />
@@ -125,5 +125,3 @@ export function UserRelationshipCard({
     </Card>
   );
 }
-
-

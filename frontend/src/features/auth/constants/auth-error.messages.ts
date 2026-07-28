@@ -21,12 +21,13 @@ export const VERIFY_EMAIL_OTP_ERROR_MESSAGES: Record<string, string> = {
   DEFAULT: 'OTP verification failed. Please try again',
 };
 
-export const VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES: Record<string, string> = {
-  USER_NOT_FOUND: 'User does not exist',
-  OTP_NOT_FOUND: 'Invalid verification code. Please check and try again',
-  OTP_EXPIRED: 'Verification code has expired. Please request a new one',
-  DEFAULT: 'OTP verification failed. Please try again',
-};
+export const VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES: Record<string, string> =
+  {
+    USER_NOT_FOUND: 'User does not exist',
+    OTP_NOT_FOUND: 'Invalid verification code. Please check and try again',
+    OTP_EXPIRED: 'Verification code has expired. Please request a new one',
+    DEFAULT: 'OTP verification failed. Please try again',
+  };
 
 export const FORGOT_PASSWORD_ERROR_MESSAGES: Record<string, string> = {
   USER_NOT_FOUND: 'No account found with this email address',

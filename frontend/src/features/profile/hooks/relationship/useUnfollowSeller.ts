@@ -27,11 +27,11 @@ export function useUnfollowSeller() {
     UnfollowSellerVariables,
     UnfollowSellerContext
   >({
-    mutationFn: async ({sellerId}): Promise<UnfollowSellerResponse> => {
+    mutationFn: async ({ sellerId }): Promise<UnfollowSellerResponse> => {
       return relationApi.unfollowSeller(sellerId);
     },
 
-    onMutate: async ({sellerId}): Promise<UnfollowSellerContext> => {
+    onMutate: async ({ sellerId }): Promise<UnfollowSellerContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(sellerId),
       });

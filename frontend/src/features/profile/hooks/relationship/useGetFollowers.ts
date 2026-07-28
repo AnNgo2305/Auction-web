@@ -11,14 +11,14 @@ export function useGetFollowers(
   return useInfiniteQuery({
     queryKey: relationKeys.followers(sellerId),
     queryFn: async ({ pageParam }) => {
-      return await relationApi.getFollowers(sellerId, limit, pageParam)
+      return await relationApi.getFollowers(sellerId, limit, pageParam);
     },
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
     enabled: !!sellerId,
     staleTime: 1000 * 30,
-    select: ({pages}) => ({
+    select: ({ pages }) => ({
       bidders: pages.flatMap((page) => page.data.bidders),
-    })
+    }),
   });
 }

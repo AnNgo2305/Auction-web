@@ -96,6 +96,6 @@ export function useUnblockBidder() {
       await queryClient.invalidateQueries({
         queryKey: relationKeys.followers(variables.sellerId),
       });
-    }
+    },
   });
 }

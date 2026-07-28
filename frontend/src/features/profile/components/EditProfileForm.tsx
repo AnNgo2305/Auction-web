@@ -1,18 +1,11 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Field, FieldGroup, FieldLabel } from '@/shared/ui/field';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group';
 import {
-  User,
-  Mail,
-  Phone,
-  Cake,
-  VenusAndMars,
-} from 'lucide-react';
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group';
+import { User, Mail, Phone, Cake, VenusAndMars } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
 import { useForm, Controller } from 'react-hook-form';
@@ -25,13 +18,22 @@ import {
 import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile';
 import { useOutletContext } from 'react-router-dom';
 import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context';
-import { formatDateInputToIso, formatIsoToDateInput } from '@/shared/utils/format-time';
+import {
+  formatDateInputToIso,
+  formatIsoToDateInput,
+} from '@/shared/utils/format-time';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 import { GENDERS } from '@/shared/types/user.ts';
-import { Select, SelectTrigger, SelectValue, SelectItem, SelectContent } from '@/shared/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectItem,
+  SelectContent,
+} from '@/shared/ui/select';
 
 const GENDER_OPTIONS = [
   {
@@ -140,7 +142,7 @@ export function EditProfileForm() {
         : null,
       gender: values.gender ?? null,
     });
-  }
+  };
 
   if (!isOwner) {
     return <Navigate to="/" replace />;

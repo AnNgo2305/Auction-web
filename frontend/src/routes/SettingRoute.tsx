@@ -20,7 +20,8 @@ export default function SettingRoutes() {
           />
           <Route
             path={SETTING_ROUTES.SESSIONS}
-            element={<SessionControlPage />} />
+            element={<SessionControlPage />}
+          />
           <Route
             path={SETTING_ROUTES.NOTIFICATIONS}
             element={<NotificationSettingPage />}

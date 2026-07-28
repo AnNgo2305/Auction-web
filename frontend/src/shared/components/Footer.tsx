@@ -12,13 +12,7 @@ import logo from '@/assets/images/bid-market.png';
 const footerSections = [
   {
     title: 'Quick Links',
-    links: [
-      'About Us',
-      'How It Works',
-      'Careers',
-      'Blog',
-      'Press'
-    ],
+    links: ['About Us', 'How It Works', 'Careers', 'Blog', 'Press'],
   },
   {
     title: 'Auctions',
@@ -42,13 +36,7 @@ const footerSections = [
   },
   {
     title: 'Account',
-    links: [
-      'Login',
-      'Register',
-      'My Account',
-      'Watchlist',
-      'My Bids',
-    ],
+    links: ['Login', 'Register', 'My Account', 'Watchlist', 'My Bids'],
   },
   {
     title: 'Help',
@@ -145,4 +133,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-};
+}

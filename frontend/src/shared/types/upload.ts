@@ -1,8 +1,8 @@
 export const UPLOAD_PURPOSES = {
   AVATAR: 'avatar',
   COVER: 'cover',
-  PRODUCT_IMAGE : 'productImage',
-  PRODUCT_DOCUMENT : 'productDocument',
+  PRODUCT_IMAGE: 'productImage',
+  PRODUCT_DOCUMENT: 'productDocument',
 } as const;
 
 export type UploadPurpose =

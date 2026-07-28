@@ -18,7 +18,9 @@ export function useUpdateProfileImage(
     ApiResponseError,
     UpdateImageBody
   >({
-    mutationFn: async (body: UpdateImageBody): Promise<UpdateProfileImageResponse> => {
+    mutationFn: async (
+      body: UpdateImageBody,
+    ): Promise<UpdateProfileImageResponse> => {
       return await profileApi.updateAvatar(body);
     },
 

@@ -96,6 +96,6 @@ export function useBlockBidder() {
       await queryClient.invalidateQueries({
         queryKey: relationKeys.followers(variables.sellerId),
       });
-    }
+    },
   });
 }

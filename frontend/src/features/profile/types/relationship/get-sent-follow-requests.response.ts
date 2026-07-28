@@ -19,7 +19,7 @@ export class FollowUserData {
 
   relation?: RelationshipStatusData;
 
-  createdAt!: string ;
+  createdAt!: string;
 }
 
 export class GetSentFollowRequestsData {

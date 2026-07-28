@@ -16,7 +16,7 @@ interface UpdateProductsStatusVariables {
   action: ProductStatusAction;
 }
 
-export function useUpdateProductsStatus() {
+export function useUpdateProductsStatus(onSuccessCallback?: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -43,6 +43,7 @@ export function useUpdateProductsStatus() {
       });
 
       toast.success(response.message);
+      onSuccessCallback?.();
     },
 
     onError: (error) => {

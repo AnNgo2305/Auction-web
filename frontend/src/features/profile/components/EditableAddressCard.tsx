@@ -4,9 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Building2, MapPinned, Trash2, Map, Mail, Globe2 } from 'lucide-react';
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/shared/ui/field';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/select'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/shared/ui/select';
 import { ADDRESS_TYPE } from '@/shared/types/address';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group.tsx';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group.tsx';
 
 type EditableAddressCardProps = {
   form: UseFormReturn<UpdateAddressesBody>;

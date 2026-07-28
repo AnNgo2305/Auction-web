@@ -49,22 +49,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     );
   }, [executeLogout]);
 
-
   const value = useMemo<AuthContextValue>(
     () => ({
       isLoading,
       logout,
       logoutAll,
     }),
-    [
-      isLoading,
-      logout,
-      logoutAll],
+    [isLoading, logout, logoutAll],
   );
 
-  return <AuthContext.Provider value={value}>
-    {children}
-  </AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

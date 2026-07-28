@@ -27,7 +27,7 @@ export async function uploadToS3(
         throw new Error(`Missing file at index ${index}`);
       }
       return uploadFile(url.uploadUrl, file);
-    })
+    }),
   );
 
   // Confirm uploaded files with the backend

@@ -2,11 +2,16 @@ import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-c
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Skeleton } from '@/shared/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { MyProductCategoriesTable } from '@/features/seller-hub/components/my-categories/MyProductCategoriesTable';
 import {
-  CreateProductCategoryDialog
-} from '@/features/seller-hub/components/my-categories/CreateProductCategoryDialog';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/ui/table';
+import { MyProductCategoriesTable } from '@/features/seller-hub/components/my-categories/MyProductCategoriesTable';
+import { CreateProductCategoryDialog } from '@/features/seller-hub/components/my-categories/CreateProductCategoryDialog';
 
 export function MyProductCategoriesPage() {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -57,9 +62,7 @@ export function MyProductCategoriesPage() {
           </Table>
         </div>
       ) : (
-        <MyProductCategoriesTable
-          categories={categories}
-        />
+        <MyProductCategoriesTable categories={categories} />
       )}
       <CreateProductCategoryDialog
         open={openCreateDialog}

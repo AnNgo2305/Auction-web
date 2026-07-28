@@ -19,9 +19,7 @@ export const createProductImageSchema = z.object({
   }),
 });
 
-export type CreateProductImageBody = z.infer<
-  typeof createProductImageSchema
->;
+export type CreateProductImageBody = z.infer<typeof createProductImageSchema>;
 
 export const createProductDocumentSchema = z.object({
   documentName: z

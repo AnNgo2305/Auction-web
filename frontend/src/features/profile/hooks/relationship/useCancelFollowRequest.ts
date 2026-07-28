@@ -27,11 +27,11 @@ export function useCancelFollowRequest() {
     CancelFollowVariables,
     CancelFollowRequestContext
   >({
-    mutationFn: async ({sellerId}): Promise<CancelFollowRequestResponse> => {
+    mutationFn: async ({ sellerId }): Promise<CancelFollowRequestResponse> => {
       return relationApi.cancelFollowRequest(sellerId);
     },
 
-    onMutate: async ({sellerId}): Promise<CancelFollowRequestContext> => {
+    onMutate: async ({ sellerId }): Promise<CancelFollowRequestContext> => {
       await queryClient.cancelQueries({
         queryKey: profileKeys.detail(sellerId),
       });
@@ -99,6 +99,6 @@ export function useCancelFollowRequest() {
       await queryClient.invalidateQueries({
         queryKey: relationKeys.followings(variables.bidderId),
       });
-    }
+    },
   });
 }

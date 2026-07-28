@@ -1,6 +1,18 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/shared/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/shared/ui/card';
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/shared/ui/field';
-import { InputGroup, InputGroupButton, InputGroupAddon, InputGroupInput, } from '@/shared/ui/input-group';
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group';
 import { Button } from '@/shared/ui/button';
 import { Spinner } from '@/shared/ui/spinner';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
@@ -9,7 +21,10 @@ import { authPaths } from '@/features/auth/constants/auth.routes';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginBody as LoginFormValues } from '@/features/auth/schemas/login.schema';
+import {
+  loginSchema,
+  type LoginBody as LoginFormValues,
+} from '@/features/auth/schemas/login.schema';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { toast } from 'sonner';
 import { useUser } from '@/shared/contexts/UserContext';
@@ -48,14 +63,8 @@ export function LoginForm() {
       return;
     }
 
-    const {
-      userId,
-      email,
-      username,
-      role,
-      profileImageUrl,
-      coverImageUrl,
-    } = res.data.user;
+    const { userId, email, username, role, profileImageUrl, coverImageUrl } =
+      res.data.user;
 
     setCurrentUser({
       userId,

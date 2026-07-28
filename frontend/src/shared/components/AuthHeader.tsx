@@ -25,7 +25,7 @@ import { useUser } from '@/shared/contexts/UserContext';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/contexts/AuthContext';
 import { authPaths } from '@/features/auth/constants/auth.routes';
-import { Badge } from '@/shared/ui/badge'
+import { Badge } from '@/shared/ui/badge';
 import { settingsPaths } from '@/features/setting/constants/setting.routes.ts';
 import { ROLES } from '@/shared/types/user.ts';
 import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes.ts';
@@ -33,7 +33,7 @@ import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.route
 export default function AuthHeader() {
   const location = useLocation();
   const { currentUser } = useUser();
-  const {logout, logoutAll, isLoading} = useAuth();
+  const { logout, logoutAll, isLoading } = useAuth();
   const navigate = useNavigate();
 
   if (!currentUser) {
@@ -51,7 +51,7 @@ export default function AuthHeader() {
   };
 
   return (
-    <header className="z-50 border-b sticky top-0 border-white/10 bg-(--footer)/90 text-white backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-(--footer)/90 text-white backdrop-blur-md">
       <div className="mx-auto flex h-16 items-center justify-between px-8">
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">

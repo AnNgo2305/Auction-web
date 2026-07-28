@@ -2,7 +2,8 @@ import {
   createContext,
   type PropsWithChildren,
   useCallback,
-  useContext, useEffect,
+  useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -54,17 +55,20 @@ export function UserProvider({ children }: PropsWithChildren) {
     [currentUser],
   );
 
-  const updateProfileImageUrl = useCallback((profileImageUrl: string | null) => {
-    setCurrentUser((prev) => {
-      if (!prev) {
-        return null;
-      }
-      return {
-        ...prev,
-        profileImageUrl,
-      };
-    });
-  }, []);
+  const updateProfileImageUrl = useCallback(
+    (profileImageUrl: string | null) => {
+      setCurrentUser((prev) => {
+        if (!prev) {
+          return null;
+        }
+        return {
+          ...prev,
+          profileImageUrl,
+        };
+      });
+    },
+    [],
+  );
 
   const updateCoverImageUrl = useCallback((coverImageUrl: string | null) => {
     setCurrentUser((prev) => {
@@ -109,11 +113,7 @@ export function UserProvider({ children }: PropsWithChildren) {
     );
   }
 
-  return (
-    <UserContext.Provider value={value}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {
@@ -125,5 +125,3 @@ export function useUser() {
 
   return context;
 }
-
-

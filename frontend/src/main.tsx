@@ -10,15 +10,15 @@ import { TooltipProvider } from '@/shared/ui/tooltip';
 
 createRoot(document.getElementById('root')!).render(
   // <StrictMode>
-    <QueryProvider>
-      <UserProvider>
-        <AuthProvider>
-          <TooltipProvider delayDuration={200}>
-            <App />
-            <Toaster richColors position="top-right" />
-          </TooltipProvider>
-        </AuthProvider>
-      </UserProvider>
-    </QueryProvider>
+  <QueryProvider>
+    <UserProvider>
+      <AuthProvider>
+        <TooltipProvider delayDuration={200}>
+          <App />
+          <Toaster richColors position="top-right" />
+        </TooltipProvider>
+      </AuthProvider>
+    </UserProvider>
+  </QueryProvider>,
   // </StrictMode>,
 );

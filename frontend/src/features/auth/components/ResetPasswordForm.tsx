@@ -3,12 +3,27 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/shared/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/shared/ui/card';
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/shared/ui/field';
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/shared/ui/input-group';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/shared/ui/input-group';
 import { Button } from '@/shared/ui/button';
 import { Spinner } from '@/shared/ui/spinner';
-import { resetPasswordSchema, type ResetPasswordBody as ResetPasswordValues } from '@/features/auth/schemas/reset-password.schema';
+import {
+  resetPasswordSchema,
+  type ResetPasswordBody as ResetPasswordValues,
+} from '@/features/auth/schemas/reset-password.schema';
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 import { authPaths } from '@/features/auth/constants/auth.routes';
 

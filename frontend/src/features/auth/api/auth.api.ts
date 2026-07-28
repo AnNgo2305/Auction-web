@@ -20,23 +20,22 @@ import type { ResendOtpEmailResponse } from '@/features/auth/types/resend-otp-em
 const AUTH_API_PREFIX = '/auth';
 
 export const authApi = {
-  login: async (body: LoginBody): Promise<LoginResponse>  => {
-    const res = await api.post<LoginResponse>(
-      `${AUTH_API_PREFIX}/login`,
-      body
-    );
+  login: async (body: LoginBody): Promise<LoginResponse> => {
+    const res = await api.post<LoginResponse>(`${AUTH_API_PREFIX}/login`, body);
     return res.data;
   },
 
   register: async (body: RegisterBody): Promise<RegisterResponse> => {
     const res = await api.post<RegisterResponse>(
       `${AUTH_API_PREFIX}/register`,
-      body
+      body,
     );
     return res.data;
   },
 
-  forgotPassword: async (body: ForgotPasswordBody): Promise<ForgotPasswordResponse> => {
+  forgotPassword: async (
+    body: ForgotPasswordBody,
+  ): Promise<ForgotPasswordResponse> => {
     const res = await api.post<ForgotPasswordResponse>(
       `${AUTH_API_PREFIX}/forgot-password`,
       body,
@@ -45,38 +44,45 @@ export const authApi = {
     return res.data;
   },
 
-  verifyResetPasswordOTP: async (body: VerifyOtpBody):  Promise<VerifyResetPasswordOtpResponse> => {
+  verifyResetPasswordOTP: async (
+    body: VerifyOtpBody,
+  ): Promise<VerifyResetPasswordOtpResponse> => {
     const res = await api.post<VerifyResetPasswordOtpResponse>(
       `${AUTH_API_PREFIX}/verify-reset-password-otp`,
       body,
-    )
+    );
 
     return res.data;
   },
 
-  resetPassword: async (body: ResetPasswordBody): Promise<ResetPasswordResponse> => {
+  resetPassword: async (
+    body: ResetPasswordBody,
+  ): Promise<ResetPasswordResponse> => {
     const res = await api.post<ResetPasswordResponse>(
       `${AUTH_API_PREFIX}/reset-password`,
-      body
+      body,
     );
 
     return res.data;
   },
 
-  verifyEmailOTP: async (body: VerifyOtpBody): Promise<VerifyEmailOtpResponse> => {
+  verifyEmailOTP: async (
+    body: VerifyOtpBody,
+  ): Promise<VerifyEmailOtpResponse> => {
     const res = await api.post<VerifyEmailOtpResponse>(
       `${AUTH_API_PREFIX}/verify-email-otp`,
-      body
+      body,
     );
 
     return res.data;
   },
 
-
-  resendOtp: async (body: ResendOtpEmailBody): Promise<ResendOtpEmailResponse> => {
+  resendOtp: async (
+    body: ResendOtpEmailBody,
+  ): Promise<ResendOtpEmailResponse> => {
     const res = await api.post<ResendOtpEmailResponse>(
       `${AUTH_API_PREFIX}/resend-otp`,
-      body
+      body,
     );
 
     return res.data;

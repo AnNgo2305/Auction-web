@@ -6,17 +6,11 @@ import type { BlockBidderResponse } from '@/features/profile/types/relationship/
 import type { DeclineFollowResponse } from '@/features/profile/types/relationship/decline-follow.response';
 import type { UnblockBidderResponse } from '@/features/profile/types/relationship/unblock-bidder.response';
 import type { GetFollowersResponse } from '@/features/profile/types/relationship/get-followers.response';
-import type {
-  GetPendingFollowRequestsResponse
-} from '@/features/profile/types/relationship/get-pending-follow-requests.response';
+import type { GetPendingFollowRequestsResponse } from '@/features/profile/types/relationship/get-pending-follow-requests.response';
 import type { GetBlockedUsersResponse } from '@/features/profile/types/relationship/get-blocked-users.response';
-import type {
-  CancelFollowRequestResponse
-} from '@/features/profile/types/relationship/cancel-follow-request.response';
+import type { CancelFollowRequestResponse } from '@/features/profile/types/relationship/cancel-follow-request.response';
 import type { GetFollowingsResponse } from '@/features/profile/types/relationship/get-following.response';
-import type {
-  GetSentFollowRequestsResponse
-} from '@/features/profile/types/relationship/get-sent-follow-requests.response.ts';
+import type { GetSentFollowRequestsResponse } from '@/features/profile/types/relationship/get-sent-follow-requests.response.ts';
 
 const FOLLOW_API_PREFIX = '/follows';
 

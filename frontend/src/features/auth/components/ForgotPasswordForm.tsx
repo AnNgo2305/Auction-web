@@ -1,10 +1,20 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/shared/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/shared/ui/card';
 import { Field, FieldLabel } from '@/shared/ui/field';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Spinner } from '@/shared/ui/spinner';
 import { useForm } from 'react-hook-form';
-import { forgotPasswordSchema, type ForgotPasswordBody as ForgotPasswordValues } from '@/features/auth/schemas/forgot-password.schema';
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordBody as ForgotPasswordValues,
+} from '@/features/auth/schemas/forgot-password.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 import type { ApiResponseError } from '@/shared/types/error';
@@ -29,7 +39,7 @@ export function ForgotPasswordForm() {
     clearErrors,
     setError,
     formState: { errors, isValid },
-  } = form
+  } = form;
 
   const forgotPasswordMutation = useForgotPassword((res) => {
     navigate(authPaths.verifyResetPassword(), {
@@ -55,7 +65,7 @@ export function ForgotPasswordForm() {
         message,
       });
     }
-  }
+  };
 
   return (
     <Card className="mx-auto w-full max-w-xl shadow-lg">

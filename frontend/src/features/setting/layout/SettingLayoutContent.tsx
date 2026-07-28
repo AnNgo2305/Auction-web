@@ -93,7 +93,7 @@ export function SettingLayoutContent() {
                   >
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
-                        <Shield className="size-10"/>
+                        <Shield className="size-10" />
                         <span className="font-medium">Security</span>
                         <ChevronRight
                           className={cn(
@@ -201,12 +201,8 @@ export function SettingLayoutContent() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="fixed top-16 ml-1 left-0 z-50 flex h-16 items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon-lg"
-            onClick={toggleSidebar}
-          >
+        <header className="fixed top-16 left-0 z-50 ml-1 flex h-16 items-center gap-3">
+          <Button variant="ghost" size="icon-lg" onClick={toggleSidebar}>
             <Menu className="size-6" />
           </Button>
         </header>

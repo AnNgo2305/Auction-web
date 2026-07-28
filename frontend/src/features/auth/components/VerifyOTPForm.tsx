@@ -1,8 +1,20 @@
-import { Card, CardHeader, CardDescription, CardTitle, CardContent, CardFooter } from '@/shared/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardDescription,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from '@/shared/ui/card';
 import { Field } from '@/shared/ui/field';
 import { Button } from '@/shared/ui/button';
 import { Spinner } from '@/shared/ui/spinner';
-import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/shared/ui/input-otp';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from '@/shared/ui/input-otp';
 import { Separator } from '@/shared/ui/separator';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
@@ -160,7 +172,9 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
     });
   };
 
-  const isVerifying = verifyEmailOtpMutation.isPending || verifyResetPasswordOtpMutation.isPending;
+  const isVerifying =
+    verifyEmailOtpMutation.isPending ||
+    verifyResetPasswordOtpMutation.isPending;
 
   return (
     <Card className="mx-auto w-full max-w-xl shadow-lg">

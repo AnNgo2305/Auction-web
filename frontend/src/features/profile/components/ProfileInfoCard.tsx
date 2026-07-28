@@ -1,7 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Skeleton } from '@/shared/ui/skeleton';
-import { Mail, Calendar, User, Phone, Cake, VenusAndMars, Edit, Info } from 'lucide-react';
+import {
+  Mail,
+  Calendar,
+  User,
+  Phone,
+  Cake,
+  VenusAndMars,
+  Edit,
+  Info,
+} from 'lucide-react';
 import type { ElementType } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context';
@@ -11,9 +20,9 @@ import { formatIsoToDate } from '@/shared/utils/format-time.ts';
 import { type Gender, GENDERS } from '@/shared/types/user.ts';
 
 const GENDER_LABEL: Record<Gender, string> = {
-  [GENDERS.MALE]: "Male",
-  [GENDERS.FEMALE]: "Female",
-  [GENDERS.OTHER]: "Other",
+  [GENDERS.MALE]: 'Male',
+  [GENDERS.FEMALE]: 'Female',
+  [GENDERS.OTHER]: 'Other',
 };
 
 type ProfileItem = {
@@ -23,7 +32,8 @@ type ProfileItem = {
 };
 
 export function ProfileInfoCard() {
-  const { isOwner, profile, isInitialProfileLoading } = useOutletContext<ProfileOutletContext>();
+  const { isOwner, profile, isInitialProfileLoading } =
+    useOutletContext<ProfileOutletContext>();
 
   const navigate = useNavigate();
 

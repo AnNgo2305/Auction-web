@@ -50,7 +50,6 @@ export function MyProductsTableRow({
   checked,
   onCheckedChange,
 }: MyProductsTableRowProps) {
-
   const handleViewDetail = () => {
     onViewDetail?.(productId);
   };

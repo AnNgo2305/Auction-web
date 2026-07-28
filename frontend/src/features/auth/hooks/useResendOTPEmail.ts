@@ -16,7 +16,9 @@ export function useResendOTPEmail(
     ApiResponseError,
     ResendOtpEmailBody
   >({
-    mutationFn: async (body: ResendOtpEmailBody): Promise<ResendOtpEmailResponse> => {
+    mutationFn: async (
+      body: ResendOtpEmailBody,
+    ): Promise<ResendOtpEmailResponse> => {
       return await authApi.resendOtp(body);
     },
 

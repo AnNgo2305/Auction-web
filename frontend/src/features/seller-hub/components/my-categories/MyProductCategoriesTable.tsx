@@ -1,4 +1,9 @@
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/shared/ui/empty';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from '@/shared/ui/empty';
 import { Tags, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -12,7 +17,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/ui/table';
 import { useState } from 'react';
 import { useDeleteProductCategory } from '@/features/seller-hub/hooks/product-category/useDeleteProductCategory';
 import { useDeleteProductCategories } from '@/features/seller-hub/hooks/product-category/useDeleteProductCategories';
@@ -24,7 +36,6 @@ type ProductCategoriesTableProps = {
     color: string;
   }[];
 };
-
 
 export function MyProductCategoriesTable({
   categories,
@@ -51,9 +62,7 @@ export function MyProductCategoriesTable({
       if (checked) {
         return [...currentIds, categoryId];
       }
-      return currentIds.filter(
-        (id) => id !== categoryId,
-      );
+      return currentIds.filter((id) => id !== categoryId);
     });
   };
 
@@ -93,15 +102,13 @@ export function MyProductCategoriesTable({
     return (
       <Empty className="rounded-md border py-12">
         <EmptyHeader>
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <Tags className="h-6 w-6 text-muted-foreground" />
+          <div className="bg-muted mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+            <Tags className="text-muted-foreground h-6 w-6" />
           </div>
-          <EmptyTitle className="text-lg">
-            No categories found
-          </EmptyTitle>
+          <EmptyTitle className="text-lg">No categories found</EmptyTitle>
           <EmptyDescription className="max-w-sm">
-            Create product categories to organize your products
-            and make them easier to manage.
+            Create product categories to organize your products and make them
+            easier to manage.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

@@ -30,7 +30,8 @@ export function DeleteImageDialog({
   onOpenChange,
   onDeleteImage,
 }: DeleteImageDialogProps) {
-  const imageName = type === IMAGE_TYPES.AVATAR ? 'profile photo' : 'cover photo';
+  const imageName =
+    type === IMAGE_TYPES.AVATAR ? 'profile photo' : 'cover photo';
   const { userId } = useParams<{ userId: string }>();
   const { updateProfileImageUrl, updateCoverImageUrl } = useUser();
 
@@ -59,7 +60,7 @@ export function DeleteImageDialog({
   };
 
   const handleDeleteImage = async (
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLButtonElement>,
   ) => {
     event.preventDefault();
 
@@ -106,4 +107,3 @@ export function DeleteImageDialog({
     </AlertDialog>
   );
 }
-

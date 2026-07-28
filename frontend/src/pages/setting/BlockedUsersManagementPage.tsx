@@ -1,11 +1,5 @@
 import { useEffect, useRef } from 'react';
-import {
-  Ban,
-  Loader2,
-  ShieldAlert,
-  UserX,
-  Lock,
-} from 'lucide-react';
+import { Ban, Loader2, ShieldAlert, UserX, Lock } from 'lucide-react';
 import { UserRelationshipCard } from '@/features/setting/components/UserRelationshipCard';
 import { useGetBlockedUsers } from '@/features/setting/hooks/relationship/useGetBlockedUsers';
 import { RELATIONSHIP_STATUSES } from '@/shared/types/relationship';
@@ -13,13 +7,8 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/shared/ui/card';
 
 export function BlockedUsersManagementPage() {
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useGetBlockedUsers();
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetBlockedUsers();
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -81,7 +70,7 @@ export function BlockedUsersManagementPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl space-y-8">
-      <Card className="overflow-hidden border-none bg-linear-to-r from-red-500/10 via-red-500/5 to-background">
+      <Card className="to-background overflow-hidden border-none bg-linear-to-r from-red-500/10 via-red-500/5">
         <CardContent className="flex flex-col justify-between gap-6 p-8 md:flex-row md:items-center">
           <div>
             <div className="mb-3 flex items-center gap-3">
@@ -155,9 +144,7 @@ export function BlockedUsersManagementPage() {
           <CardContent className="py-20 text-center">
             <Ban className="text-muted-foreground mx-auto mb-5 h-12 w-12" />
 
-            <h2 className="text-xl font-semibold">
-              No blocked users
-            </h2>
+            <h2 className="text-xl font-semibold">No blocked users</h2>
 
             <p className="text-muted-foreground mt-2">
               Users you block will appear here.

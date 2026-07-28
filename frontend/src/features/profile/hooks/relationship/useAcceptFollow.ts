@@ -103,6 +103,6 @@ export function useAcceptFollow() {
       await queryClient.invalidateQueries({
         queryKey: relationKeys.followers(variables.sellerId),
       });
-    }
+    },
   });
 }

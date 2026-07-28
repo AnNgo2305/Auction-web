@@ -6,7 +6,9 @@ import type { RegisterResponse } from '@/features/auth/types/register.response';
 import type { RegisterBody } from '@/features/auth/schemas/register.schema';
 import { REGISTER_ERROR_MESSAGES } from '@/features/auth/constants/auth-error.messages.ts';
 
-export function useRegister(onSuccessCallback?: (res: RegisterResponse) => void) {
+export function useRegister(
+  onSuccessCallback?: (res: RegisterResponse) => void,
+) {
   return useMutation<RegisterResponse, ApiResponseError, RegisterBody>({
     mutationFn: async (body: RegisterBody): Promise<RegisterResponse> => {
       return await authApi.register(body);

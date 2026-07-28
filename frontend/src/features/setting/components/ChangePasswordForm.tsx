@@ -17,7 +17,7 @@ import {
   InputGroupInput,
   InputGroupButton,
 } from '@/shared/ui/input-group';
-import { Button } from '@/shared/ui/button'
+import { Button } from '@/shared/ui/button';
 import {
   type ChangePasswordBody,
   changePasswordSchema,
@@ -65,7 +65,6 @@ export function ChangePasswordForm() {
   const onSubmit = async (data: ChangePasswordBody) => {
     changePasswordMutation.mutate(data);
   };
-
 
   return (
     <Card className="mx-auto w-full max-w-2xl shadow-lg">

@@ -7,9 +7,7 @@ import type { CreateProductBody } from '@/features/seller-hub/schemas/product/cr
 import type { CreateProductResponse } from '@/features/seller-hub/types/product/create-product.response';
 import type { ApiResponseError } from '@/shared/types/error';
 
-export function useCreateProduct(
-  onSuccessCallback?: () => void,
-) {
+export function useCreateProduct(onSuccessCallback?: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -29,7 +27,7 @@ export function useCreateProduct(
       });
 
       toast.success(response.message);
-      onSuccessCallback?.()
+      onSuccessCallback?.();
     },
 
     onError: (error) => {

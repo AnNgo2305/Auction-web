@@ -5,7 +5,10 @@ import { useAcceptFollow } from './useAcceptFollow';
 import { useDeclineFollow } from './useDeclineFollow';
 import { useBlockBidder } from './useBlockBidder';
 import { useUnblockBidder } from './useUnblockBidder';
-import  { PROFILE_ACTIONS, type ProfileAction } from '@/shared/types/relationship.ts';
+import {
+  PROFILE_ACTIONS,
+  type ProfileAction,
+} from '@/shared/types/relationship.ts';
 
 export function useRelationshipActions() {
   const followMutation = useFollowSeller();
@@ -18,7 +21,11 @@ export function useRelationshipActions() {
   const blockBidderMutation = useBlockBidder();
   const unblockBidderMutation = useUnblockBidder();
 
-  const handleRelationshipAction = (currentUserId: string, targetUserId: string, action: ProfileAction) => {
+  const handleRelationshipAction = (
+    currentUserId: string,
+    targetUserId: string,
+    action: ProfileAction,
+  ) => {
     switch (action) {
       case PROFILE_ACTIONS.FOLLOW:
         return followMutation.mutate({

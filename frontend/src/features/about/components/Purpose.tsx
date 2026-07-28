@@ -39,7 +39,7 @@ export default function AboutPurpose() {
             </Card>
           </CarouselItem>
           <CarouselItem>
-            <Card className="overflow-hidden border-white/10 bg-white/5 p-0 gap-0">
+            <Card className="gap-0 overflow-hidden border-white/10 bg-white/5 p-0">
               <div className="h-full w-full overflow-hidden">
                 <img
                   src={beSlide}
@@ -57,7 +57,7 @@ export default function AboutPurpose() {
             </Card>
           </CarouselItem>
           <CarouselItem>
-            <Card className="overflow-hidden border-white/10 bg-white/5 p-0 gap-0">
+            <Card className="gap-0 overflow-hidden border-white/10 bg-white/5 p-0">
               <div className="h-full w-full overflow-hidden">
                 <img
                   src={dbSlide}
@@ -75,7 +75,7 @@ export default function AboutPurpose() {
             </Card>
           </CarouselItem>
           <CarouselItem>
-            <Card className="overflow-hidden border-white/10 bg-white/5 p-0 gap-0">
+            <Card className="gap-0 overflow-hidden border-white/10 bg-white/5 p-0">
               <div className="h-full w-full overflow-hidden">
                 <img
                   src={architectureSlide}
@@ -93,7 +93,7 @@ export default function AboutPurpose() {
             </Card>
           </CarouselItem>
           <CarouselItem>
-            <Card className="overflow-hidden border-white/10 bg-white/5 p-0 gap-0">
+            <Card className="gap-0 overflow-hidden border-white/10 bg-white/5 p-0">
               <div className="h-full w-full overflow-hidden">
                 <img
                   src={infraSlide}

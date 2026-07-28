@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import  { ADDRESS_TYPE, type AddressType } from '@/shared/types/address';
+import { ADDRESS_TYPE, type AddressType } from '@/shared/types/address';
 import { Button } from '@/shared/ui/button';
 import { Loader2, MapPinned, Pencil, Plus, X } from 'lucide-react';
 import { AddressCard } from '@/features/profile/components/AddressCard';
@@ -42,22 +42,26 @@ const mapAddressesToFormValues = (
   }));
 };
 
-export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }: UserAddressListProps) {
+export function UserAddressList({
+  addresses,
+  isInitialLoading,
+  isOwner,
+  userId,
+}: UserAddressListProps) {
   const [isEditing, setIsEditing] = useState(false);
   const form = useForm<UpdateAddressesBody>({
     resolver: zodResolver(updateAddressesBodySchema),
     defaultValues: {
       addresses: [],
     },
-    mode: 'onChange'
+    mode: 'onChange',
   });
   const {
     reset,
     control,
     handleSubmit,
-    formState: { isValid, isDirty}
+    formState: { isValid, isDirty },
   } = form;
-
 
   const { fields, append, remove } = useFieldArray({
     control: control,
@@ -70,16 +74,13 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
     reset({
       addresses: mapAddressesToFormValues(addresses),
     });
-  }, [addresses, form])
+  }, [addresses, form]);
 
   if (isInitialLoading) {
     return (
       <div className="space-y-5">
         {Array.from({ length: 2 }).map((_, index) => (
-          <div
-            key={index}
-            className="rounded-2xl border bg-card p-6 shadow-sm"
-          >
+          <div key={index} className="bg-card rounded-2xl border p-6 shadow-sm">
             <Skeleton className="mb-5 h-6 w-36" />
             <div className="space-y-3">
               <Skeleton className="h-4 w-4/5" />
@@ -99,7 +100,7 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
       });
     }
     setIsEditing(false);
-  }
+  };
 
   const handleSave = handleSubmit(async (values) => {
     try {
@@ -119,11 +120,11 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
       country: '',
       addressType: ADDRESS_TYPE.Home,
     });
-  }
+  };
 
   const handleRemoveAddress = (index: number) => {
     remove(index);
-  }
+  };
 
   return (
     <section className="space-y-6">
@@ -152,8 +153,7 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
               <Pencil className="h-4 w-4" />
               Edit
             </Button>
-          ))
-        }
+          ))}
       </div>
       <form onSubmit={handleSave} className="space-y-4">
         {isEditing ? (
@@ -176,13 +176,10 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
               </p>
             </div>
           )
-        ) : (addresses.length > 0 ? (
+        ) : addresses.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
             {addresses.map((address) => (
-              <AddressCard
-                key={address.addressId}
-                {...address}
-              />
+              <AddressCard key={address.addressId} {...address} />
             ))}
           </div>
         ) : (
@@ -197,7 +194,7 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
                 : "This user hasn't added any addresses."}
             </p>
           </div>
-        ))}
+        )}
         {isEditing && (
           <div className="flex items-center justify-between">
             <Button
@@ -215,9 +212,7 @@ export function UserAddressList({ addresses, isInitialLoading, isOwner, userId }
             <Button
               type="submit"
               disabled={
-                updateAddressesMutation.isPending ||
-                !isDirty ||
-                !isValid
+                updateAddressesMutation.isPending || !isDirty || !isValid
               }
             >
               {updateAddressesMutation.isPending && (

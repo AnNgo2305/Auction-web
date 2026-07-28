@@ -1,14 +1,59 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Field, FieldLabel, FieldGroup, FieldDescription, FieldError } from '@/shared/ui/field';
-import { InputGroup, InputGroupInput, InputGroupAddon } from '@/shared/ui/input-group';
-import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from '@/shared/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover.tsx';
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/shared/ui/command.tsx';
-import { type ProductImageItem, ProductImagesUploader } from '@/features/seller-hub/components/create-product/ProductImageUploader';
-import { type ProductDocumentItem, ProductDocumentsUploader } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/ui/card';
+import {
+  Field,
+  FieldLabel,
+  FieldGroup,
+  FieldDescription,
+  FieldError,
+} from '@/shared/ui/field';
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+} from '@/shared/ui/input-group';
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectValue,
+  SelectTrigger,
+} from '@/shared/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/ui/popover.tsx';
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from '@/shared/ui/command.tsx';
+import {
+  type ProductImageItem,
+  ProductImagesUploader,
+} from '@/features/seller-hub/components/create-product/ProductImageUploader';
+import {
+  type ProductDocumentItem,
+  ProductDocumentsUploader,
+} from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
 import { Checkbox } from '@/shared/ui/checkbox.tsx';
 import { Spinner } from '@/shared/ui/spinner.tsx';
-import { Badge, Boxes, FileText, LayoutGrid, Package2, Tags } from 'lucide-react';
+import {
+  Badge,
+  Boxes,
+  FileText,
+  LayoutGrid,
+  Package2,
+  Tags,
+} from 'lucide-react';
 import { Textarea } from '@/shared/ui/textarea';
 import { Controller } from 'react-hook-form';
 import { PRODUCT_STATUSES, PUBLIC_CATEGORIES } from '@/shared/types/product';
@@ -17,13 +62,18 @@ import { useState } from 'react';
 import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-category/useGetMyproductCategory.ts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createProductSchema, type CreateProductBody } from '@/features/seller-hub/schemas/product/create-product.schema';
+import {
+  createProductSchema,
+  type CreateProductBody,
+} from '@/features/seller-hub/schemas/product/create-product.schema';
 import { useCreateProduct } from '@/features/seller-hub/hooks/product/useCreateProduct';
 
 export function CreateProductForm() {
   const [openCategory, setOpenCategory] = useState(false);
   const [productImages, setProductImages] = useState<ProductImageItem[]>([]);
-  const [productDocuments, setProductDocuments] = useState<ProductDocumentItem[]>([]);
+  const [productDocuments, setProductDocuments] = useState<
+    ProductDocumentItem[]
+  >([]);
 
   const form = useForm<CreateProductBody>({
     resolver: zodResolver(createProductSchema),
@@ -67,7 +117,7 @@ export function CreateProductForm() {
 
   const onSubmit = (data: CreateProductBody) => {
     createProductMutation.mutate(data);
-  }
+  };
 
   const { data: categories = [], isLoading: loadingCategories } =
     useGetMyProductCategories(openCategory);

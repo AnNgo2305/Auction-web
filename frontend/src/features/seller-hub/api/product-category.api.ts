@@ -3,15 +3,9 @@ import type { CreateProductCategoryBody } from '@/features/seller-hub/schemas/pr
 import type { DeleteProductCategoriesBody } from '@/features/seller-hub/schemas/product-category/delete-product-categories.schema';
 import type { GetMyProductCategoriesResponse } from '@/features/seller-hub/types/product-category/get-my-product-categories.response';
 import type { ApiResponse } from '@/shared/types/response';
-import type {
-  CreateProductCategoryResponse
-} from '@/features/seller-hub/types/product-category/create-product-category.response.ts';
-import type {
-  DeleteProductCategoriesResponse
-} from '@/features/seller-hub/types/product-category/delete-product-categories.response.ts';
-import type {
-  DeleteProductCategoryResponse
-} from '@/features/seller-hub/types/product-category/delete-product-category.response.ts';
+import type { CreateProductCategoryResponse } from '@/features/seller-hub/types/product-category/create-product-category.response.ts';
+import type { DeleteProductCategoriesResponse } from '@/features/seller-hub/types/product-category/delete-product-categories.response.ts';
+import type { DeleteProductCategoryResponse } from '@/features/seller-hub/types/product-category/delete-product-category.response.ts';
 
 const PRODUCT_CATEGORY_API_PREFIX = '/product-categories';
 

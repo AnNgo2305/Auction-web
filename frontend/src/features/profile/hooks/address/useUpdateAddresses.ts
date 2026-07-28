@@ -36,6 +36,6 @@ export function useUpdateAddresses(userId: string) {
         UPDATE_ADDRESSES_ERROR_MESSAGES.DEFAULT;
 
       toast.error(message);
-    }
+    },
   });
 }

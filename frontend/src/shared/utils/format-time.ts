@@ -11,9 +11,7 @@ export function formatIsoToDateInput(iso: string | null | undefined): string {
  * ISO -> dd/MM/yyyy
  * Example: 2026-07-12T00:00:00.000Z -> 12/07/2026
  */
-export function formatIsoToDate(
-  iso: string | null | undefined,
-): string {
+export function formatIsoToDate(iso: string | null | undefined): string {
   if (!iso) return '';
 
   return new Intl.DateTimeFormat('en-GB', {
@@ -44,9 +42,7 @@ export function formatDateInputToIso(
  * - 2 months ago
  * - 1 year ago
  */
-export function formatIsoToNow(
-  iso: string | null | undefined,
-): string {
+export function formatIsoToNow(iso: string | null | undefined): string {
   if (!iso) return '';
 
   const date = new Date(iso);
