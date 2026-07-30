@@ -61,3 +61,11 @@ export const PRODUCT_STATUS_ACTIONS = {
 
 export type ProductStatusAction =
   (typeof PRODUCT_STATUS_ACTIONS)[keyof typeof PRODUCT_STATUS_ACTIONS];
+
+export const PUBLIC_PRODUCT_STATUSES = {
+  READY: PRODUCT_STATUSES.READY,
+  AUCTIONING: PRODUCT_STATUSES.AUCTIONING,
+} as const;
+
+export type PublicProductStatus =
+  (typeof PUBLIC_PRODUCT_STATUSES)[keyof typeof PUBLIC_PRODUCT_STATUSES];
