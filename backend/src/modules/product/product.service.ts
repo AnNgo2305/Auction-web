@@ -782,16 +782,13 @@ export class ProductService {
         sellerName: product.seller.username,
         productId: product.productId,
         name: product.name,
-        description: product.description ?? undefined,
         publicCategory: product.publicCategory,
-        status: product.status,
         thumbnail: this.fileService.getPublicUrl(product.images[0]?.imageKey),
         categories: product.productCategories.map((item) => ({
           categoryId: item.category.categoryId,
           name: item.category.name,
         })),
         createdAt: product.createdAt,
-        updatedAt: product.updatedAt,
       })),
 
       meta: {

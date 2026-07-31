@@ -28,8 +28,6 @@ export class ProductData {
   categories!: ProductCategoryData[];
 
   createdAt!: string;
-
-  updatedAt!: string;
 }
 
 export type GetProductsResponse = ApiResponse<PaginationData<ProductData>>;

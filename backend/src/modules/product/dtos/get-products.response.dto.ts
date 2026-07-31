@@ -1,4 +1,4 @@
-import type { ProductStatus, PublicCategory } from '@generated/prisma/enums';
+import type { PublicCategory } from '@generated/prisma/enums';
 
 export class ProductCategoryDto {
   categoryId!: string;
@@ -15,17 +15,11 @@ export class GetProductsResponseDto {
 
   name!: string;
 
-  description?: string;
-
   publicCategory!: PublicCategory;
-
-  status!: ProductStatus;
 
   thumbnail?: string;
 
   categories!: ProductCategoryDto[];
 
   createdAt!: Date;
-
-  updatedAt!: Date;
 }

@@ -4,6 +4,8 @@ class ConfirmUploadItem {
   exists: boolean;
 
   size?: number;
+
+  url?: string;
 }
 
 export class ConfirmUploadResponseDto {

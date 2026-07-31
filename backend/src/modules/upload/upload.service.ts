@@ -115,6 +115,7 @@ export class UploadService {
 
           return {
             key,
+            url: this.fileService.getPublicUrl(key),
             exists: true,
             size: head.ContentLength,
           };

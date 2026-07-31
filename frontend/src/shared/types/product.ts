@@ -69,3 +69,12 @@ export const PUBLIC_PRODUCT_STATUSES = {
 
 export type PublicProductStatus =
   (typeof PUBLIC_PRODUCT_STATUSES)[keyof typeof PUBLIC_PRODUCT_STATUSES];
+
+export const PublicProductSortBy = {
+  CREATED_AT: 'createdAt',
+  UPDATED_AT: 'updatedAt',
+  NAME: 'name',
+} as const;
+
+export type PublicProductSortBy =
+  (typeof PublicProductSortBy)[keyof typeof PublicProductSortBy];
