@@ -1,13 +1,13 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { Button } from '@/shared/ui/button';
+import { Button } from '@/shared/ui/button.tsx';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/select';
+} from '@/shared/ui/select.tsx';
 
 type ProductsPaginationProps = {
   page: number;

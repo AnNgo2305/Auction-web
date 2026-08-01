@@ -1,14 +1,14 @@
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group.tsx';
 import { ArrowDownUp, ArrowUpDown, CircleCheck, Search, Tags } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Button } from '@/shared/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select.tsx';
+import { Button } from '@/shared/ui/button.tsx';
 import {
   type PublicCategory,
   PUBLIC_CATEGORIES,
   type SortOrder,
   type PublicProductStatus,
   type PublicProductSortBy,
-} from '@/shared/types/product';
+} from '@/shared/types/product.ts';
 import {
   publicProductStatusOptions,
   publicProductSortFieldOptions,

@@ -7,10 +7,7 @@ import type { UpdateProductBody } from '@/features/product/schemas/product/updat
 import type { UpdateProductResponse } from '@/features/product/types/product/update-product.response.ts';
 import type { ApiResponseError } from '@/shared/types/error.ts';
 
-export function useUpdateProduct(
-  productId: string,
-  onSuccessCallback?: (res: UpdateProductResponse) => void,
-) {
+export function useUpdateProduct(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -24,14 +21,15 @@ export function useUpdateProduct(
       return await productApi.updateProduct(body);
     },
 
-    onSuccess: async (response) => {
+    onSuccess: async (response, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: productKeys.detail(productId),
+          queryKey: productKeys.detail(variables.productId),
         }),
       ]);
 
-      onSuccessCallback?.(response);
+      toast.success(response.message);
+      onSuccess?.();
     },
 
     onError: (err: ApiResponseError) => {

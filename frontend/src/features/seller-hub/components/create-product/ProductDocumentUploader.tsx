@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { FileText, Loader2, Upload, X } from 'lucide-react';
 
 import { Button } from '@/shared/ui/button';
@@ -38,9 +38,6 @@ export interface ProductDocumentItem {
 
   // Upload failure reason
   errorMessage?: string;
-
-  // Whether this document was added in current form session
-  isNew?: boolean;
 }
 
 interface ProductDocumentsUploaderProps {
@@ -59,23 +56,7 @@ export function ProductDocumentsUploader({
   max = MAX_PRODUCT_DOCUMENTS,
 }: ProductDocumentsUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const documentsRef = useRef<ProductDocumentItem[]>(documents);
-
   const [isUploading, setIsUploading] = useState(false);
-
-  useEffect(() => {
-    documentsRef.current = documents;
-  }, [documents]);
-
-  useEffect(() => {
-    return () => {
-      documentsRef.current.forEach((document) => {
-        if (document.isNew) {
-          URL.revokeObjectURL(document.url);
-        }
-      });
-    };
-  }, []);
 
   const handleOpenUploadDocument = () => {
     inputRef.current?.click();
@@ -106,7 +87,6 @@ export function ProductDocumentsUploader({
         mimeType: file.type,
 
         status: 'uploading',
-        isNew: true,
       }),
     );
 
@@ -135,7 +115,8 @@ export function ProductDocumentsUploader({
 
           return {
             ...document,
-            documentKey: uploaded.key,
+            url: uploaded.url || '',
+            documentKey: uploaded.key || '',
             status: 'done' as const,
           };
         },
@@ -173,12 +154,6 @@ export function ProductDocumentsUploader({
   };
 
   const handleRemoveDocument = (id: string) => {
-    const removedDocument = documents.find((document) => document.id === id);
-
-    if (removedDocument?.isNew) {
-      URL.revokeObjectURL(removedDocument.url);
-    }
-
     onProductDocumentsChange((prev) =>
       prev.filter((document) => document.id !== id),
     );

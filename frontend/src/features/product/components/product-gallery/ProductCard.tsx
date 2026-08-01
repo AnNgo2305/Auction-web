@@ -1,8 +1,8 @@
 import { ArrowRight, User } from 'lucide-react';
-import { Badge } from '@/shared/ui/badge';
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent } from '@/shared/ui/card';
-import { formatIsoToDate } from '@/shared/utils/format-time';
+import { Badge } from '@/shared/ui/badge.tsx';
+import { Button } from '@/shared/ui/button.tsx';
+import { Card, CardContent } from '@/shared/ui/card.tsx';
+import { formatIsoToDate } from '@/shared/utils/format-time.ts';
 
 type ProductCategory = {
   categoryId: string;

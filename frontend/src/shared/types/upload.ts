@@ -36,6 +36,7 @@ export interface ConfirmUploadItem {
   key: string;
   exists: boolean;
   size?: number;
+  url?: string;
 }
 
 export interface ConfirmUploadResponse {

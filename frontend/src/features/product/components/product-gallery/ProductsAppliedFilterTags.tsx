@@ -1,17 +1,17 @@
 import { X } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
-import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button.tsx';
+import { Badge } from '@/shared/ui/badge.tsx';
 import type {
   PublicCategory,
   PublicProductStatus,
   PublicProductSortBy,
   SortOrder,
-} from '@/shared/types/product';
+} from '@/shared/types/product.ts';
 import {
   publicProductStatusOptions,
   publicProductSortFieldOptions,
   publicProductSortOrderOptions,
-} from '@/features/product/constants/product-filter-options';
+} from '@/features/product/constants/product-filter-options.ts';
 
 type ProductsAppliedFilterTagsProps = {
   keyword?: string;

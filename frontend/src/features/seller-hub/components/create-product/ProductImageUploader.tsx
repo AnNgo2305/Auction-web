@@ -1,5 +1,5 @@
 import { MAX_PRODUCT_IMAGES } from '@/shared/types/product';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Loader2, Upload, X, Star } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import {
@@ -39,9 +39,6 @@ export interface ProductImageItem {
   // Upload failure reason
   errorMessage?: string;
 
-  // Whether this image is a local upload created in current form session
-  isNew?: boolean;
-
   // Primary Image
   isPrimary?: boolean;
 }
@@ -62,25 +59,10 @@ export function ProductImagesUploader({
 }: ProductImagesUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const productImagesRef = useRef<ProductImageItem[]>(productImages);
 
   const handleOpenUploadImage = () => {
     inputRef.current?.click();
   };
-
-  useEffect(() => {
-    productImagesRef.current = productImages;
-  }, [productImages]);
-
-  useEffect(() => {
-    return () => {
-      productImagesRef.current.forEach((image) => {
-        if (image.isNew) {
-          URL.revokeObjectURL(image.url);
-        }
-      });
-    };
-  }, []);
 
   const handleSetPrimaryImage = (imageId: string) => {
     onProductImagesChange((prev) =>
@@ -105,7 +87,7 @@ export function ProductImagesUploader({
     const pendingImages: ProductImageItem[] = selectedFiles.map(
       (file, index) => ({
         id: crypto.randomUUID(),
-        url: URL.createObjectURL(file),
+        url: '',
         sourceFile: file,
         originalName: file.name,
         size: file.size,
@@ -140,6 +122,7 @@ export function ProductImagesUploader({
         return {
           ...image,
           imageKey: uploaded.key,
+          url: uploaded.url || '',
           sourceFile: undefined,
           status: 'done' as const,
         };
@@ -179,10 +162,6 @@ export function ProductImagesUploader({
     }
 
     const removedImage = productImages.find((image) => image.id === imageId);
-
-    if (removedImage?.isNew) {
-      URL.revokeObjectURL(removedImage.url);
-    }
 
     onProductImagesChange((prev) => {
       const remaining = prev.filter((image) => image.id !== imageId);
