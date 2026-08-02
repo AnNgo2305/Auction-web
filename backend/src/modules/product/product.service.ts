@@ -235,11 +235,13 @@ export class ProductService {
         imageId: img.imageId,
         imageUrl: this.fileService.getPublicUrl(img.imageKey),
         isPrimary: img.isPrimary,
+        imageKey: img.imageKey,
       })),
       documents: product.productDocuments.map((doc) => ({
         documentId: doc.documentId,
         documentName: doc.documentName,
         documentUrl: this.fileService.getPublicUrl(doc.documentKey),
+        documentKey: doc.documentKey,
       })),
     };
   }

@@ -16,7 +16,7 @@ export const updateProductBodySchema = z.object({
     })
     .optional(),
 
-  stockQuantity: z.coerce
+  stockQuantity: z
     .number({
       error: 'Stock quantity must be a number.',
     })

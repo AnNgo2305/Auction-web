@@ -6,6 +6,8 @@ export class ProductImageDto {
   imageUrl!: string;
 
   isPrimary!: boolean;
+
+  imageKey!: string;
 }
 
 export class ProductCategoryDto {
@@ -26,6 +28,8 @@ export class ProductDocumentDto {
   documentName!: string;
 
   documentUrl!: string;
+
+  documentKey!: string;
 }
 
 export class GetProductByIdResponseDto {

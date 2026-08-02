@@ -19,6 +19,8 @@ export class ProductImageData {
   imageUrl!: string;
 
   isPrimary!: boolean;
+
+  imageKey!: string;
 }
 
 export class ProductDocumentData {
@@ -27,6 +29,8 @@ export class ProductDocumentData {
   documentName!: string;
 
   documentUrl!: string;
+
+  documentKey!: string;
 }
 
 export class ProductData {

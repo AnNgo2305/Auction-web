@@ -20,6 +20,7 @@ import { Spinner } from '@/shared/ui/spinner.tsx';
 import { useUpdateProduct } from '@/features/product/hooks/product/useUpdateProduct.ts';
 
 type ProductBasicInformationFormProps = {
+  productId: string;
   form: UseFormReturn<UpdateProductBody>;
   sellerId: string;
   sellerName: string;
@@ -29,6 +30,7 @@ type ProductBasicInformationFormProps = {
 };
 
 export function ProductBasicInformationForm({
+  productId,
   form,
   sellerName,
   sellerId,
@@ -52,7 +54,10 @@ export function ProductBasicInformationForm({
   const updateProductMutation = useUpdateProduct(onExitEditMode);
 
   const onSubmit = (data: UpdateProductBody) => {
-    updateProductMutation.mutate(data);
+    updateProductMutation.mutate({
+      ...data,
+      productId: productId,
+    });
   };
 
   return (

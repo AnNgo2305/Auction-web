@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Loader2, Save, Trash2, X, Star, Plus } from 'lucide-react';
 import { MAX_PRODUCT_IMAGES } from '@/shared/types/product.ts';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDeleteProductImage } from '@/features/product/hooks/product-image/useDeleteProductImage';
 import { useDeleteProductImages } from '@/features/product/hooks/product-image/useDeleteProductImages';
 import { useUpdateProductImages } from '@/features/product/hooks/product-image/useUpdateProductImages';
@@ -15,19 +15,20 @@ import { uploadToS3 } from '@/shared/utils/upload-files-s3.ts';
 type ProductImageEditorProps = {
   productId: string;
   images: ProductImageItem[];
-  isSaving?: boolean;
   onExitEditMode?: () => void;
 };
 
 export function ProductImageEditor({
   productId,
   images,
-  isSaving = false,
   onExitEditMode,
 }: ProductImageEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [localImages, setLocalImages] = useState<ProductImageItem[]>(images);
+  useEffect(() => {
+    setLocalImages(images);
+  }, [images]);
 
   const deleteProductImageMutation = useDeleteProductImage(productId);
   const deleteProductImagesMutation = useDeleteProductImages(productId);
@@ -50,10 +51,11 @@ export function ProductImageEditor({
 
     const uploadingImages: ProductImageItem[] = filesToUpload.map((file) => ({
       id: crypto.randomUUID(),
-      url: '',
+      imageUrl: '',
       originalName: file.name,
       status: 'uploading',
       isPrimary: false,
+      isNew: true,
     }));
 
     setLocalImages((current) => [...current, ...uploadingImages]);
@@ -77,7 +79,7 @@ export function ProductImageEditor({
           return {
             ...image,
             status: 'done',
-            url: uploaded?.url ?? '',
+            imageUrl: uploaded?.url ?? '',
             imageKey: uploaded?.key ?? '',
           };
         }),
@@ -101,42 +103,74 @@ export function ProductImageEditor({
     }
   };
 
-  const handleDeleteImage = (imageId: string) => {
+  const handleDeleteImage = (image: ProductImageItem) => {
+    if (image.isNew) {
+      setLocalImages((current) =>
+        current.filter((item) => item.id !== image.id),
+      );
+      setSelectedIds((current) => current.filter((id) => id !== image.id));
+      return;
+    }
+
     deleteProductImageMutation.mutate(
-      { imageId },
+      { imageId: image.id },
       {
         onSuccess: () => {
           setLocalImages((current) =>
-            current.filter((image) => image.id !== imageId),
+            current.filter((item) => item.id !== image.id),
           );
-
-          setSelectedIds((current) => current.filter((id) => id !== imageId));
+          setSelectedIds((current) => current.filter((id) => id !== image.id));
         },
       },
     );
-  }
+  };
 
   const handleDeleteSelectedImages = () => {
     if (selectedIds.length === 0) return;
-    deleteProductImagesMutation.mutate(
-      { imageIds: selectedIds },
-      {
-        onSuccess: () => {
-          setLocalImages((current) =>
-            current.filter((image) => !selectedIds.includes(image.id)),
-          );
-
-          setSelectedIds([]);
-        },
-      },
+    const selectedImages = localImages.filter((image) =>
+      selectedIds.includes(image.id),
     );
+
+    const existingImageIds = selectedImages
+      .filter((image) => !image.isNew)
+      .map((image) => image.id);
+
+    const newImageIds = selectedImages
+      .filter((image) => image.isNew)
+      .map((image) => image.id);
+
+    if (newImageIds.length > 0) {
+      setLocalImages((current) =>
+        current.filter((image) => !newImageIds.includes(image.id)),
+      );
+      setSelectedIds((current) =>
+        current.filter((id) => !newImageIds.includes(id)),
+      );
+    }
+
+    if (existingImageIds.length > 0) {
+      deleteProductImagesMutation.mutate(
+        { imageIds: existingImageIds },
+        {
+          onSuccess: () => {
+            setLocalImages((current) =>
+              current.filter((image) => !existingImageIds.includes(image.id)),
+            );
+
+            setSelectedIds((current) =>
+              current.filter((id) => !existingImageIds.includes(id)),
+            );
+          },
+        },
+      );
+    }
   };
 
   const handleSave = () => {
     updateProductImagesMutation.mutate(
       {
         images: localImages.map((image) => ({
-          imageKey: image.id,
+          imageKey: image.imageKey!,
           isPrimary: image.isPrimary!,
         })),
       },
@@ -170,19 +204,22 @@ export function ProductImageEditor({
     );
   }
 
-    return (
+  return (
     <div className="bg-background rounded-xl border p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex gap-2">
           <Button
             variant="outline"
-            disabled={isSaving}
+            disabled={updateProductImagesMutation.isPending}
             onClick={handleCancel}
           >
             <X className="mr-2 size-4" />
             Cancel
           </Button>
-          <Button disabled={isSaving} onClick={handleSave}>
+          <Button
+            disabled={updateProductImagesMutation.isPending}
+            onClick={handleSave}
+          >
             <Save className="mr-2 size-4" />
             Save
           </Button>
@@ -197,7 +234,7 @@ export function ProductImageEditor({
                 variant="ghost"
                 size="sm"
                 onClick={handleDeleteSelectedImages}
-                disabled={isSaving}
+                disabled={updateProductImagesMutation.isPending}
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 size-4" />
@@ -225,7 +262,7 @@ export function ProductImageEditor({
                   </div>
                 ) : (
                   <img
-                    src={image.url}
+                    src={image.imageUrl}
                     alt={image.originalName ?? 'Product image'}
                     className="h-full w-full object-cover"
                   />
@@ -256,7 +293,7 @@ export function ProductImageEditor({
                     size="icon"
                     variant="ghost"
                     className="absolute top-2 right-2 size-8 bg-white/90 opacity-0 transition group-hover:opacity-100 hover:bg-white"
-                    onClick={() => handleDeleteImage(image.id)}
+                    onClick={() => handleDeleteImage(image)}
                   >
                     <Trash2 className="text-destructive size-4" />
                   </Button>
@@ -274,7 +311,7 @@ export function ProductImageEditor({
             </div>
           );
         })}
-        {images.length < MAX_PRODUCT_IMAGES && (
+        {localImages.length < MAX_PRODUCT_IMAGES && (
           <>
             <Button
               type="button"
@@ -292,7 +329,7 @@ export function ProductImageEditor({
               accept="image/*"
               type="file"
               onChange={handleUpload}
-              disabled={isSaving}
+              disabled={updateProductImagesMutation.isPending}
             />
           </>
         )}

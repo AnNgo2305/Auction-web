@@ -21,7 +21,7 @@ export interface ProductImageItem {
   id: string;
 
   // Image URL for preview (local blob URL or S3 URL)
-  url: string;
+  imageUrl: string;
 
   // Original file selected from user's device (new images only)
   sourceFile?: File;
@@ -41,6 +41,9 @@ export interface ProductImageItem {
 
   // Primary Image
   isPrimary?: boolean;
+
+  // New Image
+  isNew: boolean;
 }
 
 interface ProductImagesUploaderProps {
@@ -87,7 +90,7 @@ export function ProductImagesUploader({
     const pendingImages: ProductImageItem[] = selectedFiles.map(
       (file, index) => ({
         id: crypto.randomUUID(),
-        url: '',
+        imageUrl: '',
         sourceFile: file,
         originalName: file.name,
         size: file.size,
@@ -236,7 +239,7 @@ export function ProductImagesUploader({
               >
                 <AttachmentMedia variant="image">
                   <img
-                    src={image.url}
+                    src={image.imageUrl}
                     alt={image.originalName ?? 'Product image'}
                     className="object-cover"
                   />

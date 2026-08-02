@@ -17,13 +17,13 @@ import {
 
 type ProductsFilterValues = {
   keyword: string;
-  status?: PublicProductStatus;
-  publicCategory?: PublicCategory;
+  status: PublicProductStatus | undefined;
+  publicCategory: PublicCategory | undefined;
   sortBy: PublicProductSortBy;
   sortOrder: SortOrder;
 };
 
-type ProductsToolbarProps = {
+type ProductsFilterFormProps = {
   filters: ProductsFilterValues;
   onFilterChange: <K extends keyof ProductsFilterValues>(
     key: K,
@@ -33,12 +33,12 @@ type ProductsToolbarProps = {
   onClearFilters: () => void;
 };
 
-export function ProductsToolbar({
+export function ProductsFilterForm({
   filters,
   onFilterChange,
   onApplyFilters,
   onClearFilters,
-}: ProductsToolbarProps) {
+}: ProductsFilterFormProps) {
   return (
     <div className="space-y-4">
       <InputGroup className="bg-background h-11 w-full rounded-lg border shadow-sm">

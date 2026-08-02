@@ -29,6 +29,7 @@ import { Badge } from '@/shared/ui/badge';
 import { settingsPaths } from '@/features/setting/constants/setting.routes.ts';
 import { ROLES } from '@/shared/types/user.ts';
 import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes.ts';
+import { productPaths } from '@/features/product/constants/product.routes';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -73,6 +74,17 @@ export default function AuthHeader() {
               )}
             >
               About
+            </Link>
+            <Link
+              to={productPaths.list()}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                location.pathname.startsWith('/products')
+                  ? 'text-white'
+                  : 'text-white/80 hover:text-white',
+              )}
+            >
+              Products
             </Link>
             {currentUser.role === ROLES.SELLER && (
               <Link

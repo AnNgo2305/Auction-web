@@ -4,6 +4,7 @@ import AboutRoutes from '@/routes/AboutRoute';
 import ProfileRoutes from '@/routes/ProfileRoute';
 import SettingRoutes from '@/routes/SettingRoute';
 import SellerHubRoutes from '@/routes/SellerHubRoute';
+import ProductRoutes from '@/routes/ProductRoute';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/profile/*" element={<ProfileRoutes />} />
         <Route path="/setting/*" element={<SettingRoutes />} />
         <Route path="/sellerhub/*" element={<SellerHubRoutes />} />
+        <Route path="products/*" element={<ProductRoutes />} />
       </Routes>
     </BrowserRouter>
   );
