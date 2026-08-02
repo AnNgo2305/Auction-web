@@ -36,63 +36,72 @@ export function MyProductsPagination({
   return (
     <div className="flex items-center justify-between border-t pt-4">
       <div className="text-muted-foreground text-sm">Page {page}</div>
-      <Select
-        value={String(limit)}
-        onValueChange={(value) => {
-          onLimitChange(Number(value));
-        }}
-      >
-        <SelectTrigger className="w-22.5">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="10">10</SelectItem>
-          <SelectItem value="20">20</SelectItem>
-          <SelectItem value="50">50</SelectItem>
-          <SelectItem value="100">100</SelectItem>
-        </SelectContent>
-      </Select>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={page <= 1}
-          onClick={onPreviousPage}
+      <div className="flex items-center gap-4">
+        <Select
+          key="page-size-select"
+          value={String(limit)}
+          onValueChange={(value) => {
+            onLimitChange(Number(value));
+          }}
         >
-          <ChevronLeft className="size-4" />
-        </Button>
-        {Array.from({ length: displayPageCount }).map((_, index) => {
-          const pageNumber = index + 1;
-          const isNextPage = pageNumber > loadedPageCount;
+          <SelectTrigger className="w-22.5">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
+            <SelectItem value="5">5</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+            <SelectItem value="100">100</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={onPreviousPage}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          {Array.from({ length: displayPageCount }).map((_, index) => {
+            const pageNumber = index + 1;
+            const isNextPage = pageNumber > loadedPageCount;
 
-          return (
-            <Button
-              key={pageNumber}
-              variant={pageNumber === page ? 'default' : 'outline'}
-              size="sm"
-              disabled={isNextPage && isFetchingNextPage}
-              onClick={() => {
-                if (isNextPage) {
-                  onNextPage();
-                  return;
-                }
+            return (
+              <Button
+                key={pageNumber}
+                variant={pageNumber === page ? 'default' : 'outline'}
+                size="sm"
+                disabled={isNextPage && isFetchingNextPage}
+                onClick={() => {
+                  if (isNextPage) {
+                    onNextPage();
+                    return;
+                  }
 
-                onPageChange(pageNumber);
-              }}
-            >
-              {pageNumber}
-            </Button>
-          );
-        })}
+                  onPageChange(pageNumber);
+                }}
+              >
+                {pageNumber}
+              </Button>
+            );
+          })}
 
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!hasNextPage || isFetchingNextPage}
-          onClick={onNextPage}
-        >
-          <ChevronRight className="size-4" />
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!hasNextPage || isFetchingNextPage}
+            onClick={onNextPage}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

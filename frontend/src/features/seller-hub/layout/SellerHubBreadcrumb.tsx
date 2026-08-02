@@ -5,6 +5,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/shared/ui/breadcrumb';
+import { Fragment } from 'react';
 
 function formatRouteName(value: string) {
   return value
@@ -17,18 +18,18 @@ export function SellerHubBreadcrumb() {
 
   const segments = location.pathname.split('/').filter(Boolean);
 
-  const current = segments.at(-1);
+  const breadcrumbs = segments.slice(1);
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>Seller Hub</BreadcrumbItem>
-        {current && (
-          <>
+        {breadcrumbs.map((segment) => (
+          <Fragment key={segment}>
             <BreadcrumbSeparator />
-            <BreadcrumbItem>{formatRouteName(current)}</BreadcrumbItem>
-          </>
-        )}
+            <BreadcrumbItem>{formatRouteName(segment)}</BreadcrumbItem>
+          </Fragment>
+        ))}
       </BreadcrumbList>
     </Breadcrumb>
   );

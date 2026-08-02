@@ -46,17 +46,30 @@ export function MyProductsAppliedFilterTags({
   }
 
   return (
-    <div className="bg-muted/20 flex items-start justify-between gap-4 rounded-lg border p-3">
+    <div className="bg-muted/20 flex items-center justify-between gap-4 rounded-lg border p-3">
       <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-        {keyword && <Badge variant="secondary">Search: {keyword}</Badge>}
+        {keyword && (
+          <Badge
+            variant="secondary"
+            className="bg-blue-100 text-blue-700 hover:bg-blue-100"
+          >
+            Search: {keyword}
+          </Badge>
+        )}
         {status && (
-          <Badge variant="secondary">
+          <Badge
+            variant="secondary"
+            className="bg-green-100 text-green-700 hover:bg-green-100"
+          >
             Status:{' '}
             {productStatusOptions.find((item) => item.value === status)?.label}
           </Badge>
         )}
         {publicCategory && (
-          <Badge variant="secondary">
+          <Badge
+            variant="secondary"
+            className="bg-purple-100 text-purple-700 hover:bg-purple-100"
+          >
             Category:{' '}
             {publicCategory
               .toLowerCase()
@@ -65,16 +78,27 @@ export function MyProductsAppliedFilterTags({
           </Badge>
         )}
         {dateRange?.from && (
-          <Badge variant="secondary">
+          <Badge
+            variant="secondary"
+            className="bg-orange-100 text-orange-700 hover:bg-orange-100"
+          >
             Created: {formatIsoToDate(dateRange.from.toISOString())}
             {dateRange.to &&
               ` - ${formatIsoToDate(dateRange.to.toISOString())}`}
           </Badge>
         )}
         {selectedCategories.length > 0 && (
-          <Badge variant="secondary">
-            Categories: {selectedCategories.length}
-          </Badge>
+          <>
+            {selectedCategories.map((category) => (
+              <Badge
+                key={category.categoryId}
+                variant="secondary"
+                className="bg-pink-100 text-pink-700 hover:bg-pink-100"
+              >
+                Category: {category.name}
+              </Badge>
+            ))}
+          </>
         )}
       </div>
       <Button

@@ -114,7 +114,7 @@ export function MyProductsBulkActions({
     <>
       <div className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
         <div className="text-sm font-semibold text-blue-900">
-          {selectedProductIds.length} product {selectedProductIds.length > 1 ? 's' : ''} selected
+          {selectedProductIds.length} product{selectedProductIds.length > 1 ? 's' : ''} selected
         </div>
         <div className="flex items-center gap-2">
           {areAllRemoved && (

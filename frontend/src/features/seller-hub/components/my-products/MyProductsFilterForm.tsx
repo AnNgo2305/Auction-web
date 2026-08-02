@@ -92,8 +92,8 @@ export function MyProductsFilterForm({
   };
 
   return (
-    <div className="space-y-4">
-      <InputGroup className="bg-background h-11 w-full max-w-xl rounded-lg border shadow-sm">
+    <div className="space-y-4 ">
+      <InputGroup className="bg-background h-11 w-full max-w-10/12 rounded-lg border shadow-sm">
         <InputGroupAddon>
           <Search className="text-muted-foreground size-4" />
         </InputGroupAddon>
@@ -104,9 +104,10 @@ export function MyProductsFilterForm({
           className="placeholder:text-muted-foreground text-sm"
         />
       </InputGroup>
-      <div className="bg-muted/20 flex flex-wrap items-center gap-3 rounded-lg border p-3">
+      <div className="bg-muted/20 flex flex-wrap items-center gap-3 rounded-lg">
         <Select
-          value={filters.status}
+          key="status-select"
+          value={filters.status ?? ''}
           onValueChange={(value) =>
             onFilterChange('status', value as ProductStatus)
           }
@@ -115,7 +116,12 @@ export function MyProductsFilterForm({
             <CircleCheck className="text-muted-foreground size-4" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {productStatusOptions.map((status) => (
               <SelectItem key={status.value} value={status.value}>
                 {status.label}
@@ -124,16 +130,23 @@ export function MyProductsFilterForm({
           </SelectContent>
         </Select>
         <Select
-          value={filters.publicCategory}
+          key="public-category-select"
+          value={filters.publicCategory ?? ''}
           onValueChange={(value) =>
             onFilterChange('publicCategory', value as PublicCategory)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-45">
-            <Tags className="text-muted-foreground absolute left-3 size-4" />
+          <SelectTrigger className="bg-background h-10 w-56 text-black">
+            <Tags className="text-muted-foreground size-4" />
             <SelectValue placeholder="Public Category" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+            className="max-h-60"
+          >
             {Object.values(PUBLIC_CATEGORIES).map((category) => (
               <SelectItem key={category} value={category}>
                 {category
@@ -148,7 +161,7 @@ export function MyProductsFilterForm({
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="bg-background h-10 w-45 justify-start text-left font-normal"
+              className="bg-background h-10 w-72 justify-start text-left font-normal"
             >
               <CalendarDays className="mr-2 size-4" />
               {filters.dateRange?.from ? (
@@ -187,7 +200,7 @@ export function MyProductsFilterForm({
               variant="outline"
               className="bg-background h-10 w-45 justify-start"
             >
-              <FolderTree className="mr-2 size-4" />
+              <FolderTree className="mr-2 size-4 font-light" />
               {filters.selectedCategoryIds.length > 0
                 ? `${filters.selectedCategoryIds.length} categories`
                 : 'Category'}
@@ -242,7 +255,7 @@ export function MyProductsFilterForm({
             onFilterChange('sortBy', value as ProductSortBy)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-40">
+          <SelectTrigger className="bg-background h-10 w-44">
             <ArrowUpDown className="text-muted-foreground size-4" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
@@ -260,7 +273,7 @@ export function MyProductsFilterForm({
             onFilterChange('sortOrder', value as SortOrder)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-35">
+          <SelectTrigger className="bg-background h-10 w-44">
             <ArrowDownUp className="text-muted-foreground size-4" />
             <SelectValue placeholder="Order" />
           </SelectTrigger>

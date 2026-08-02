@@ -1,59 +1,15 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/ui/card';
-import {
-  Field,
-  FieldLabel,
-  FieldGroup,
-  FieldDescription,
-  FieldError,
-} from '@/shared/ui/field';
-import {
-  InputGroup,
-  InputGroupInput,
-  InputGroupAddon,
-} from '@/shared/ui/input-group';
-import {
-  Select,
-  SelectItem,
-  SelectContent,
-  SelectValue,
-  SelectTrigger,
-} from '@/shared/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/shared/ui/popover.tsx';
-import {
-  Command,
-  CommandInput,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from '@/shared/ui/command.tsx';
-import {
-  type ProductImageItem,
-  ProductImagesUploader,
-} from '@/features/seller-hub/components/create-product/ProductImageUploader';
-import {
-  type ProductDocumentItem,
-  ProductDocumentsUploader,
-} from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Field, FieldLabel, FieldGroup, FieldDescription, FieldError } from '@/shared/ui/field';
+import { InputGroup, InputGroupInput, InputGroupAddon } from '@/shared/ui/input-group';
+import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from '@/shared/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover.tsx';
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/shared/ui/command.tsx';
+import { Badge } from '@/shared/ui/badge'
+import { type ProductImageItem, ProductImagesUploader } from '@/features/seller-hub/components/create-product/ProductImageUploader';
+import { type ProductDocumentItem, ProductDocumentsUploader } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
 import { Checkbox } from '@/shared/ui/checkbox.tsx';
 import { Spinner } from '@/shared/ui/spinner.tsx';
-import {
-  Badge,
-  Boxes,
-  FileText,
-  LayoutGrid,
-  Package2,
-  Tags,
-} from 'lucide-react';
+import { Boxes, LayoutGrid, Package2, Tags } from 'lucide-react';
 import { Textarea } from '@/shared/ui/textarea';
 import { Controller } from 'react-hook-form';
 import { PRODUCT_STATUSES, PUBLIC_CATEGORIES } from '@/shared/types/product';
@@ -133,8 +89,9 @@ export function CreateProductForm() {
           Create Product
         </CardTitle>
         <CardDescription className="mx-auto max-w-2xl text-sm leading-relaxed">
-          Add a new product by providing its basic information, category,
-          inventory, images, and supporting documents.
+          Add a new product by providing its basic information, selecting the
+          appropriate category, setting inventory and pricing details, uploading
+          product images, and attaching any supporting documents.
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-8">
@@ -174,18 +131,13 @@ export function CreateProductForm() {
               >
                 Description
               </FieldLabel>
-              <InputGroup>
-                <InputGroupAddon className="items-start pt-3">
-                  <FileText className="h-4 w-4" />
-                </InputGroupAddon>
-                <Textarea
-                  id="description"
-                  rows={5}
-                  placeholder="Describe your product, including its features, specifications, and key benefits..."
-                  className="min-h-32 resize-y"
-                  {...register('description')}
-                />
-              </InputGroup>
+              <Textarea
+                id="description"
+                rows={5}
+                placeholder="Describe your product, including its features, specifications, and key benefits..."
+                className="min-h-32 resize-y"
+                {...register('description')}
+              />
               <FieldDescription className="text-muted-foreground text-xs">
                 Provide a clear and concise description to help customers
                 understand the product.
@@ -240,7 +192,7 @@ export function CreateProductForm() {
                 control={control}
                 name="publicCategory"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value ?? ''} onValueChange={field.onChange} key="product-category-select">
                     <InputGroup>
                       <InputGroupAddon>
                         <LayoutGrid className="h-4 w-4" />
@@ -249,7 +201,13 @@ export function CreateProductForm() {
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </InputGroup>
-                    <SelectContent>
+                    <SelectContent
+                      position="popper"
+                      side="bottom"
+                      sideOffset={4}
+                      avoidCollisions={false}
+                      className="max-h-60"
+                    >
                       {Object.values(PUBLIC_CATEGORIES).map((category) => (
                         <SelectItem key={category} value={category}>
                           {category
@@ -307,7 +265,7 @@ export function CreateProductForm() {
                                   }}
                                   className="border-0 text-white"
                                 >
-                                  {category.name}
+                                  {category.name || 'NO NAME'}
                                 </Badge>
                               ))}
                             </div>
@@ -374,7 +332,7 @@ export function CreateProductForm() {
                 <FieldError>{errors.categoryIds.message}</FieldError>
               )}
             </Field>
-            <Field>
+            <Field className="md:col-span-2">
               <FieldLabel className="text-sm font-semibold tracking-wide">
                 Product Images
               </FieldLabel>
@@ -406,7 +364,7 @@ export function CreateProductForm() {
                 <FieldError>{errors.images.message}</FieldError>
               )}
             </Field>
-            <Field>
+            <Field className="md:col-span-2">
               <FieldLabel className="text-sm font-semibold tracking-wide">
                 Product Documents
               </FieldLabel>

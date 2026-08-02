@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/ui/table';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDeleteProductCategory } from '@/features/seller-hub/hooks/product-category/useDeleteProductCategory';
 import { useDeleteProductCategories } from '@/features/seller-hub/hooks/product-category/useDeleteProductCategories';
 
@@ -45,6 +45,14 @@ export function MyProductCategoriesTable({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const deleteCategoryMutation = useDeleteProductCategory();
   const deleteCategoriesMutation = useDeleteProductCategories();
+
+  useEffect(() => {
+    setSelectedIds((current) =>
+      current.filter((id) =>
+        categories.some((category) => category.categoryId === id),
+      ),
+    );
+  }, [categories]);
 
   const isAllSelected =
     categories.length > 0 && selectedIds.length === categories.length;

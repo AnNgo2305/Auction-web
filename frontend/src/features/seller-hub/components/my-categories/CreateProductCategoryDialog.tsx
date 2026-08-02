@@ -42,6 +42,7 @@ export function CreateProductCategoryDialog({
   });
 
   const createCategoryMutation = useCreateProductCategory(() => {
+    reset();
     onOpenChange(false);
   });
 

@@ -6,7 +6,7 @@ interface PageBannerProps {
 
 export default function PageBanner({ title }: PageBannerProps) {
   return (
-    <section className="relative h-64 overflow-hidden md:h-80 lg:h-96">
+    <section className="relative mt-16 h-64 overflow-hidden md:h-80 lg:h-96">
       <img
         src={authBannerImage}
         alt={title}

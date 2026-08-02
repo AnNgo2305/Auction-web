@@ -125,7 +125,7 @@ export function ProductImagesUploader({
         return {
           ...image,
           imageKey: uploaded.key,
-          url: uploaded.url || '',
+          imageUrl: uploaded.url || '',
           sourceFile: undefined,
           status: 'done' as const,
         };
@@ -160,10 +160,6 @@ export function ProductImagesUploader({
   };
 
   const handleRemoveImage = (imageId: string) => {
-    if (productImages.length <= 1) {
-      return;
-    }
-
     const removedImage = productImages.find((image) => image.id === imageId);
 
     onProductImagesChange((prev) => {
@@ -220,75 +216,72 @@ export function ProductImagesUploader({
       </div>
 
       {/* Attachment List */}
-      {productImages.length > 0 && (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold">Uploaded images</h3>
-            <p className="text-muted-foreground text-sm">
-              {productImages.length} / {max} images uploaded
-            </p>
-          </div>
-
-          <AttachmentGroup>
-            {productImages.map((image) => (
-              <Attachment
-                key={image.id}
-                orientation="vertical"
-                size="sm"
-                state={image.status}
-              >
-                <AttachmentMedia variant="image">
-                  <img
-                    src={image.imageUrl}
-                    alt={image.originalName ?? 'Product image'}
-                    className="object-cover"
-                  />
-                </AttachmentMedia>
-                <AttachmentContent>
-                  <AttachmentTitle>
-                    {image.originalName ?? 'Product image'}
-                    {image.isPrimary && (
-                      <span className="ml-2 text-xs text-yellow-600">
-                        Primary
-                      </span>
-                    )}
-                  </AttachmentTitle>
-                  <AttachmentDescription>
-                    {image.status === 'uploading' && 'Uploading...'}
-                    {image.status === 'done' &&
-                      image.size &&
-                      formatFileSize(image.size)}
-                    {image.status === 'error' &&
-                      (image.errorMessage ?? 'Upload failed')}
-                  </AttachmentDescription>
-                </AttachmentContent>
-                <AttachmentActions>
-                  <AttachmentAction
-                    aria-label="Set primary image"
-                    disabled={image.status !== 'done'}
-                    onClick={() => handleSetPrimaryImage(image.id)}
-                  >
-                    <Star
-                      className={
-                        image.isPrimary ? 'fill-yellow-400 text-yellow-400' : ''
-                      }
-                    />
-                  </AttachmentAction>
-                  <AttachmentAction
-                    disabled={
-                      image.status === 'uploading' || productImages.length <= 1
-                    }
-                    aria-label={`Remove ${image.originalName}`}
-                    onClick={() => handleRemoveImage(image.id)}
-                  >
-                    <X />
-                  </AttachmentAction>
-                </AttachmentActions>
-              </Attachment>
-            ))}
-          </AttachmentGroup>
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold">Uploaded images</h3>
+          <p className="text-muted-foreground text-sm">
+            {productImages.length} / {max} images uploaded
+          </p>
         </div>
-      )}
+
+        <AttachmentGroup className="grid grid-cols-5 gap-2">
+          {productImages.map((image) => (
+            <Attachment
+              key={image.id}
+              orientation="vertical"
+              size="default"
+              state={image.status}
+            >
+              <AttachmentMedia variant="image">
+                <img
+                  src={image.imageUrl}
+                  alt={image.originalName ?? 'Product image'}
+                  className="object-cover"
+                />
+              </AttachmentMedia>
+              <AttachmentContent>
+                <AttachmentTitle>
+                  {image.originalName ?? 'Product image'}
+                  {image.isPrimary && (
+                    <span className="ml-1 text-xs text-yellow-600">
+                      Primary
+                    </span>
+                  )}
+                </AttachmentTitle>
+                <AttachmentDescription>
+                  {image.status === 'uploading' && 'Uploading...'}
+                  {image.status === 'done' &&
+                    image.size &&
+                    formatFileSize(image.size)}
+                  {image.status === 'error' &&
+                    (image.errorMessage ?? 'Upload failed')}
+                </AttachmentDescription>
+              </AttachmentContent>
+              <AttachmentActions className="top-1 right-1 gap-1">
+                <AttachmentAction
+                  type="button"
+                  aria-label="Set primary image"
+                  disabled={image.status !== 'done'}
+                  onClick={() => handleSetPrimaryImage(image.id)}
+                >
+                  <Star
+                    className={
+                      image.isPrimary ? 'fill-yellow-400 text-yellow-400' : ''
+                    }
+                  />
+                </AttachmentAction>
+                <AttachmentAction
+                  disabled={image.status === 'uploading'}
+                  aria-label={`Remove ${image.originalName}`}
+                  onClick={() => handleRemoveImage(image.id)}
+                >
+                  <X />
+                </AttachmentAction>
+              </AttachmentActions>
+            </Attachment>
+          ))}
+        </AttachmentGroup>
+      </div>
     </div>
   );
 }

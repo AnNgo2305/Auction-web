@@ -44,7 +44,7 @@ export const UPLOAD_RULES: Record<
   },
 
   productImage: {
-    maxSize: 10 * 1024 * 1024,
+    maxSize: 20 * 1024 * 1024,
     allowedMime: [
       IMAGE_MIME_TYPE.JPEG,
       IMAGE_MIME_TYPE.JPG,

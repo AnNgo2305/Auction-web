@@ -67,12 +67,12 @@ export function MyProductsTableRow({
       <TableCell>
         <AspectRatio
           ratio={1}
-          className="bg-muted w-12 overflow-hidden rounded-md"
+          className="bg-transparent flex items-center justify-center overflow-hidden rounded-md"
         >
           <img
             src={thumbnail ?? defaultProductImage}
             alt={name}
-            className="size-full object-cover"
+            className="max-h-full max-w-full object-contain"
           />
         </AspectRatio>
       </TableCell>
@@ -105,7 +105,7 @@ export function MyProductsTableRow({
           {categories.slice(0, 2).map((category) => (
             <span
               key={category.categoryId}
-              className="bg-muted rounded-md px-2 py-1 text-xs"
+              className="bg-muted rounded-md px-2 text-xs"
             >
               {category.name}
             </span>

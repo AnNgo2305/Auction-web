@@ -1,4 +1,4 @@
-import { Menu, Package, Store, Tags, X } from 'lucide-react';
+import { Menu, Package, Tags, X } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes';
 import { cn } from '@/shared/lib/utils';
@@ -37,7 +37,6 @@ export function SellerHubLayoutContent() {
           )}
 
           <div className="flex items-center gap-3 overflow-hidden">
-            <Store className="size-5 shrink-0" />
             <span
               className={cn(
                 'truncate text-base font-semibold transition-all duration-200',
@@ -71,14 +70,16 @@ export function SellerHubLayoutContent() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="fixed top-16 left-0 z-50 ml-1 flex h-16 items-center">
+        <header className="fixed top-14 left-0 z-50 flex h-16 items-center px-1.5">
           <Button variant="ghost" size="icon-lg" onClick={toggleSidebar}>
             <Menu className="size-6" />
           </Button>
         </header>
         <main className="p-6">
           <SellerHubBreadcrumb />
-          <Outlet />
+          <div className="mt-6">
+            <Outlet />
+          </div>
         </main>
       </SidebarInset>
     </>

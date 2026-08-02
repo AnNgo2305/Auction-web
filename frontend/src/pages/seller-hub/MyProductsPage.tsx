@@ -18,6 +18,10 @@ import { useUpdateProductsStatus } from '@/features/seller-hub/hooks/product/use
 import { useDeleteProducts } from '@/features/seller-hub/hooks/product/useDeleteProducts';
 import { useDeleteProduct } from '@/features/seller-hub/hooks/product/useDeleteProduct';
 import { useUpdateProductStatus } from '@/features/seller-hub/hooks/product/useUpdateProductStatus';
+import { Button } from '@/shared/ui/button';
+import { Link } from 'react-router-dom';
+import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes.ts';
+import { Plus } from 'lucide-react';
 
 type ProductFilters = {
   keyword: string;
@@ -160,9 +164,17 @@ export function MyProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Products</h1>
-        <p className="text-muted-foreground text-sm">Manage your products.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Products</h1>
+          <p className="text-muted-foreground text-sm">Manage your products.</p>
+        </div>
+        <Button asChild>
+          <Link to={sellerHubPaths.createProduct()}>
+            <Plus className="mr-2 size-4" />
+            Create Product
+          </Link>
+        </Button>
       </div>
       <MyProductsFilterForm
         filters={filters}
@@ -176,11 +188,11 @@ export function MyProductsPage() {
         onClearFilters={handleClearFilters}
       />
       <MyProductsAppliedFilterTags
-        keyword={appliedFilters.keyword}
-        status={appliedFilters.status}
-        publicCategory={appliedFilters.publicCategory}
-        dateRange={appliedFilters.dateRange}
-        selectedCategoryIds={appliedFilters.selectedCategoryIds}
+        keyword={filters.keyword}
+        status={filters.status}
+        publicCategory={filters.publicCategory}
+        dateRange={filters.dateRange}
+        selectedCategoryIds={filters.selectedCategoryIds}
         categories={categories}
         onClearFilters={handleClearFilters}
       />

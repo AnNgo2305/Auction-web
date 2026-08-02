@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -62,7 +63,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Post(':id/publish')
+  @Patch(':id/publish')
   @HttpCode(HttpStatus.OK)
   async publishProduct(
     @Req() req: Request,
@@ -78,7 +79,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Post(':id/remove')
+  @Patch(':id/remove')
   @HttpCode(HttpStatus.OK)
   async removeProduct(
     @Req() req: Request,
@@ -94,7 +95,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Post(':id/restore')
+  @Patch(':id/restore')
   @HttpCode(HttpStatus.OK)
   async restoreProduct(
     @Req() req: Request,
@@ -110,7 +111,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Post('publish')
+  @Patch('publish')
   @HttpCode(HttpStatus.OK)
   async publishProducts(
     @Req() req: Request,
@@ -126,7 +127,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Post('remove')
+  @Patch('remove')
   @HttpCode(HttpStatus.OK)
   async removeProducts(
     @Req() req: Request,
@@ -142,7 +143,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Post('restore')
+  @Patch('restore')
   @HttpCode(HttpStatus.OK)
   async restoreProducts(
     @Req() req: Request,
@@ -208,23 +209,7 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  async deleteProduct(
-    @Req() req: Request,
-    @Param('id') productId: string,
-  ): Promise<ResponsePayload> {
-    await this.productService.deleteProductById(req.user!.userId, productId);
-
-    return {
-      message: 'Product deleted successfully',
-      data: {},
-    };
-  }
-
-  @Auth(AuthType.ACCESS_TOKEN)
-  @Roles(Role.SELLER)
-  @Delete(':ids')
+  @Delete('bulk/:ids')
   @HttpCode(HttpStatus.OK)
   async deleteMultipleProducts(
     @Req() req: Request,
@@ -237,6 +222,22 @@ export class ProductController {
 
     return {
       message: 'Products deleted successfully',
+      data: {},
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async deleteProduct(
+    @Req() req: Request,
+    @Param('id') productId: string,
+  ): Promise<ResponsePayload> {
+    await this.productService.deleteProductById(req.user!.userId, productId);
+
+    return {
+      message: 'Product deleted successfully',
       data: {},
     };
   }

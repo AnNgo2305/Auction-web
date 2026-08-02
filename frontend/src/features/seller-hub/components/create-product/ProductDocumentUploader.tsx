@@ -177,7 +177,7 @@ export function ProductDocumentsUploader({
         <h3 className="text-base font-semibold">Upload documents</h3>
 
         <p className="text-muted-foreground mt-2 text-sm">
-          Upload your product related documents
+          Upload your product related documents from your device
         </p>
 
         <Button
@@ -205,60 +205,58 @@ export function ProductDocumentsUploader({
         </p>
       </div>
 
-      {/* Document list */}
-      {documents.length > 0 && (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold">Uploaded documents</h3>
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold">Uploaded documents</h3>
 
-            <p className="text-muted-foreground text-sm">
-              {documents.length} / {max} documents uploaded
-            </p>
-          </div>
-
-          <AttachmentGroup>
-            {documents.map((document) => (
-              <Attachment
-                key={document.id}
-                orientation="vertical"
-                size="sm"
-                state={document.status}
-              >
-                <AttachmentMedia>
-                  <FileText className="h-8 w-8" />
-                </AttachmentMedia>
-
-                <AttachmentContent>
-                  <AttachmentTitle>
-                    {document.originalName ?? 'Document'}
-                  </AttachmentTitle>
-
-                  <AttachmentDescription>
-                    {document.status === 'uploading' && 'Uploading...'}
-
-                    {document.status === 'done' &&
-                      document.size &&
-                      formatFileSize(document.size)}
-
-                    {document.status === 'error' &&
-                      (document.errorMessage ?? 'Upload failed')}
-                  </AttachmentDescription>
-                </AttachmentContent>
-
-                <AttachmentActions>
-                  <AttachmentAction
-                    disabled={document.status === 'uploading'}
-                    aria-label={`Remove ${document.originalName ?? 'document'}`}
-                    onClick={() => handleRemoveDocument(document.id)}
-                  >
-                    <X />
-                  </AttachmentAction>
-                </AttachmentActions>
-              </Attachment>
-            ))}
-          </AttachmentGroup>
+          <p className="text-muted-foreground text-sm">
+            {documents.length} / {max} documents uploaded
+          </p>
         </div>
-      )}
+
+        <AttachmentGroup className="flex w-full flex-col gap-2">
+          {documents.map((document) => (
+            <Attachment
+              key={document.id}
+              className="w-full"
+              orientation="horizontal"
+              size="sm"
+              state={document.status}
+            >
+              <AttachmentMedia>
+                <FileText className="h-8 w-8" />
+              </AttachmentMedia>
+
+              <AttachmentContent>
+                <AttachmentTitle>
+                  {document.originalName ?? 'Document'}
+                </AttachmentTitle>
+
+                <AttachmentDescription>
+                  {document.status === 'uploading' && 'Uploading...'}
+
+                  {document.status === 'done' &&
+                    document.size &&
+                    formatFileSize(document.size)}
+
+                  {document.status === 'error' &&
+                    (document.errorMessage ?? 'Upload failed')}
+                </AttachmentDescription>
+              </AttachmentContent>
+
+              <AttachmentActions>
+                <AttachmentAction
+                  disabled={document.status === 'uploading'}
+                  aria-label={`Remove ${document.originalName ?? 'document'}`}
+                  onClick={() => handleRemoveDocument(document.id)}
+                >
+                  <X />
+                </AttachmentAction>
+              </AttachmentActions>
+            </Attachment>
+          ))}
+        </AttachmentGroup>
+      </div>
     </div>
   );
 }

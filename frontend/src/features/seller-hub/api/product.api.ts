@@ -43,7 +43,7 @@ export const productApi = {
     productIds: string[],
   ): Promise<DeleteProductResponse> => {
     const res = await api.delete<DeleteProductResponse>(
-      `${PRODUCT_API_PREFIX}/${productIds.join(',')}`,
+      `${PRODUCT_API_PREFIX}/bulk/${productIds.join(',')}`,
     );
 
     return res.data;

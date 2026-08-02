@@ -22,6 +22,8 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { productPaths } from '@/features/product/constants/product.routes.ts';
 
 const ACTION_CONTENT: Record<
   ProductAction,
@@ -81,6 +83,7 @@ export function MyProductsDataTable({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   // Tracks whether selection mode was enabled by clicking "Select All".
   const [isSelectAll, setIsSelectAll] = useState(false);
+  const navigate = useNavigate();
 
   // Checkbox is checked when:
   // - User explicitly clicked "Select All", OR
@@ -132,7 +135,14 @@ export function MyProductsDataTable({
     // Sync selection when product list changes (e.g. loading next page).
     // When "select all" is active, automatically select newly loaded products.
     if (isSelectAll) {
-      onSelectionProductChange(productIds);
+      const same =
+        productIds.length === selectedProductIds.length &&
+        productIds.every((id, i) => id === selectedProductIds[i]);
+
+      if (!same) {
+        onSelectionProductChange(productIds);
+      }
+
       return;
     }
 
@@ -184,7 +194,7 @@ export function MyProductsDataTable({
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
-              <TableHead />
+              <TableHead>Thumbnail</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Category</TableHead>
@@ -193,7 +203,7 @@ export function MyProductsDataTable({
               <TableHead>Created</TableHead>
               <TableHead>Updated</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -221,6 +231,9 @@ export function MyProductsDataTable({
                     updatedAt={product.updatedAt}
                     checked={selectedProductIds.includes(product.productId)}
                     onCheckedChange={handleSelectRow}
+                    onViewDetail={() => {
+                      navigate(productPaths.detail(product.productId));
+                    }}
                     onDelete={(productId) => {
                       setPendingAction({ productId, action: 'delete' });
                     }}

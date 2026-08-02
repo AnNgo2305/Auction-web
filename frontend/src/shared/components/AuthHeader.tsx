@@ -79,7 +79,7 @@ export default function AuthHeader() {
               to={productPaths.list()}
               className={cn(
                 'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                location.pathname.startsWith('/products')
+                location.pathname.startsWith(productPaths.list())
                   ? 'text-white'
                   : 'text-white/80 hover:text-white',
               )}

@@ -251,6 +251,9 @@ export class ProductService {
     productIds: string[],
   ): Promise<void> {
     if (productIds.length === 0) return;
+    this.logger.log(
+      `deleteMultipleProducts - productIds: ${JSON.stringify(productIds)}`,
+    );
 
     const existingProducts = await this.prisma.product.findMany({
       where: {
