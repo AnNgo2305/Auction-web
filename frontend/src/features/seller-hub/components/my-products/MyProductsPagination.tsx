@@ -96,7 +96,9 @@ export function MyProductsPagination({
           <Button
             variant="outline"
             size="sm"
-            disabled={!hasNextPage || isFetchingNextPage}
+            disabled={
+              isFetchingNextPage || (!hasNextPage && page >= loadedPageCount)
+            }
             onClick={onNextPage}
           >
             <ChevronRight className="size-4" />

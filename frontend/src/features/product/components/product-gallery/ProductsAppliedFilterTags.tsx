@@ -44,9 +44,13 @@ export function ProductsAppliedFilterTags({
   return (
     <div className="bg-muted/20 flex items-start justify-between gap-4 rounded-lg border p-3">
       <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-        {keyword && <Badge variant="secondary">Search: {keyword}</Badge>}
+        {keyword && (
+          <Badge className="border-blue-200 bg-blue-50 text-blue-700">
+            Search: {keyword}
+          </Badge>
+        )}
         {status && (
-          <Badge variant="secondary">
+          <Badge className="border-green-200 bg-green-50 text-green-700">
             Status:{' '}
             {
               publicProductStatusOptions.find((item) => item.value === status)
@@ -55,7 +59,7 @@ export function ProductsAppliedFilterTags({
           </Badge>
         )}
         {publicCategory && (
-          <Badge variant="secondary">
+          <Badge className="border-violet-200 bg-violet-50 text-violet-700">
             Category:{' '}
             {publicCategory
               .toLowerCase()
@@ -64,7 +68,7 @@ export function ProductsAppliedFilterTags({
           </Badge>
         )}
         {sortBy !== 'createdAt' && (
-          <Badge variant="secondary">
+          <Badge className="border-orange-200 bg-orange-50 text-orange-700">
             Sort:{' '}
             {
               publicProductSortFieldOptions.find(
@@ -74,7 +78,7 @@ export function ProductsAppliedFilterTags({
           </Badge>
         )}
         {sortOrder !== 'desc' && (
-          <Badge variant="secondary">
+          <Badge className="border-slate-200 bg-slate-100 text-slate-700">
             Order:{' '}
             {
               publicProductSortOrderOptions.find(

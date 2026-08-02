@@ -92,7 +92,7 @@ export function MyProductsFilterForm({
   };
 
   return (
-    <div className="space-y-4 ">
+    <div className="space-y-4">
       <InputGroup className="bg-background h-11 w-full max-w-10/12 rounded-lg border shadow-sm">
         <InputGroupAddon>
           <Search className="text-muted-foreground size-4" />
@@ -259,7 +259,12 @@ export function MyProductsFilterForm({
             <ArrowUpDown className="text-muted-foreground size-4" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {productSortFieldOptions.map((field) => (
               <SelectItem key={field.value} value={field.value}>
                 {field.label}
@@ -277,7 +282,12 @@ export function MyProductsFilterForm({
             <ArrowDownUp className="text-muted-foreground size-4" />
             <SelectValue placeholder="Order" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {productSortOrderOptions.map((order) => (
               <SelectItem key={order.value} value={order.value}>
                 {order.label}

@@ -52,18 +52,23 @@ export function ProductsFilterForm({
           onChange={(e) => onFilterChange('keyword', e.target.value)}
         />
       </InputGroup>
-      <div className="bg-muted/20 flex flex-wrap items-center gap-3 rounded-lg border p-3">
+      <div className="bg-muted/20 flex flex-wrap items-center gap-8 rounded-lg">
         <Select
-          value={filters.publicCategory}
+          value={filters.publicCategory ?? ''}
           onValueChange={(value) =>
             onFilterChange('publicCategory', value as PublicCategory)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-48">
+          <SelectTrigger className="bg-background h-10 w-60">
             <Tags className="text-muted-foreground size-4" />
             <SelectValue placeholder="Category" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {Object.values(PUBLIC_CATEGORIES).map((category) => (
               <SelectItem key={category} value={category}>
                 {category
@@ -75,16 +80,21 @@ export function ProductsFilterForm({
           </SelectContent>
         </Select>
         <Select
-          value={filters.status}
+          value={filters.status ?? ''}
           onValueChange={(value) =>
             onFilterChange('status', value as PublicProductStatus)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-40">
+          <SelectTrigger className="bg-background h-10 w-60">
             <CircleCheck className="text-muted-foreground size-4" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {publicProductStatusOptions.map((status) => (
               <SelectItem key={status.value} value={status.value}>
                 {status.label}
@@ -98,11 +108,16 @@ export function ProductsFilterForm({
             onFilterChange('sortBy', value as PublicProductSortBy)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-40">
+          <SelectTrigger className="bg-background h-10 w-60">
             <ArrowUpDown className="text-muted-foreground size-4" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {publicProductSortFieldOptions.map((field) => (
               <SelectItem key={field.value} value={field.value}>
                 {field.label}
@@ -120,7 +135,12 @@ export function ProductsFilterForm({
             <ArrowDownUp className="text-muted-foreground size-4" />
             <SelectValue placeholder="Order" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
             {publicProductSortOrderOptions.map((order) => (
               <SelectItem key={order.value} value={order.value}>
                 {order.label}

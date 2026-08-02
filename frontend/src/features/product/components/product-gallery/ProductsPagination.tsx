@@ -49,11 +49,17 @@ export function ProductsPagination({
             <SelectValue />
           </SelectTrigger>
 
-          <SelectContent>
-            <SelectItem value="10">10 / page</SelectItem>
-            <SelectItem value="20">20 / page</SelectItem>
-            <SelectItem value="50">50 / page</SelectItem>
-            <SelectItem value="100">100 / page</SelectItem>
+          <SelectContent
+            position="popper"
+            side="bottom"
+            sideOffset={4}
+            avoidCollisions={false}
+          >
+            <SelectItem value="5">5</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+            <SelectItem value="100">100</SelectItem>
           </SelectContent>
         </Select>
 
@@ -93,7 +99,9 @@ export function ProductsPagination({
           <Button
             variant="outline"
             size="icon"
-            disabled={!hasNextPage || isFetchingNextPage}
+            disabled={
+              isFetchingNextPage || (!hasNextPage && page >= loadedPageCount)
+            }
             onClick={onNextPage}
           >
             <ChevronRight className="size-4" />

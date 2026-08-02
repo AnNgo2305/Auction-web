@@ -70,61 +70,63 @@ export function ProductsPage() {
   };
 
   return (
-    <div className="container space-y-6 py-6">
-      <ProductsFilterForm
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onApplyFilters={handleApplyFilters}
-        onClearFilters={handleClearFilters}
-      />
+    <div className="py-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col space-y-6 px-4">
+        <ProductsFilterForm
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
+        />
 
-      <ProductsAppliedFilterTags
-        {...appliedFilters}
-        onClearFilters={handleClearFilters}
-      />
+        <ProductsAppliedFilterTags
+          {...filters}
+          onClearFilters={handleClearFilters}
+        />
 
-      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {products.map((product) => (
-          <ProductCard
-            key={product.productId}
-            productId={product.productId}
-            sellerId={product.sellerId}
-            sellerName={product.sellerName}
-            name={product.name}
-            publicCategory={product.publicCategory}
-            thumbnail={product.thumbnail}
-            categories={product.categories}
-            createdAt={product.createdAt}
-            onViewDetails={(id) => navigate(productPaths.detail(id))}
-            onViewSeller={(id) => navigate(profilePaths.overview(id))}
-          />
-        ))}
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {products.map((product) => (
+            <ProductCard
+              key={product.productId}
+              productId={product.productId}
+              sellerId={product.sellerId}
+              sellerName={product.sellerName}
+              name={product.name}
+              publicCategory={product.publicCategory}
+              thumbnail={product.thumbnail}
+              categories={product.categories}
+              createdAt={product.createdAt}
+              onViewDetails={(id) => navigate(productPaths.detail(id))}
+              onViewSeller={(id) => navigate(profilePaths.overview(id))}
+            />
+          ))}
+        </div>
+
+        <ProductsPagination
+          page={page}
+          loadedPageCount={pages.length}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          limit={limit}
+          onPageChange={setPage}
+          onPreviousPage={() => setPage((prev) => prev - 1)}
+          onNextPage={async () => {
+            if (page < pages.length) {
+              setPage((prev) => prev + 1);
+              return;
+            }
+
+            if (hasNextPage) {
+              await fetchNextPage();
+              setPage((prev) => prev + 1);
+            }
+          }}
+          onLimitChange={(value) => {
+            setLimit(value);
+            setPage(1);
+          }}
+        />
       </div>
-
-      <ProductsPagination
-        page={page}
-        loadedPageCount={pages.length}
-        hasNextPage={hasNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        limit={limit}
-        onPageChange={setPage}
-        onPreviousPage={() => setPage((prev) => prev - 1)}
-        onNextPage={async () => {
-          if (page < pages.length) {
-            setPage((prev) => prev + 1);
-            return;
-          }
-
-          if (hasNextPage) {
-            await fetchNextPage();
-            setPage((prev) => prev + 1);
-          }
-        }}
-        onLimitChange={(value) => {
-          setLimit(value);
-          setPage(1);
-        }}
-      />
     </div>
   );
 }
