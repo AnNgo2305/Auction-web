@@ -5,16 +5,20 @@ import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover.tsx';
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/shared/ui/command.tsx';
 import { Badge } from '@/shared/ui/badge'
-import { type ProductImageItem, ProductImagesUploader } from '@/features/seller-hub/components/create-product/ProductImageUploader';
-import { type ProductDocumentItem, ProductDocumentsUploader } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
+import { ProductImagesUploader } from '@/features/seller-hub/components/create-product/ProductImageUploader';
+import { ProductDocumentsUploader } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
 import { Checkbox } from '@/shared/ui/checkbox.tsx';
 import { Spinner } from '@/shared/ui/spinner.tsx';
 import { Boxes, LayoutGrid, Package2, Tags } from 'lucide-react';
 import { Textarea } from '@/shared/ui/textarea';
 import { Controller } from 'react-hook-form';
-import { PRODUCT_STATUSES, PUBLIC_CATEGORIES } from '@/shared/types/product';
+import {
+  PRODUCT_STATUSES,
+  PUBLIC_CATEGORIES,
+  type PublicCategory,
+} from '@/shared/types/product';
 import { Button } from '@/shared/ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-category/useGetMyproductCategory.ts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,27 +27,24 @@ import {
   type CreateProductBody,
 } from '@/features/seller-hub/schemas/product/create-product.schema';
 import { useCreateProduct } from '@/features/seller-hub/hooks/product/useCreateProduct';
+import { useProductStore } from '@/shared/stores/product.store.ts';
 
 export function CreateProductForm() {
   const [openCategory, setOpenCategory] = useState(false);
-  const [productImages, setProductImages] = useState<ProductImageItem[]>([]);
-  const [productDocuments, setProductDocuments] = useState<
-    ProductDocumentItem[]
-  >([]);
+
+  const {
+    product,
+    updateBasicInformation,
+    setCategories,
+    updateImages,
+    updateDocuments,
+    resetProduct,
+  } = useProductStore();
 
   const form = useForm<CreateProductBody>({
     resolver: zodResolver(createProductSchema),
     mode: 'onChange',
-    defaultValues: {
-      name: '',
-      description: '',
-      stockQuantity: 0,
-      publicCategory: undefined,
-      categoryIds: [],
-      status: PRODUCT_STATUSES.READY,
-      images: [],
-      documents: [],
-    },
+    defaultValues: product,
   });
 
   const {
@@ -67,9 +68,34 @@ export function CreateProductForm() {
       documents: [],
     });
 
-    setProductImages([]);
-    setProductDocuments([]);
+    resetProduct();
   });
+
+  useEffect(() => {
+    const formImages = product.images
+      .filter((image) => image.status === 'done' && image.imageKey)
+      .map((image) => ({
+        imageKey: image.imageKey!,
+        isPrimary: image.isPrimary ?? false,
+      }));
+
+    setValue('images', formImages, {
+      shouldValidate: true,
+    });
+  }, [product.images, setValue]);
+
+  useEffect(() => {
+    const formDocuments = product.documents
+      .filter((doc) => doc.status === 'done' && doc.documentKey)
+      .map((doc) => ({
+        documentName: doc.originalName ?? 'document',
+        documentKey: doc.documentKey!,
+      }));
+
+    setValue('documents', formDocuments, {
+      shouldValidate: true,
+    });
+  }, [product.documents, setValue]);
 
   const onSubmit = (data: CreateProductBody) => {
     createProductMutation.mutate(data);
@@ -112,7 +138,12 @@ export function CreateProductForm() {
                   id="name"
                   placeholder="e.g. Apple iPhone 16 Pro Max"
                   className="h-11"
-                  {...register('name')}
+                  {...register('name', {
+                    onChange: (e) =>
+                      updateBasicInformation({
+                        name: e.target.value,
+                      }),
+                  })}
                 />
               </InputGroup>
               <FieldDescription className="text-muted-foreground text-xs">
@@ -136,7 +167,12 @@ export function CreateProductForm() {
                 rows={5}
                 placeholder="Describe your product, including its features, specifications, and key benefits..."
                 className="min-h-32 resize-y"
-                {...register('description')}
+                {...register('description', {
+                  onChange: (e) =>
+                    updateBasicInformation({
+                      description: e.target.value,
+                    }),
+                })}
               />
               <FieldDescription className="text-muted-foreground text-xs">
                 Provide a clear and concise description to help customers
@@ -168,7 +204,12 @@ export function CreateProductForm() {
                   placeholder="e.g. 100"
                   className="h-11"
                   {...register('stockQuantity', {
-                    valueAsNumber: true,
+                    setValueAs: (value) => (value === '' ? 0 : Number(value)),
+                    onChange: (e) =>
+                      updateBasicInformation({
+                        stockQuantity:
+                          e.target.value === '' ? 0 : Number(e.target.value),
+                      }),
                   })}
                 />
               </InputGroup>
@@ -192,7 +233,16 @@ export function CreateProductForm() {
                 control={control}
                 name="publicCategory"
                 render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange} key="product-category-select">
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      updateBasicInformation({
+                        publicCategory: value as PublicCategory,
+                      });
+                    }}
+                    key="product-category-select"
+                  >
                     <InputGroup>
                       <InputGroupAddon>
                         <LayoutGrid className="h-4 w-4" />
@@ -299,17 +349,19 @@ export function CreateProductForm() {
                                       className="mr-2"
                                       checked={selected}
                                       onCheckedChange={() => {
-                                        field.onChange(
-                                          selected
-                                            ? field.value?.filter(
-                                                (id) =>
-                                                  id !== category.categoryId,
-                                              )
-                                            : [
-                                                ...(field.value ?? []),
-                                                category.categoryId,
-                                              ],
-                                        );
+                                        const nextValue = selected
+                                          ? field.value?.filter(
+                                              (id) =>
+                                                id !== category.categoryId,
+                                            )
+                                          : [
+                                              ...(field.value ?? []),
+                                              category.categoryId,
+                                            ];
+
+                                        field.onChange(nextValue);
+
+                                        setCategories(nextValue ?? []);
                                       }}
                                       onClick={(e) => e.stopPropagation()}
                                     />
@@ -337,28 +389,8 @@ export function CreateProductForm() {
                 Product Images
               </FieldLabel>
               <ProductImagesUploader
-                productImages={productImages}
-                onProductImagesChange={(updateImageFunction) => {
-                  setProductImages((currentImages) => {
-                    const updatedImages = updateImageFunction(currentImages);
-
-                    const formImages = updatedImages
-                      .filter(
-                        (imageItem) =>
-                          imageItem.status === 'done' && imageItem.imageKey,
-                      )
-                      .map((imageItem) => ({
-                        imageKey: imageItem.imageKey ?? '',
-                        isPrimary: imageItem.isPrimary ?? false,
-                      }));
-
-                    setValue('images', formImages, {
-                      shouldValidate: true,
-                    });
-
-                    return updatedImages;
-                  });
-                }}
+                productImages={product.images}
+                onProductImagesChange={updateImages}
               />
               {errors.images && (
                 <FieldError>{errors.images.message}</FieldError>
@@ -369,30 +401,8 @@ export function CreateProductForm() {
                 Product Documents
               </FieldLabel>
               <ProductDocumentsUploader
-                documents={productDocuments}
-                onProductDocumentsChange={(updateDocumentFunction) => {
-                  setProductDocuments((currentDocuments) => {
-                    const updatedDocuments =
-                      updateDocumentFunction(currentDocuments);
-
-                    const formDocuments = updatedDocuments
-                      .filter(
-                        (documentItem) =>
-                          documentItem.status === 'done' &&
-                          documentItem.documentKey,
-                      )
-                      .map((documentItem) => ({
-                        documentName: documentItem.originalName ?? 'document',
-                        documentKey: documentItem.documentKey ?? '',
-                      }));
-
-                    setValue('documents', formDocuments, {
-                      shouldValidate: true,
-                    });
-
-                    return updatedDocuments;
-                  });
-                }}
+                documents={product.documents}
+                onProductDocumentsChange={updateDocuments}
               />
               {errors.documents && (
                 <FieldError>{errors.documents.message}</FieldError>
