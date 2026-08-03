@@ -85,6 +85,19 @@ export function ProductDocument({
   };
 
   const handleDeleteDocument = (documentId: string) => {
+    console.log('delete id:', documentId);
+    console.table(localDocuments);
+    const document = localDocuments.find((item) => item.id === documentId);
+    if (!document) return;
+
+    if (document.isNew) {
+      setLocalDocuments((current) =>
+        current.filter((item) => item.id !== documentId),
+      );
+      setSelectedIds((current) => current.filter((id) => id !== documentId));
+      return;
+    }
+
     deleteProductDocumentMutation.mutate(
       { documentId },
       {
@@ -102,13 +115,40 @@ export function ProductDocument({
 
   const handleDeleteSelectedDocuments = () => {
     if (selectedIds.length === 0) return;
+
+    const selectedDocuments = localDocuments.filter((document) =>
+      selectedIds.includes(document.id),
+    );
+
+    const newDocumentIds = selectedDocuments
+      .filter((document) => document.isNew)
+      .map((document) => document.id);
+
+    const existingDocumentIds = selectedDocuments
+      .filter((document) => !document.isNew)
+      .map((document) => document.id);
+
+    if (newDocumentIds.length > 0) {
+      setLocalDocuments((current) =>
+        current.filter((document) => !newDocumentIds.includes(document.id)),
+      );
+    }
+
+    if (existingDocumentIds.length === 0) {
+      setSelectedIds([]);
+      return;
+    }
+
     deleteProductDocumentsMutation.mutate(
-      { documentIds: selectedIds },
+      { documentIds: existingDocumentIds },
       {
         onSuccess: () => {
           setLocalDocuments((current) =>
-            current.filter((document) => !selectedIds.includes(document.id)),
+            current.filter(
+              (document) => !existingDocumentIds.includes(document.id),
+            ),
           );
+
           setSelectedIds([]);
         },
       },
@@ -134,6 +174,7 @@ export function ProductDocument({
         size: file.size,
         mimeType: file.type,
         status: 'uploading',
+        isNew: true,
       }),
     );
 
@@ -263,7 +304,7 @@ export function ProductDocument({
             <Separator />
           </>
         )}
-        <AttachmentGroup>
+        <AttachmentGroup className="grid grid-cols-2 gap-3">
           {localDocuments.map((document) => (
             <Attachment key={document.id}>
               {isEditing && (
@@ -342,6 +383,7 @@ export function ProductDocument({
               ref={inputRef}
               hidden
               multiple
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
               type="file"
               onChange={handleUpload}
             />

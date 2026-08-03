@@ -17,9 +17,7 @@ export function useDeleteProductComment(
     ApiResponseError,
     { commentId: string }
   >({
-    mutationFn: async ({
-                         commentId,
-                       }): Promise<DeleteProductCommentResponse> => {
+    mutationFn: async ({ commentId }): Promise<DeleteProductCommentResponse> => {
       return await productCommentApi.deleteProductComment(
         productId,
         commentId,

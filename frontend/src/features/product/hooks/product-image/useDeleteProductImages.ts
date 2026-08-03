@@ -1,7 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { productImageApi } from '@/features/product/api/product-image.api';
-import { productKeys } from '@/features/seller-hub/constants/product-query-key';
 import { DELETE_PRODUCT_IMAGES_ERROR_MESSAGES } from '@/features/product/constants/product-image-error.messages';
 import type { ApiResponseError } from '@/shared/types/error';
 import type { DeleteProductImagesBody } from '@/features/product/schemas/product-image/delete-product-images.schema';
@@ -11,7 +10,6 @@ export function useDeleteProductImages(
   productId: string,
   onSuccessCallback?: () => void,
 ) {
-  const queryClient = useQueryClient();
 
   return useMutation<
     DeleteProductImagesResponse,
@@ -23,10 +21,6 @@ export function useDeleteProductImages(
     },
 
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: productKeys.detail(productId),
-      });
-
       onSuccessCallback?.();
     },
 

@@ -56,40 +56,42 @@ export function ProductDetailPage() {
 
   if (isLoadingProduct) {
     return (
-      <div className="container space-y-6 py-6">
-        <ProductHeader
-          name=""
-          publicCategory={PUBLIC_CATEGORIES.OTHER}
-          isOwner={false}
-          isEditing={false}
-          isLoading
-        />
-
-        <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-          <ProductImageViewer images={[]} isOwner={false} isLoading />
-
-          <ProductInformationCard
+      <div className="container py-6">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <ProductHeader
             name=""
-            description=""
-            stockQuantity={0}
-            status={PRODUCT_STATUSES.DRAFT}
             publicCategory={PUBLIC_CATEGORIES.OTHER}
-            sellerId=""
-            sellerName=""
-            createdAt=""
-            updatedAt=""
-            categories={[]}
+            isOwner={false}
+            isEditing={false}
+            isLoading
+          />
+
+          <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+            <ProductImageViewer images={[]} isOwner={false} isLoading />
+
+            <ProductInformationCard
+              name=""
+              description=""
+              stockQuantity={0}
+              status={PRODUCT_STATUSES.DRAFT}
+              publicCategory={PUBLIC_CATEGORIES.OTHER}
+              sellerId=""
+              sellerName=""
+              createdAt=""
+              updatedAt=""
+              categories={[]}
+              isLoading
+            />
+          </div>
+
+          <ProductDocument
+            productId=""
+            documents={[]}
+            isOwner={false}
+            isEditing={false}
             isLoading
           />
         </div>
-
-        <ProductDocument
-          productId=""
-          documents={[]}
-          isOwner={false}
-          isEditing={false}
-          isLoading
-        />
       </div>
     );
   }
@@ -109,79 +111,81 @@ export function ProductDetailPage() {
   const isOwner = currentUser?.userId === product.seller.userId;
 
   return (
-    <div className="container space-y-6 py-6">
-      <ProductHeader
-        name={product.name}
-        publicCategory={product.publicCategory}
-        isOwner={isOwner}
-        isEditing={isEditingInformation}
-        onEnterEditMode={() => setIsEditingInformation(true)}
-        onExitEditMode={() => setIsEditingInformation(false)}
-      />
+    <div className="py-6">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <ProductHeader
+          name={product.name}
+          publicCategory={product.publicCategory}
+          isOwner={isOwner}
+          isEditing={isEditingInformation}
+          onEnterEditMode={() => setIsEditingInformation(true)}
+          onExitEditMode={() => setIsEditingInformation(false)}
+        />
 
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-        {isEditingImages ? (
-          <ProductImageEditor
-            productId={product.productId}
-            images={product.images.map((image) => ({
-              id: image.imageId,
-              imageUrl: image.imageUrl,
-              imageKey: image.imageKey,
-              isPrimary: image.isPrimary,
-              status: 'done',
-              isNew: false,
-            }))}
-            onExitEditMode={() => setIsEditingImages(false)}
-          />
-        ) : (
-          <ProductImageViewer
-            images={product.images}
-            isOwner={isOwner}
-            onEnterEditMode={() => setIsEditingImages(true)}
-          />
-        )}
+        <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+          {isEditingImages ? (
+            <ProductImageEditor
+              productId={product.productId}
+              images={product.images.map((image) => ({
+                id: image.imageId,
+                imageUrl: image.imageUrl,
+                imageKey: image.imageKey,
+                isPrimary: image.isPrimary,
+                status: 'done',
+                isNew: false,
+              }))}
+              onExitEditMode={() => setIsEditingImages(false)}
+            />
+          ) : (
+            <ProductImageViewer
+              images={product.images}
+              isOwner={isOwner}
+              onEnterEditMode={() => setIsEditingImages(true)}
+            />
+          )}
 
-        {isEditingInformation ? (
-          <ProductBasicInformationForm
-            productId={product.productId}
-            form={form}
-            sellerId={product.seller.userId}
-            sellerName={product.seller.username}
-            createdAt={product.createdAt}
-            updatedAt={product.updatedAt}
-            onExitEditMode={() => setIsEditingInformation(false)}
-          />
-        ) : (
-          <ProductInformationCard
-            name={product.name}
-            description={product.description}
-            stockQuantity={product.stockQuantity}
-            status={product.status}
-            publicCategory={product.publicCategory}
-            sellerId={product.seller.userId}
-            sellerName={product.seller.username}
-            createdAt={product.createdAt}
-            updatedAt={product.updatedAt}
-            categories={product.categories}
-          />
-        )}
+          {isEditingInformation ? (
+            <ProductBasicInformationForm
+              productId={product.productId}
+              form={form}
+              sellerId={product.seller.userId}
+              sellerName={product.seller.username}
+              createdAt={product.createdAt}
+              updatedAt={product.updatedAt}
+              onExitEditMode={() => setIsEditingInformation(false)}
+            />
+          ) : (
+            <ProductInformationCard
+              name={product.name}
+              description={product.description}
+              stockQuantity={product.stockQuantity}
+              status={product.status}
+              publicCategory={product.publicCategory}
+              sellerId={product.seller.userId}
+              sellerName={product.seller.username}
+              createdAt={product.createdAt}
+              updatedAt={product.updatedAt}
+              categories={product.categories}
+            />
+          )}
+        </div>
+        <ProductDocument
+          productId={product.productId}
+          documents={product.documents.map((document) => ({
+            id: document.documentId,
+            url: document.documentUrl,
+            documentKey: document.documentKey,
+            originalName: document.documentName,
+            status: 'done',
+            isNew: false,
+          }))}
+          isOwner={isOwner}
+          isEditing={isEditingDocuments}
+          onEnterEditMode={() => setIsEditingDocuments(true)}
+          onExitEditMode={() => setIsEditingDocuments(false)}
+        />
+        <ProductComment productId={product.productId} />
       </div>
-      <ProductDocument
-        productId={product.productId}
-        documents={product.documents.map((document) => ({
-          id: document.documentId,
-          url: document.documentUrl,
-          documentKey: document.documentKey,
-          originalName: document.documentName,
-          status: 'done',
-          isNew: false,
-        }))}
-        isOwner={isOwner}
-        isEditing={isEditingDocuments}
-        onEnterEditMode={() => setIsEditingDocuments(true)}
-        onExitEditMode={() => setIsEditingDocuments(false)}
-      />
-      <ProductComment productId={product.productId} />
     </div>
   );
 }

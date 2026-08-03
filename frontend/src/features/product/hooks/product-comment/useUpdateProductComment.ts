@@ -7,9 +7,13 @@ import type { UpdateProductCommentBody } from '@/features/product/schemas/produc
 import type { UpdateProductCommentResponse } from '@/features/product/types/product-comment/update-product-comment.response';
 import type { ApiResponseError } from '@/shared/types/error';
 
+type UpdateProductCommentVariables = {
+  commentId: string;
+  body: UpdateProductCommentBody;
+};
+
 export function useUpdateProductComment(
   productId: string,
-  commentId: string,
   onSuccessCallback?: (res: UpdateProductCommentResponse) => void,
 ) {
   const queryClient = useQueryClient();
@@ -17,9 +21,12 @@ export function useUpdateProductComment(
   return useMutation<
     UpdateProductCommentResponse,
     ApiResponseError,
-    UpdateProductCommentBody
+    UpdateProductCommentVariables
   >({
-    mutationFn: async (body): Promise<UpdateProductCommentResponse> => {
+    mutationFn: async ({
+      commentId,
+      body,
+    }): Promise<UpdateProductCommentResponse> => {
       return await productCommentApi.updateProductComment(
         productId,
         commentId,

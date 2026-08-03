@@ -117,22 +117,21 @@ export function ProductImageViewer({
   return (
     <div className="bg-background rounded-xl border p-6 shadow-sm">
       <div className="space-y-4">
-        <div className="bg-muted relative overflow-hidden rounded-xl border">
+        <div className="flex items-center justify-between">
           {isOwner && (
-            <Button
-              size="sm"
-              className="absolute top-4 right-4 z-10"
-              onClick={onEnterEditMode}
-            >
+            <Button size="sm" onClick={onEnterEditMode}>
               <Pencil className="mr-2 size-4" />
               Edit
             </Button>
           )}
+        </div>
+        <div className="bg-muted relative overflow-hidden rounded-xl border">
           <img
             src={currentImage?.imageUrl}
             alt=""
             className="aspect-square w-full object-contain"
           />
+
           {images.length > 1 && (
             <>
               <Button
@@ -143,6 +142,7 @@ export function ProductImageViewer({
               >
                 <ChevronLeft className="size-5" />
               </Button>
+
               <Button
                 size="icon"
                 variant="secondary"
@@ -154,59 +154,59 @@ export function ProductImageViewer({
             </>
           )}
         </div>
-        {images.length > 1 && (
-          <div className="flex items-center gap-3">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setThumbnailStart((prev) => Math.max(0, prev - 1))}
-              disabled={thumbnailStart === 0}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <div className="flex flex-1 justify-center gap-3">
-              {visibleImages.map((image, index) => {
-                const actualIndex = thumbnailStart + index;
-
-                return (
-                  <button
-                    key={image.imageId}
-                    type="button"
-                    onClick={() => updateCurrentIndex(actualIndex)}
-                    className={[
-                      'overflow-hidden rounded-lg border-2 transition',
-                      currentIndex === actualIndex
-                        ? 'border-primary'
-                        : 'hover:border-border border-transparent',
-                    ].join(' ')}
-                  >
-                    <img
-                      src={image.imageUrl}
-                      alt=""
-                      className="size-20 object-cover"
-                    />
-                  </button>
-                );
-              })}
-            </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() =>
-                setThumbnailStart((prev) =>
-                  Math.min(
-                    Math.max(0, images.length - THUMBNAILS_PER_PAGE),
-                    prev + 1,
-                  ),
-                )
-              }
-              disabled={thumbnailStart + THUMBNAILS_PER_PAGE >= images.length}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        )}
       </div>
+      {images.length > 1 && (
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setThumbnailStart((prev) => Math.max(0, prev - 1))}
+            disabled={thumbnailStart === 0}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <div className="flex flex-1 items-center justify-center gap-2">
+            {visibleImages.map((image, index) => {
+              const actualIndex = thumbnailStart + index;
+
+              return (
+                <button
+                  key={image.imageId}
+                  type="button"
+                  onClick={() => updateCurrentIndex(actualIndex)}
+                  className={[
+                    'size-12 overflow-hidden rounded-lg border-2 transition',
+                    currentIndex === actualIndex
+                      ? 'border-primary'
+                      : 'hover:border-border border-transparent',
+                  ].join(' ')}
+                >
+                  <img
+                    src={image.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              );
+            })}
+          </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() =>
+              setThumbnailStart((prev) =>
+                Math.min(
+                  Math.max(0, images.length - THUMBNAILS_PER_PAGE),
+                  prev + 1,
+                ),
+              )
+            }
+            disabled={thumbnailStart + THUMBNAILS_PER_PAGE >= images.length}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

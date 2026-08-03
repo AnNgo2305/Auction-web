@@ -1,4 +1,4 @@
-import { Pencil, Save, X } from 'lucide-react';
+import { Pencil, X } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import type { PublicCategory } from '@/shared/types/product';
@@ -13,7 +13,6 @@ type ProductHeaderProps = {
   isSaving?: boolean;
   onEnterEditMode?: () => void;
   onExitEditMode?: () => void;
-  onSave?: () => void;
 };
 
 export function ProductHeader({
@@ -23,7 +22,6 @@ export function ProductHeader({
   isEditing,
   isSaving = false,
   isLoading = false,
-  onSave,
   onEnterEditMode,
   onExitEditMode,
 }: ProductHeaderProps) {
@@ -48,10 +46,10 @@ export function ProductHeader({
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
-    <div className="bg-background flex flex-col gap-6 rounded-xl border p-6 shadow-sm lg:flex-row lg:items-start lg:justify-between">
+    <div className="bg-background flex flex-col gap-6 rounded-xl p-6 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="truncate text-3xl font-bold tracking-tight">{name}</h1>
+          <h1 className="truncate text-4xl font-bold tracking-tight">{name}</h1>
           <Badge variant="outline" className="font-medium">
             {categoryLabel}
           </Badge>
@@ -69,10 +67,6 @@ export function ProductHeader({
               >
                 <X className="mr-2 size-4" />
                 Cancel
-              </Button>
-              <Button className="h-10" disabled={isSaving} onClick={onSave}>
-                <Save className="mr-2 size-4" />
-                Save Changes
               </Button>
             </>
           ) : (

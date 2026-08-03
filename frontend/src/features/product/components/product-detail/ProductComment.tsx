@@ -1,13 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, Star } from 'lucide-react';
 import { useGetProductComments } from '@/features/product/hooks/product-comment/useGetProductComments';
-import type { ProductCommentData } from '@/features/product/types/product-comment/get-product-comments.response';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { useCreateProductComment } from '@/features/product/hooks/product-comment/useCreateProductComment';
+import { useDeleteProductComment } from '@/features/product/hooks/product-comment/useDeleteProductComment';
+import { useUpdateProductComment } from '@/features/product/hooks/product-comment/useUpdateProductComment';
+import type { UpdateProductCommentBody } from '@/features/product/schemas/product-comment/update-product-comment.schema';
 import { Button } from '@/shared/ui/button';
-import { Separator } from '@/shared/ui/separator';
-import { Skeleton } from '@/shared/ui/skeleton';
 import { Textarea } from '@/shared/ui/textarea';
+import { ProductCommentItem, ProductCommentSkeleton } from '@/features/product/components/product-detail/ProductCommentItem';
+import { useUser } from '@/shared/contexts/UserContext.tsx';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogDescription,
+  AlertDialogTitle
+} from '@/shared/ui/alert-dialog.tsx';
 
 type ProductCommentProps = {
   productId: string;
@@ -17,13 +28,22 @@ export function ProductComment({
   productId,
 }: ProductCommentProps) {
   const [content, setContent] = useState('');
+  const [rating, setRating] = useState<number | undefined>();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const { currentUser } = useUser();
+  const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+
+  const createCommentMutation = useCreateProductComment(productId, () => {
+    setContent('');
+    setRating(undefined);
+  });
+  const deleteCommentMutation = useDeleteProductComment(productId);
+  const updateCommentMutation = useUpdateProductComment(productId);
 
   const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useGetProductComments(productId);
 
   const comments = data?.comments ?? [];
-
   useEffect(() => {
     if (!loadMoreRef.current) return;
 
@@ -38,15 +58,80 @@ export function ProductComment({
         threshold: 0.1,
       },
     );
-
     observer.observe(loadMoreRef.current);
-
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const handlePostComment = () => {
+    const trimmedContent = content.trim();
+    if (!trimmedContent) {
+      return;
+    }
+    createCommentMutation.mutate({
+      content: trimmedContent,
+      rating,
+    });
+  };
+
+  const handleUpdateComment = (
+    commentId: string,
+    body: UpdateProductCommentBody,
+  ) => {
+    updateCommentMutation.mutate({
+      commentId,
+      body,
+    });
+  };
+
+  const handleConfirmDeleteComment = () => {
+    if (!deleteCommentId) return;
+    deleteCommentMutation.mutate({ commentId: deleteCommentId });
+  };
+
+  const handleOpenDeleteCommentDialog = (commentId: string) => {
+    setDeleteCommentId(commentId);
+  };
 
   return (
     <div className="space-y-6">
       <div className="space-y-3">
+        <div className="space-y-2">
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, index) => {
+              const value = index + 1;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() =>
+                    setRating((current) =>
+                      current === value ? undefined : value,
+                    )
+                  }
+                  className="transition hover:scale-110"
+                >
+                  <Star
+                    className={`size-4 ${
+                      value <= (rating ?? 0)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-muted-foreground'
+                    }`}
+                  />
+                </button>
+              );
+            })}
+            {rating && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setRating(undefined)}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
         <Textarea
           rows={4}
           value={content}
@@ -61,80 +146,76 @@ export function ProductComment({
           >
             Cancel
           </Button>
-          <Button disabled={!content.trim()}>Post</Button>
+          <Button
+            onClick={handlePostComment}
+            disabled={!content.trim() || createCommentMutation.isPending}
+          >
+            {createCommentMutation.isPending && (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            )}
+            Post
+          </Button>
         </div>
       </div>
-      <Separator />
-      {isLoading ? (
-        <div className="space-y-6">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <CommentSkeleton key={index} />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {comments.map((comment, index) => (
-            <React.Fragment key={comment.commentId}>
-              <CommentItem comment={comment} />
-              {index !== comments.length - 1 && <Separator />}
-            </React.Fragment>
-          ))}
-          <div ref={loadMoreRef} className="h-1" />
-          {isFetchingNextPage && (
-            <div className="flex justify-center py-4">
-              <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CommentItem({ comment }: { comment: ProductCommentData }) {
-  return (
-    <div className="flex gap-4">
-      <Avatar>
-        <AvatarImage src={comment.user.profileImageUrl ?? undefined} />
-        <AvatarFallback>
-          {comment.user.username.charAt(0).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium">{comment.user.username}</span>
-          {comment.rating !== null && (
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: comment.rating }).map((_, index) => (
-                <Star
-                  key={index}
-                  className="size-4 fill-yellow-400 text-yellow-400"
-                />
-              ))}
-            </div>
-          )}
-          <span className="text-muted-foreground text-sm">
-            {formatDistanceToNow(new Date(comment.createdAt), {
-              addSuffix: true,
-            })}
-          </span>
-        </div>
-
-        <p className="mt-2 text-sm whitespace-pre-wrap">{comment.content}</p>
+      <div className="max-h-125 overflow-y-auto pr-2">
+        {isLoading ? (
+          <div className="space-y-6">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <ProductCommentSkeleton key={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {comments.map((comment) => (
+              <ProductCommentItem
+                key={comment.commentId}
+                comment={comment}
+                isOwner={comment.user.userId === currentUser?.userId}
+                isSaving={updateCommentMutation.isPending}
+                onSave={handleUpdateComment}
+                onOpenDeleteConfirmDialog={handleOpenDeleteCommentDialog}
+              />
+            ))}
+            <div ref={loadMoreRef} className="h-1" />
+            {isFetchingNextPage && (
+              <div className="flex justify-center py-4">
+                <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
-    </div>
-  );
-}
-
-function CommentSkeleton() {
-  return (
-    <div className="flex gap-4">
-      <Skeleton className="size-10 rounded-full" />
-      <div className="flex-1 space-y-3">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-      </div>
+      <AlertDialog
+        open={deleteCommentId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteCommentId(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete comment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteCommentMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteComment}
+              disabled={deleteCommentMutation.isPending}
+            >
+              {deleteCommentMutation.isPending && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

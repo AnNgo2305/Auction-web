@@ -158,7 +158,12 @@ export function ProductBasicInformationForm({
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                   </InputGroup>
-                  <SelectContent>
+                  <SelectContent
+                    position="popper"
+                    side="bottom"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                  >
                     {Object.values(PUBLIC_CATEGORIES).map((category) => (
                       <SelectItem key={category} value={category}>
                         {category
@@ -187,7 +192,12 @@ export function ProductBasicInformationForm({
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    position="popper"
+                    side="bottom"
+                    sideOffset={4}
+                    avoidCollisions={false}
+                  >
                     {Object.values(PUBLIC_PRODUCT_STATUSES).map((status) => (
                       <SelectItem key={status} value={status}>
                         {status

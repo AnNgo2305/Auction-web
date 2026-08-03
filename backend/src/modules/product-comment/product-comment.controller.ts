@@ -26,7 +26,6 @@ export class ProductCommentController {
   async getComments(
     @Param('productId') productId: string,
     @Query('cursor') cursor?: string,
-    @Query('limit') limit?: number,
     @Req() req?: Request,
   ): Promise<ResponsePayload> {
     const userId = req?.user?.userId;
@@ -35,7 +34,6 @@ export class ProductCommentController {
       productId,
       userId,
       cursor,
-      limit,
     );
 
     return {

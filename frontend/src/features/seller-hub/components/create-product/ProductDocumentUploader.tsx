@@ -38,6 +38,9 @@ export interface ProductDocumentItem {
 
   // Upload failure reason
   errorMessage?: string;
+
+  // New Document
+  isNew: boolean;
 }
 
 interface ProductDocumentsUploaderProps {
@@ -86,6 +89,7 @@ export function ProductDocumentsUploader({
         size: file.size,
         mimeType: file.type,
 
+        isNew: true,
         status: 'uploading',
       }),
     );

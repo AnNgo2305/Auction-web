@@ -188,25 +188,36 @@ export function ProductImageEditor({
     onExitEditMode?.();
   }
 
-  const handleSetPrimary = (imageId: string) => {
+  const handleSetPrimary = (image: ProductImageItem) => {
+    if (image.isNew) {
+      setLocalImages((current) =>
+        current.map((item) => ({
+          ...item,
+          isPrimary: item.id === image.id,
+        })),
+      );
+
+      return;
+    }
+
     setPrimaryProductImageMutation.mutate(
-      { imageId },
+      { imageId: image.id },
       {
         onSuccess: () => {
           setLocalImages((current) =>
-            current.map((image) => ({
-              ...image,
-              isPrimary: image.id === imageId,
+            current.map((item) => ({
+              ...item,
+              isPrimary: item.id === image.id,
             })),
           );
         },
       },
     );
-  }
+  };
 
   return (
     <div className="bg-background rounded-xl border p-6 shadow-sm">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 space-y-4">
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -216,6 +227,7 @@ export function ProductImageEditor({
             <X className="mr-2 size-4" />
             Cancel
           </Button>
+
           <Button
             disabled={updateProductImagesMutation.isPending}
             onClick={handleSave}
@@ -224,27 +236,26 @@ export function ProductImageEditor({
             Save
           </Button>
         </div>
-        <div className="flex items-center gap-3">
-          {selectedIds.length > 0 && (
-            <>
-              <span className="text-sm font-medium">
-                {selectedIds.length} selected
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDeleteSelectedImages}
-                disabled={updateProductImagesMutation.isPending}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 size-4" />
-                Remove Selected
-              </Button>
-            </>
-          )}
-        </div>
+
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground text-sm font-medium">
+              {selectedIds.length} selected
+            </span>
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteSelectedImages}
+              disabled={updateProductImagesMutation.isPending}
+            >
+              <Trash2 className="mr-2 size-4" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
       </div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
         {localImages.map((image) => {
           const selected = selectedIds.includes(image.id);
           return (
@@ -270,7 +281,7 @@ export function ProductImageEditor({
               </div>
               {image.status !== 'uploading' && (
                 <>
-                  <div className="absolute top-2 left-2 flex items-center gap-2">
+                  <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
                     <Checkbox
                       checked={selected}
                       onCheckedChange={(checked) =>
@@ -283,30 +294,29 @@ export function ProductImageEditor({
                       className="bg-white/90"
                     />
                     {image.isPrimary && (
-                      <span className="flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-xs text-white">
-                        <Star className="size-3 fill-current" />
-                        Primary
-                      </span>
+                      <Star className="size-3 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
                     )}
                   </div>
                   <Button
                     size="icon"
-                    variant="ghost"
-                    className="absolute top-2 right-2 size-8 bg-white/90 opacity-0 transition group-hover:opacity-100 hover:bg-white"
+                    variant="destructive"
+                    className="absolute right-2 bottom-2 size-8 group-hover:opacity-100"
                     onClick={() => handleDeleteImage(image)}
                   >
-                    <Trash2 className="text-destructive size-4" />
+                    <Trash2 className="size-4" />
                   </Button>
                 </>
               )}
               {!image.isPrimary && image.status !== 'uploading' && (
-                <button
+                <Button
                   type="button"
-                  onClick={() => handleSetPrimary(image.id)}
-                  className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100"
+                  size="icon"
+                  variant="secondary"
+                  onClick={() => handleSetPrimary(image)}
+                  className="absolute bottom-2 left-2 size-8 opacity-0 transition-opacity group-hover:opacity-100"
                 >
-                  Set Primary
-                </button>
+                  <Star className="size-4" />
+                </Button>
               )}
             </div>
           );
@@ -317,10 +327,12 @@ export function ProductImageEditor({
               type="button"
               variant="outline"
               onClick={() => inputRef.current?.click()}
-              className="text-muted-foreground hover:bg-muted flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition"
+              className="group h-full rounded-xl border-2 border-dashed p-0"
             >
-              <Plus className="size-8" />
-              <span className="text-sm">Add Images</span>
+              <div className="text-muted-foreground group-hover:bg-muted/50 flex aspect-square w-full flex-col items-center justify-center gap-3 transition-colors">
+                <Plus className="size-10" />
+                <span className="font-medium">Add Images</span>
+              </div>
             </Button>
             <input
               ref={inputRef}
