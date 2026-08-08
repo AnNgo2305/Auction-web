@@ -1,0 +1,361 @@
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '@common/services/prisma.service';
+import { LoggerService } from '@common/services/logger.service';
+import {
+  CONVERSATION_SELECT,
+  ERROR_CANNOT_CREATE_CONVERSATION_WITH_SELF,
+  ERROR_CONVERSATION_CREATION_TIMEOUT,
+  ERROR_CONVERSATION_NOT_FOUND,
+  ERROR_RECIPIENT_NOT_FOUND,
+} from '@modules/chat/constants/conversation.constant';
+import Redis from 'ioredis';
+import {
+  REDIS_CLIENT,
+  REDIS_LOCK_CONFIG,
+} from '@common/constants/redis.constant';
+import { ConversationResponseDto } from '@modules/chat/dtos/conversation/get-create-conversation.response.dto';
+import { GetConversationsResponseDto } from '@modules/chat/dtos/conversation/get-user-conversations.response.dto';
+import { Prisma } from '@generated/prisma/client';
+
+@Injectable()
+export class ConversationService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
+
+    @Inject(REDIS_CLIENT)
+    private readonly redis: Redis,
+  ) {}
+
+  async createOrGetConversation(
+    currentUserId: string,
+    recipientId: string,
+  ): Promise<ConversationResponseDto> {
+    this.logger.log(
+      `[CHAT] create conversation request: ${currentUserId} -> ${recipientId}`,
+    );
+
+    if (currentUserId === recipientId) {
+      this.logger.warn(
+        `[CHAT] create conversation failed: self conversation (${currentUserId})`,
+      );
+
+      throw new ConflictException(ERROR_CANNOT_CREATE_CONVERSATION_WITH_SELF);
+    }
+
+    const recipient = await this.prisma.user.findUnique({
+      where: {
+        userId: recipientId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (!recipient) {
+      this.logger.warn(`[CHAT] recipient not found: ${recipientId}`);
+
+      throw new NotFoundException(ERROR_RECIPIENT_NOT_FOUND);
+    }
+
+    const existingConversation = await this.prisma.conversation.findFirst({
+      where: {
+        OR: [
+          {
+            initiatorId: currentUserId,
+            recipientId,
+          },
+          {
+            initiatorId: recipientId,
+            recipientId: currentUserId,
+          },
+        ],
+      },
+      select: CONVERSATION_SELECT,
+    });
+
+    if (existingConversation) {
+      this.logger.log(
+        `[CHAT] existing conversation found: ${existingConversation.conversationId}`,
+      );
+      return this.mapConversation(existingConversation);
+    }
+
+    const lockKey = this.getConversationLockKey(currentUserId, recipientId);
+    const locked = await this.acquireLock(lockKey);
+
+    if (!locked) {
+      const { MAX_RETRY, INTERVAL } = REDIS_LOCK_CONFIG.CONVERSATION.WAIT;
+      for (let i = 0; i < MAX_RETRY; i++) {
+        await new Promise((resolve) => setTimeout(resolve, INTERVAL));
+        const retryConversation = await this.prisma.conversation.findFirst({
+          where: {
+            OR: [
+              {
+                initiatorId: currentUserId,
+                recipientId,
+              },
+              {
+                initiatorId: recipientId,
+                recipientId: currentUserId,
+              },
+            ],
+          },
+          select: CONVERSATION_SELECT,
+        });
+        if (retryConversation) {
+          return this.mapConversation(retryConversation);
+        }
+      }
+      throw new ConflictException(ERROR_CONVERSATION_CREATION_TIMEOUT);
+    }
+
+    try {
+      const conversation = await this.prisma.conversation.create({
+        data: {
+          initiatorId: currentUserId,
+          recipientId,
+        },
+        select: CONVERSATION_SELECT,
+      });
+      this.logger.log(
+        `[CHAT] conversation created: ${conversation.conversationId}`,
+      );
+
+      return this.mapConversation(conversation);
+    } finally {
+      await this.redis.del(lockKey);
+    }
+  }
+
+  async getUserConversations(
+    currentUserId: string,
+    cursor?: string,
+    limit = 10,
+  ): Promise<GetConversationsResponseDto> {
+    this.logger.log(
+      `[GET_CONVERSATIONS] user=${currentUserId} cursor=${cursor ?? 'null'} limit=${limit}`,
+    );
+
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        OR: [
+          {
+            initiatorId: currentUserId,
+            deletedByInitiatorAt: null,
+          },
+          {
+            recipientId: currentUserId,
+            deletedByRecipientAt: null,
+          },
+        ],
+      },
+
+      take: limit + 1,
+
+      ...(cursor && {
+        cursor: {
+          conversationId: cursor,
+        },
+        skip: 1,
+      }),
+
+      orderBy: {
+        conversationId: 'desc',
+      },
+
+      select: {
+        conversationId: true,
+        initiatorId: true,
+        recipientId: true,
+
+        initiator: {
+          select: {
+            userId: true,
+            username: true,
+            profile: {
+              select: {
+                profileImageUrl: true,
+              },
+            },
+          },
+        },
+
+        recipient: {
+          select: {
+            userId: true,
+            username: true,
+            profile: {
+              select: {
+                profileImageUrl: true,
+              },
+            },
+          },
+        },
+
+        lastMessage: {
+          select: {
+            messageId: true,
+            content: true,
+            type: true,
+            senderId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    const hasMore = conversations.length > limit;
+
+    const sliced = hasMore ? conversations.slice(0, limit) : conversations;
+
+    if (sliced.length === 0) {
+      return {
+        conversations: [],
+        nextCursor: null,
+      };
+    }
+
+    return {
+      conversations: sliced.map((conversation) => {
+        const otherUser =
+          conversation.initiatorId === currentUserId
+            ? conversation.recipient
+            : conversation.initiator;
+
+        return {
+          conversationId: conversation.conversationId,
+
+          otherUser: {
+            userId: otherUser.userId,
+            username: otherUser.username,
+            profileImageUrl: otherUser.profile?.profileImageUrl ?? null,
+          },
+
+          lastMessage: conversation.lastMessage,
+        };
+      }),
+
+      nextCursor: hasMore ? sliced[sliced.length - 1].conversationId : null,
+    };
+  }
+
+  async deleteConversation(
+    currentUserId: string,
+    conversationId: string,
+  ): Promise<void> {
+    const conversation = await this.prisma.conversation.findFirst({
+      where: {
+        conversationId,
+        OR: [
+          {
+            initiatorId: currentUserId,
+          },
+          {
+            recipientId: currentUserId,
+          },
+        ],
+      },
+      select: {
+        conversationId: true,
+        initiatorId: true,
+        recipientId: true,
+      },
+    });
+
+    if (!conversation) {
+      this.logger.warn(`[CHAT] conversation not found: ${conversationId}`);
+
+      throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
+    }
+
+    const isInitiator = conversation.initiatorId === currentUserId;
+
+    await this.prisma.conversation.update({
+      where: {
+        conversationId,
+      },
+      data: {
+        deletedByInitiatorAt: isInitiator ? new Date() : undefined,
+        deletedByRecipientAt: !isInitiator ? new Date() : undefined,
+      },
+    });
+
+    this.logger.log(`[CHAT] conversation deleted by user: ${currentUserId}`);
+  }
+
+  async getUserConversationIds(userId: string): Promise<string[]> {
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        OR: [
+          {
+            initiatorId: userId,
+            deletedByInitiatorAt: null,
+          },
+          {
+            recipientId: userId,
+            deletedByRecipientAt: null,
+          },
+        ],
+      },
+      select: {
+        conversationId: true,
+      },
+    });
+
+    return conversations.map((conversation) => conversation.conversationId);
+  }
+
+  private async acquireLock(key: string): Promise<boolean> {
+    const result = await this.redis.set(
+      key,
+      REDIS_LOCK_CONFIG.CONVERSATION.VALUE,
+      'EX',
+      REDIS_LOCK_CONFIG.CONVERSATION.TTL,
+      'NX',
+    );
+
+    return result === 'OK';
+  }
+
+  private getConversationLockKey(userId1: string, userId2: string): string {
+    const sortedIds = [userId1, userId2].sort();
+    return `${REDIS_LOCK_CONFIG.CONVERSATION.PREFIX}:${sortedIds[0]}:${sortedIds[1]}`;
+  }
+
+  private mapConversation(
+    conversation: Prisma.ConversationGetPayload<{
+      select: typeof CONVERSATION_SELECT;
+    }>,
+  ): ConversationResponseDto {
+    return {
+      conversationId: conversation.conversationId,
+      initiator: {
+        userId: conversation.initiator.userId,
+        username: conversation.initiator.username,
+        profileImageUrl:
+          conversation.initiator.profile?.profileImageUrl ?? null,
+      },
+      recipient: {
+        userId: conversation.recipient.userId,
+        username: conversation.recipient.username,
+        profileImageUrl:
+          conversation.recipient.profile?.profileImageUrl ?? null,
+      },
+      lastMessage: conversation.lastMessage
+        ? {
+            messageId: conversation.lastMessage.messageId,
+            content: conversation.lastMessage.content,
+            type: conversation.lastMessage.type,
+            senderId: conversation.lastMessage.senderId,
+            createdAt: conversation.lastMessage.createdAt,
+          }
+        : null,
+    };
+  }
+}

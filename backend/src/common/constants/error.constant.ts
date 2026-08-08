@@ -75,3 +75,9 @@ export const ERROR_USER_NOT_EXIST = {
   code: 'USER_NOT_EXIST',
   message: 'User does not exist',
 };
+
+export const ERROR_MISSING_COOKIE_HEADER = {
+  statusCode: 401,
+  errorCode: 'MISSING_COOKIE_HEADER',
+  message: 'Cookie header is missing',
+};

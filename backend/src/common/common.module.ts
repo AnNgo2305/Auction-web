@@ -21,6 +21,10 @@ import jwtConfig from '@common/config/jwt.config';
 import passwordConfig from '@common/config/password.config';
 import mailConfig from '@common/config/mail.config';
 import s3Config from '@common/config/s3.config';
+import redisConfig from '@common/config/redis.config';
+import { REDIS_CLIENT } from '@common/constants/redis.constant';
+import Redis from 'ioredis';
+import { WebsocketAuthService } from '@common/services/websocket-auth.service';
 
 const service = [
   LoggerService,
@@ -30,13 +34,14 @@ const service = [
   MailService,
   UserService,
   FileService,
+  WebsocketAuthService,
 ];
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [jwtConfig, passwordConfig, mailConfig, s3Config],
+      load: [jwtConfig, passwordConfig, mailConfig, s3Config, redisConfig],
     }),
     JwtModule,
     MailerModule.forRootAsync({
@@ -91,6 +96,18 @@ const service = [
     {
       provide: 'APP_GUARD',
       useClass: RolesGuard,
+    },
+    {
+      provide: REDIS_CLIENT,
+      inject: [redisConfig.KEY],
+      useFactory: (redis: ConfigType<typeof redisConfig>) => {
+        return new Redis({
+          host: redis.host,
+          port: redis.port,
+          password: redis.password,
+          db: redis.db,
+        });
+      },
     },
   ],
   exports: [...service],
