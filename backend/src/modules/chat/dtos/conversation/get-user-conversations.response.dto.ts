@@ -17,6 +17,8 @@ export class GetConversationsResponseDto {
       senderId: string;
       createdAt: Date;
     } | null;
+
+    unreadCount: number;
   }[];
 
   nextCursor!: string | null;

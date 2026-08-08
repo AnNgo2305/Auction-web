@@ -221,6 +221,33 @@ export class ConversationService {
       };
     }
 
+    const conversationIds = sliced.map(
+      (conversation) => conversation.conversationId,
+    );
+
+    const unreadMessages = await this.prisma.message.groupBy({
+      by: ['conversationId'],
+      where: {
+        conversationId: {
+          in: conversationIds,
+        },
+        senderId: {
+          not: currentUserId,
+        },
+        isRead: false,
+      },
+      _count: {
+        messageId: true,
+      },
+    });
+
+    const unreadCountMap = new Map(
+      unreadMessages.map((item) => [
+        item.conversationId,
+        item._count.messageId,
+      ]),
+    );
+
     return {
       conversations: sliced.map((conversation) => {
         const otherUser =
@@ -238,6 +265,7 @@ export class ConversationService {
           },
 
           lastMessage: conversation.lastMessage,
+          unreadCount: unreadCountMap.get(conversation.conversationId) ?? 0,
         };
       }),
 
