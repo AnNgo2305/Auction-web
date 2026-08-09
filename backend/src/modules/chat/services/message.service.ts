@@ -48,6 +48,8 @@ export class MessageService {
       },
       select: {
         conversationId: true,
+        initiatorId: true,
+        recipientId: true,
       },
     });
 
@@ -56,6 +58,11 @@ export class MessageService {
 
       throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
     }
+
+    const recipientId =
+      conversation.initiatorId === currentUserId
+        ? conversation.recipientId
+        : conversation.initiatorId;
 
     const message = await this.prisma.$transaction(async (tx) => {
       if (dto.replyToMessageId) {
@@ -102,7 +109,10 @@ export class MessageService {
     });
 
     this.logger.log(`[CHAT] message created: ${message.messageId}`);
-    return message;
+    return {
+      ...message,
+      recipientId,
+    };
   }
 
   async deleteMessage(currentUserId: string, messageId: string): Promise<void> {

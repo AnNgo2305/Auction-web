@@ -23,6 +23,7 @@ import { ProductDocumentModule } from '@modules/product-document/product-documen
 import { ProductCommentService } from '@modules/product-comment/product-comment.service';
 import { ProductCommentModule } from '@modules/product-comment/product-comment.module';
 import { PermissionModule } from '@modules/permission/permission.module';
+import { ChatModule } from '@modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -40,9 +41,10 @@ import { PermissionModule } from '@modules/permission/permission.module';
     ProductImageModule,
     ProductDocumentModule,
     ProductCommentModule,
+    ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ProductCommentService],
+  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

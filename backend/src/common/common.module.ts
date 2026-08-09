@@ -10,6 +10,7 @@ import { PrismaService } from '@common/services/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { BullModule } from '@nestjs/bullmq';
 import { MailService } from '@common/services/mail.service';
 import path from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
@@ -22,6 +23,7 @@ import passwordConfig from '@common/config/password.config';
 import mailConfig from '@common/config/mail.config';
 import s3Config from '@common/config/s3.config';
 import redisConfig from '@common/config/redis.config';
+import bullmqConfig from '@common/config/bullmq.config';
 import { REDIS_CLIENT } from '@common/constants/redis.constant';
 import Redis from 'ioredis';
 import { WebsocketAuthService } from '@common/services/websocket-auth.service';
@@ -41,7 +43,14 @@ const service = [
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [jwtConfig, passwordConfig, mailConfig, s3Config, redisConfig],
+      load: [
+        jwtConfig,
+        passwordConfig,
+        mailConfig,
+        s3Config,
+        redisConfig,
+        bullmqConfig,
+      ],
     }),
     JwtModule,
     MailerModule.forRootAsync({
@@ -69,6 +78,22 @@ const service = [
           },
         };
       },
+    }),
+    BullModule.forRootAsync({
+      inject: [redisConfig.KEY, bullmqConfig.KEY],
+      useFactory: (
+        redis: ConfigType<typeof redisConfig>,
+        bullmq: ConfigType<typeof bullmqConfig>,
+      ) => ({
+        connection: {
+          host: redis.host,
+          port: redis.port,
+          password: redis.password,
+          db: redis.db,
+        },
+
+        defaultJobOptions: bullmq.defaultJobOptions,
+      }),
     }),
   ],
   providers: [

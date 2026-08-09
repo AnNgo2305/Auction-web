@@ -64,6 +64,9 @@ model User {
   receivedConversations  Conversation[] @relation("User_Has_ReceivedConversations")
   sentMessages           Message[]      @relation("User_Has_SentMessages")
 
+  notificationsReceived Notification[] @relation("User_Has_Notifications")
+  notificationActions   Notification[] @relation("User_Has_NotificationActions")
+
   @@map("users")
 }
 
@@ -497,4 +500,35 @@ model Message {
 
   @@index([conversationId, createdAt])
   @@map("messages")
+}
+
+enum NotificationType {
+  MESSAGE
+}
+
+model Notification {
+  notificationId String           @id @default(uuid(7)) @map("notification_id") @db.Char(36)
+  type           NotificationType
+
+  recipientId String @map("recipient_id") @db.Char(36)
+  recipient   User   @relation("User_Has_Notifications", fields: [recipientId], references: [userId], onDelete: Cascade)
+
+  actorId String? @map("actor_id") @db.Char(36)
+  actor   User?   @relation("User_Has_NotificationActions", fields: [actorId], references: [userId], onDelete: Cascade)
+
+  entityId   String @map("entity_id") @db.Char(36)
+  entityType String @map("entity_type") @db.VarChar(50)
+
+  metadata Json?
+
+  isRead Boolean @default(false) @map("is_read")
+
+  actorCount Int @default(1) @map("actor_count")
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  readAt    DateTime? @map("read_at") @db.Timestamp(0)
+
+  @@index([recipientId, createdAt])
+  @@index([recipientId, isRead, createdAt])
+  @@map("notifications")
 }

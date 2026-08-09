@@ -30,6 +30,8 @@ export class MessageResponseDto {
 
   sender!: MessageUserResponseDto;
 
+  recipientId?: string;
+
   type!: MessageType;
 
   content?: string | null;

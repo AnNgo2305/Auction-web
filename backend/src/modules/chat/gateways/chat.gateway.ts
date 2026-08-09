@@ -26,6 +26,9 @@ import { TypingMessageBodyDto } from '@modules/chat/dtos/message/typing-message.
 import { ReadMessageDto } from '@modules/chat/dtos/message/read-message.body.dto';
 import { UpdateMessageDto } from '@modules/chat/dtos/message/update-message.body.dto';
 import { DeleteMessageDto } from '@modules/chat/dtos/message/delete-message.body.dto';
+import { MessageSentEvent } from '@modules/chat/events/message-sent.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { INTERNAL_EVENTS } from '@common/constants/event.constant';
 
 interface SocketData {
   userId: string;
@@ -49,6 +52,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly rateLimitService: RateLimitService,
     private readonly messageIdempotencyService: MessageIdempotencyService,
     private readonly logger: LoggerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -169,26 +173,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         message,
       });
 
-      client
-        .to(WS_ROOMS.CONVERSATION(payload.conversationId))
-        .emit(CHAT_EVENTS.MESSAGE_NEW, {
-          message,
-        });
+      const conversationRoom = WS_ROOMS.CONVERSATION(payload.conversationId);
+      const sockets = await this.server.in(conversationRoom).fetchSockets();
 
-      this.server
-        .to(WS_ROOMS.CONVERSATION(payload.conversationId))
-        .emit(CHAT_EVENTS.CONVERSATION_UPDATED, {
-          conversationId: payload.conversationId,
-          lastMessage: {
-            messageId: message.messageId,
-            content: message.content,
-            type: message.type,
-            senderId: message.sender.userId,
-            senderName: message.sender.username,
-            createdAt: message.createdAt,
-          },
-          updatedAt: message.createdAt,
-        });
+      const recipientId = message?.recipientId ?? '';
+      const recipientInRoom = sockets.some(
+        (socket) => (socket.data as SocketData).userId === recipientId,
+      );
+
+      if (recipientInRoom) {
+        client
+          .to(WS_ROOMS.CONVERSATION(payload.conversationId))
+          .emit(CHAT_EVENTS.MESSAGE_NEW, {
+            message,
+          });
+
+        this.server
+          .to(WS_ROOMS.CONVERSATION(payload.conversationId))
+          .emit(CHAT_EVENTS.CONVERSATION_UPDATED, {
+            conversationId: payload.conversationId,
+            lastMessage: {
+              messageId: message.messageId,
+              content: message.content,
+              type: message.type,
+              senderId: message.sender.userId,
+              senderName: message.sender.username,
+              createdAt: message.createdAt,
+            },
+            updatedAt: message.createdAt,
+          });
+      } else {
+        this.eventEmitter.emit(
+          INTERNAL_EVENTS.MESSAGE_SENT,
+          new MessageSentEvent(
+            message.messageId,
+            message.conversationId,
+            currentUserId,
+            recipientId,
+          ),
+        );
+      }
     } catch (error) {
       if (idempotencyAcquired) {
         await this.messageIdempotencyService.remove(
