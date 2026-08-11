@@ -6,7 +6,7 @@ import { INTERNAL_EVENTS } from '@common/constants/event.constant';
 import { MESSAGE_NOTIFICATION_QUEUE } from '@common/constants/queue.constant';
 import { MessageSentEvent } from '@modules/chat/events/message-sent.event';
 import { NotificationService } from '@modules/notification/notification.service';
-import { NotificationPayload } from '@modules/notification/notification.constant';
+import { NotificationPayload } from '@modules/notification/constants/notification.constant';
 import { NotificationType } from '@generated/prisma/enums';
 
 const MESSAGE_AGGREGATION_DELAY_MS = 10_000;

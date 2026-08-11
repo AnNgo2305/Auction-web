@@ -22,7 +22,6 @@ export const ERROR_CONVERSATION_NOT_FOUND = {
   message: 'Conversation not found',
 };
 
-
 export const CONVERSATION_SELECT = {
   conversationId: true,
   initiator: {

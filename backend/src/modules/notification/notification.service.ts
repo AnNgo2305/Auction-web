@@ -1,16 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_CLIENT } from '@common/constants/redis.constant';
+import {
+  REDIS_CLIENT,
+  REDIS_KEYS,
+  REDIS_TTL,
+} from '@common/constants/redis.constant';
 import {
   ActorSnapshot,
-  AGGREGATION_TTL_SECONDS,
-  NOTIFICATION_DEDUP_TTL_SECONDS,
   NotificationPayload,
-} from '@modules/notification/notification.constant';
+} from '@modules/notification/constants/notification.constant';
 import { PrismaService } from '@common/services/prisma.service';
 import { LoggerService } from '@common/services/logger.service';
 import { NotificationDto } from '@modules/notification/dtos/notification.dto';
 import { Prisma } from '@generated/prisma/client';
+import { GetNotificationsResponseDto } from '@modules/notification/dtos/get-notifications.response.dto';
+import { NotificationsGateway } from '@modules/notification/notification.gateway';
 
 @Injectable()
 export class NotificationService {
@@ -19,46 +23,27 @@ export class NotificationService {
     private readonly redis: Redis,
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly notificationGateway: NotificationsGateway,
   ) {}
-
-  private getAggregationKey(
-    recipientId: string,
-    type: string,
-    entityId: string,
-  ): string {
-    return `notification:aggregation:${recipientId}:${type}:${entityId}`;
-  }
-
-  private getAggregationActorMetaKey(
-    recipientId: string,
-    type: string,
-    entityId: string,
-  ): string {
-    return `${this.getAggregationKey(recipientId, type, entityId)}:actors`;
-  }
-
-  private getAggregationMetaKey(
-    recipientId: string,
-    type: string,
-    entityId: string,
-  ): string {
-    return `${this.getAggregationKey(recipientId, type, entityId)}:meta`;
-  }
-
-  private getDedupKey(payload: NotificationPayload): string {
-    return `notification:dedup:${payload.type}:${payload.entityId}:${payload.recipientId}`;
-  }
 
   async addAggregationActor(payload: NotificationPayload): Promise<void> {
     const { recipientId, actorId, type, entityId, metadata } = payload;
 
-    const key = this.getAggregationKey(recipientId, type, entityId);
-    const actorMetaKey = this.getAggregationActorMetaKey(
+    const key = REDIS_KEYS.NOTIFICATION.AGGREGATION(
       recipientId,
       type,
       entityId,
     );
-    const metaKey = this.getAggregationMetaKey(recipientId, type, entityId);
+    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTORS(
+      recipientId,
+      type,
+      entityId,
+    );
+    const metaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_META(
+      recipientId,
+      type,
+      entityId,
+    );
 
     const now = Date.now();
     const messageId =
@@ -77,9 +62,9 @@ export class NotificationService {
     }
 
     multi.set(metaKey, now);
-    multi.expire(key, AGGREGATION_TTL_SECONDS);
-    multi.expire(actorMetaKey, AGGREGATION_TTL_SECONDS);
-    multi.expire(metaKey, AGGREGATION_TTL_SECONDS);
+    multi.expire(key, REDIS_TTL.NOTIFICATION.AGGREGATION);
+    multi.expire(actorMetaKey, REDIS_TTL.NOTIFICATION.AGGREGATION);
+    multi.expire(metaKey, REDIS_TTL.NOTIFICATION.AGGREGATION);
 
     await multi.exec();
   }
@@ -87,13 +72,17 @@ export class NotificationService {
   async createNotification(
     payload: NotificationPayload,
   ): Promise<NotificationDto | null> {
-    const dedupKey = this.getDedupKey(payload);
+    const dedupKey = REDIS_KEYS.NOTIFICATION.DEDUP(
+      payload.type,
+      payload.entityId,
+      payload.recipientId,
+    );
 
     const isNew = await this.redis.set(
       dedupKey,
       '1',
       'EX',
-      NOTIFICATION_DEDUP_TTL_SECONDS,
+      REDIS_TTL.NOTIFICATION.DEDUP,
       'NX',
     );
 
@@ -119,21 +108,133 @@ export class NotificationService {
     return notification;
   }
 
+  async refreshUnreadCount(recipientId: string): Promise<number> {
+    const key = REDIS_KEYS.NOTIFICATION.UNREAD_COUNT(recipientId);
+
+    this.logger.log(`[REFRESH_UNREAD_COUNT] recipient=${recipientId}`);
+
+    const unreadCount = await this.prisma.notification.count({
+      where: {
+        recipientId,
+        isRead: false,
+      },
+    });
+
+    await this.redis.set(
+      key,
+      unreadCount,
+      'EX',
+      REDIS_TTL.NOTIFICATION.UNREAD_COUNT,
+    );
+
+    this.logger.log(
+      `[REFRESH_UNREAD_COUNT] count=${unreadCount} recipient=${recipientId}`,
+    );
+
+    return unreadCount;
+  }
+
+  async getUnreadCount(recipientId: string): Promise<number> {
+    const key = REDIS_KEYS.NOTIFICATION.UNREAD_COUNT(recipientId);
+
+    this.logger.log(`[GET_UNREAD_COUNT] recipient=${recipientId}`);
+
+    const cachedCount = await this.redis.get(key);
+
+    if (cachedCount !== null) {
+      const unreadCount = Number(cachedCount);
+
+      this.logger.log(
+        `[GET_UNREAD_COUNT] cache-hit count=${unreadCount} recipient=${recipientId}`,
+      );
+
+      return unreadCount;
+    }
+
+    this.logger.log(`[GET_UNREAD_COUNT] cache-miss recipient=${recipientId}`);
+
+    return this.refreshUnreadCount(recipientId);
+  }
+
+  async getNotifications(
+    recipientId: string,
+    cursor?: string,
+    limit = 10,
+  ): Promise<GetNotificationsResponseDto> {
+    this.logger.log(
+      `[GET_NOTIFICATIONS] recipient=${recipientId} cursor=${cursor ?? 'null'} limit=${limit}`,
+    );
+
+    const notifications = await this.prisma.notification.findMany({
+      where: {
+        recipientId,
+      },
+      take: limit + 1,
+      ...(cursor && {
+        cursor: {
+          notificationId: cursor,
+        },
+        skip: 1,
+      }),
+      orderBy: {
+        notificationId: 'desc',
+      },
+      select: {
+        notificationId: true,
+        recipientId: true,
+        actorId: true,
+        type: true,
+        entityId: true,
+        entityType: true,
+        metadata: true,
+        isRead: true,
+        createdAt: true,
+        readAt: true,
+      },
+    });
+
+    const hasMore = notifications.length > limit;
+    const sliced = hasMore ? notifications.slice(0, limit) : notifications;
+
+    this.logger.log(
+      `[GET_NOTIFICATIONS] found=${sliced.length} hasMore=${hasMore} recipient=${recipientId}`,
+    );
+
+    return {
+      notifications: sliced,
+      nextCursor: hasMore ? sliced[sliced.length - 1].notificationId : null,
+    };
+  }
+
   async aggregateNotification(
     payload: NotificationPayload,
   ): Promise<NotificationDto | null> {
     // Build the Redis aggregation key.
     const { recipientId, type, entityId, entityType } = payload;
-    const aggregationKey = this.getAggregationKey(recipientId, type, entityId);
-    const actorMetaKey = this.getAggregationActorMetaKey(
+    const aggregationKey = REDIS_KEYS.NOTIFICATION.AGGREGATION(
+      recipientId,
+      type,
+      entityId,
+    );
+    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTORS(
       recipientId,
       type,
       entityId,
     );
 
     // Move the current aggregation buffer to a processing key.
-    const processingKey = `${aggregationKey}:processing`;
-    const processingActorMetaKey = `${actorMetaKey}:processing`;
+    const processingKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_PROCESSING(
+      recipientId,
+      type,
+      entityId,
+    );
+
+    const processingActorMetaKey =
+      REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTORS_PROCESSING(
+        recipientId,
+        type,
+        entityId,
+      );
     try {
       await this.redis.rename(aggregationKey, processingKey);
       await this.redis.rename(actorMetaKey, processingActorMetaKey);
@@ -183,6 +284,7 @@ export class NotificationService {
         recipientId,
         type,
         entityId,
+        isRead: false,
       },
     });
 
@@ -208,6 +310,8 @@ export class NotificationService {
 
     // Create a new notification or update the existing one.
     const latestActorId = actorIds[actorIds.length - 1];
+    const shouldIncrementUnread = !existingNotification;
+
     const notification = existingNotification
       ? await this.prisma.notification.update({
           where: {
@@ -233,14 +337,121 @@ export class NotificationService {
             entityId,
             entityType,
             metadata: {
-              actors: mergedActors,
+              actors: newActors,
             } as unknown as Prisma.InputJsonValue,
           },
         });
 
+    if (shouldIncrementUnread) {
+      await this.incrementUnreadCount(recipientId);
+    }
+
     // Delete the processing key and return
     await this.redis.del(processingKey, processingActorMetaKey);
     return notification;
+  }
+
+  async markAsRead(
+    recipientId: string,
+    notificationId: string,
+  ): Promise<NotificationDto | null> {
+    this.logger.log(
+      `[MARK_AS_READ] recipient=${recipientId} notification=${notificationId}`,
+    );
+
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        notificationId,
+        recipientId,
+      },
+    });
+
+    if (!notification) {
+      this.logger.warn(
+        `[MARK_AS_READ] Notification not found: recipient=${recipientId} notification=${notificationId}`,
+      );
+      return null;
+    }
+
+    if (notification.isRead) {
+      this.logger.log(
+        `[MARK_AS_READ] Already read: notification=${notificationId}`,
+      );
+      return notification;
+    }
+
+    const updatedNotification = await this.prisma.notification.update({
+      where: {
+        notificationId,
+      },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+
+    const unreadCount = await this.refreshUnreadCount(recipientId);
+    this.notificationGateway.emitUnreadCount(recipientId, unreadCount);
+    this.logger.log(`[MARK_AS_READ] Success: notification=${notificationId}`);
+    return updatedNotification;
+  }
+
+  async markAllAsRead(recipientId: string): Promise<number> {
+    this.logger.log(`[MARK_ALL_AS_READ] recipient=${recipientId}`);
+
+    const result = await this.prisma.notification.updateMany({
+      where: {
+        recipientId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+
+    const unreadCount = await this.refreshUnreadCount(recipientId);
+    this.notificationGateway.emitUnreadCount(recipientId, unreadCount);
+
+    this.logger.log(
+      `[MARK_ALL_AS_READ] updated=${result.count} recipient=${recipientId}`,
+    );
+
+    return result.count;
+  }
+
+  async deleteOldReadNotifications(): Promise<number> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+
+    this.logger.log(
+      `[DELETE_OLD_READ_NOTIFICATIONS] cutoff=${cutoffDate.toISOString()}`,
+    );
+
+    const result = await this.prisma.notification.deleteMany({
+      where: {
+        isRead: true,
+        readAt: {
+          lt: cutoffDate,
+        },
+      },
+    });
+
+    this.logger.log(`[DELETE_OLD_READ_NOTIFICATIONS] deleted=${result.count}`);
+
+    return result.count;
+  }
+
+  private async incrementUnreadCount(recipientId: string): Promise<void> {
+    const key = REDIS_KEYS.NOTIFICATION.UNREAD_COUNT(recipientId);
+    const exists = await this.redis.exists(key);
+
+    if (!exists) {
+      await this.refreshUnreadCount(recipientId);
+      return;
+    }
+
+    await this.redis.incr(key);
   }
 
   private buildNotificationActors(

@@ -7,7 +7,7 @@ import { MessageIdempotencyService } from '@modules/chat/services/message-idempo
 import { PresenceService } from '@modules/chat/services/presence.service';
 import { ChatGateway } from '@modules/chat/gateways/chat.gateway';
 import { PresenceGateway } from '@modules/chat/gateways/presence.gateway';
-import { PresenceScheduler } from '@modules/chat/schedulers/presence.scheduler';
+import { PresenceReconciler } from '@modules/chat/schedulers/presence.scheduler';
 
 @Module({
   imports: [EventEmitterModule],
@@ -19,7 +19,7 @@ import { PresenceScheduler } from '@modules/chat/schedulers/presence.scheduler';
     PresenceService,
     ChatGateway,
     PresenceGateway,
-    PresenceScheduler,
+    PresenceReconciler,
   ],
   exports: [ConversationService, MessageService, PresenceService],
 })

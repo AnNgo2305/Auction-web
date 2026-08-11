@@ -79,6 +79,7 @@ export class ChatController {
   }
 
   @Get('conversations/:conversationId/messages')
+  @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async getMessages(
     @Req() req: Request,

@@ -1,12 +1,13 @@
-import { WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { NotificationService } from '@modules/notification/notification.service';
 import { LoggerService } from '@common/services/logger.service';
-import { NotificationPayload } from '@modules/notification/notification.constant';
+import { NotificationPayload } from '@modules/notification/constants/notification.constant';
 import { Job } from 'bullmq';
 import { MESSAGE_NOTIFICATION_QUEUE } from '@common/constants/queue.constant';
 import { Injectable } from '@nestjs/common';
 import { NotificationsGateway } from '@modules/notification/notification.gateway';
 
+@Processor(MESSAGE_NOTIFICATION_QUEUE.NAME)
 @Injectable()
 export class MessageNotificationProcessor extends WorkerHost {
   constructor(
@@ -43,9 +44,18 @@ export class MessageNotificationProcessor extends WorkerHost {
       return;
     }
 
+    const unreadCount = await this.notificationService.getUnreadCount(
+      notification.recipientId,
+    );
+
     this.notificationsGateway.emitNotification(
       notification.recipientId,
       notification,
+    );
+
+    this.notificationsGateway.emitUnreadCount(
+      notification.recipientId,
+      unreadCount,
     );
   }
 }

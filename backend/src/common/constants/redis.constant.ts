@@ -21,6 +21,30 @@ export const REDIS_KEYS = {
     WATCHERS: (userId: string) => `presence:watchers:${userId}`,
     WATCHING: (userId: string) => `presence:watching:${userId}`,
   },
+  NOTIFICATION: {
+    UNREAD_COUNT: (recipientId: string) =>
+      `notification:unread-count:${recipientId}`,
+    AGGREGATION: (recipientId: string, type: string, entityId: string) =>
+      `notification:aggregation:${recipientId}:${type}:${entityId}`,
+    AGGREGATION_ACTORS: (recipientId: string, type: string, entityId: string) =>
+      `notification:aggregation:${recipientId}:${type}:${entityId}:actors`,
+    AGGREGATION_META: (recipientId: string, type: string, entityId: string) =>
+      `notification:aggregation:${recipientId}:${type}:${entityId}:meta`,
+    AGGREGATION_PROCESSING: (
+      recipientId: string,
+      type: string,
+      entityId: string,
+    ) =>
+      `notification:aggregation:${recipientId}:${type}:${entityId}:processing`,
+    AGGREGATION_ACTORS_PROCESSING: (
+      recipientId: string,
+      type: string,
+      entityId: string,
+    ) =>
+      `notification:aggregation:${recipientId}:${type}:${entityId}:actors:processing`,
+    DEDUP: (type: string, entityId: string, recipientId: string) =>
+      `notification:dedup:${type}:${entityId}:${recipientId}`,
+  },
 } as const;
 
 export const REDIS_TTL = {
@@ -28,6 +52,11 @@ export const REDIS_TTL = {
     USER_SOCKETS: 60,
     HEARTBEAT: 60,
     LAST_SEEN: 60 * 60 * 24,
+  },
+  NOTIFICATION: {
+    AGGREGATION: 30,
+    DEDUP: 5 * 60,
+    UNREAD_COUNT: 60 * 60,
   },
 } as const;
 
