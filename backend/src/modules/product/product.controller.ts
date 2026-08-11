@@ -24,6 +24,7 @@ import { UpdateProductDto } from './dtos/update-product.body.dto';
 import { GetMyProductsQueryDto } from './dtos/get-my-products.query.dto';
 import { GetProductsQueryDto } from './dtos/get-products.query.dto';
 import { ProductStatusBulkActionDto } from './dtos/product-status-bulk-action.body.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('products')
 export class ProductController {
@@ -31,6 +32,11 @@ export class ProductController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @Throttle({
+    short: { ttl: 1_000, limit: 15 },
+    medium: { ttl: 10_000, limit: 75 },
+    long: { ttl: 60_000, limit: 300 },
+  })
   async getProducts(
     @Query() query: GetProductsQueryDto,
   ): Promise<ResponsePayload> {
@@ -45,6 +51,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Get('me')
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @HttpCode(HttpStatus.OK)
   async getMyProducts(
     @Req() req: Request,
@@ -64,6 +75,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch(':id/publish')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async publishProduct(
     @Req() req: Request,
@@ -80,6 +96,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch(':id/remove')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async removeProduct(
     @Req() req: Request,
@@ -96,6 +117,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch(':id/restore')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async restoreProduct(
     @Req() req: Request,
@@ -112,6 +138,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch('publish')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async publishProducts(
     @Req() req: Request,
@@ -128,6 +159,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch('remove')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async removeProducts(
     @Req() req: Request,
@@ -144,6 +180,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch('restore')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async restoreProducts(
     @Req() req: Request,
@@ -159,6 +200,11 @@ export class ProductController {
 
   @Get(':id')
   @Auth(AuthType.OPTIONAL)
+  @Throttle({
+    short: { ttl: 1_000, limit: 20 },
+    medium: { ttl: 10_000, limit: 100 },
+    long: { ttl: 60_000, limit: 500 },
+  })
   @HttpCode(HttpStatus.OK)
   async getProductById(
     @Param('id') productId: string,
@@ -178,6 +224,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Post()
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 20 },
+  })
   @HttpCode(HttpStatus.CREATED)
   async createProduct(
     @Req() req: Request,
@@ -194,6 +245,11 @@ export class ProductController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Put()
+  @Throttle({
+    short: { ttl: 1_000, limit: 5 },
+    medium: { ttl: 10_000, limit: 20 },
+    long: { ttl: 60_000, limit: 100 },
+  })
   @HttpCode(HttpStatus.OK)
   async updateProduct(
     @Req() req: Request,
@@ -209,6 +265,11 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Delete('bulk/:ids')
   @HttpCode(HttpStatus.OK)
   async deleteMultipleProducts(
@@ -228,6 +289,11 @@ export class ProductController {
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async deleteProduct(

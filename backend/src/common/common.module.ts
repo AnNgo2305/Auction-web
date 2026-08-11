@@ -24,9 +24,16 @@ import mailConfig from '@common/config/mail.config';
 import s3Config from '@common/config/s3.config';
 import redisConfig from '@common/config/redis.config';
 import bullmqConfig from '@common/config/bullmq.config';
-import { REDIS_CLIENT } from '@common/constants/redis.constant';
+import rateLimitConfig from '@common/config/rate-limit.config';
+import {
+  REDIS_CLIENT,
+  THROTTLER_REDIS,
+} from '@common/constants/redis.constant';
 import Redis from 'ioredis';
 import { WebsocketAuthService } from '@common/services/websocket-auth.service';
+import { MailProcessor } from '@common/services/mail.processor';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { RedisThrottlerStorageService } from '@common/services/redis-throttler-storage.service';
 
 const service = [
   LoggerService,
@@ -37,6 +44,8 @@ const service = [
   UserService,
   FileService,
   WebsocketAuthService,
+  RedisThrottlerStorageService,
+  MailProcessor,
 ];
 
 @Module({
@@ -50,9 +59,37 @@ const service = [
         s3Config,
         redisConfig,
         bullmqConfig,
+        rateLimitConfig,
       ],
     }),
     JwtModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [rateLimitConfig.KEY, RedisThrottlerStorageService],
+      useFactory: (
+        throttler: ConfigType<typeof rateLimitConfig>,
+        storage: RedisThrottlerStorageService,
+      ) => ({
+        throttlers: [
+          {
+            name: 'short',
+            ttl: throttler.short.ttl,
+            limit: throttler.short.limit,
+          },
+          {
+            name: 'medium',
+            ttl: throttler.medium.ttl,
+            limit: throttler.medium.limit,
+          },
+          {
+            name: 'long',
+            ttl: throttler.long.ttl,
+            limit: throttler.long.limit,
+          },
+        ],
+        storage,
+      }),
+    }),
     MailerModule.forRootAsync({
       inject: [mailConfig.KEY],
       useFactory: (mail: ConfigType<typeof mailConfig>) => {
@@ -123,6 +160,10 @@ const service = [
       useClass: RolesGuard,
     },
     {
+      provide: 'APP_GUARD',
+      useClass: ThrottlerGuard,
+    },
+    {
       provide: REDIS_CLIENT,
       inject: [redisConfig.KEY],
       useFactory: (redis: ConfigType<typeof redisConfig>) => {
@@ -134,7 +175,26 @@ const service = [
         });
       },
     },
+    {
+      provide: THROTTLER_REDIS,
+      inject: [redisConfig.KEY],
+      useFactory: (redis: ConfigType<typeof redisConfig>): Redis => {
+        return new Redis({
+          host: redis.host,
+          port: redis.port,
+          password: redis.password,
+          db: redis.db,
+          maxRetriesPerRequest: 3,
+          retryStrategy: (times) => {
+            if (times > 10) {
+              return null;
+            }
+            return Math.min(times * 200, 2000);
+          },
+        });
+      },
+    },
   ],
-  exports: [...service],
+  exports: [...service, REDIS_CLIENT],
 })
 export class CommonModule {}

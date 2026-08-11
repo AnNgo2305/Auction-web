@@ -1,4 +1,5 @@
 export const REDIS_CLIENT = 'REDIS_CLIENT';
+export const THROTTLER_REDIS = 'THROTTLER_REDIS';
 
 export const REDIS_LOCK_CONFIG = {
   CONVERSATION: {

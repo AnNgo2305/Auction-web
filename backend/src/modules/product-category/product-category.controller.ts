@@ -18,6 +18,7 @@ import { ResponsePayload } from '@common/types/response.interface';
 import { ProductCategoryService } from './product-category.service';
 import { CreateProductCategoryBodyDto } from './dtos/create-product-category.body.dto';
 import { DeleteProductCategoriesBodyDto } from './dtos/delete-product-categories.body.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('product-categories')
 export class ProductCategoryController {
@@ -28,6 +29,11 @@ export class ProductCategoryController {
   @Get('me')
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @HttpCode(HttpStatus.OK)
   async getMyProductCategories(@Req() req: Request): Promise<ResponsePayload> {
     const userId = req.user?.userId;
@@ -42,6 +48,11 @@ export class ProductCategoryController {
 
   @Post()
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.CREATED)
   async createProductCategory(
@@ -64,6 +75,11 @@ export class ProductCategoryController {
 
   @Delete(':categoryId')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 20 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async deleteProductCategoryById(
@@ -86,6 +102,11 @@ export class ProductCategoryController {
   @Delete()
   @Roles(Role.SELLER)
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 1 },
+    medium: { ttl: 10_000, limit: 3 },
+    long: { ttl: 60_000, limit: 10 },
+  })
   @HttpCode(HttpStatus.OK)
   async deleteProductCategories(
     @Req() req: Request,

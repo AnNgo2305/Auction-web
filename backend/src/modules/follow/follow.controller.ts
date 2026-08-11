@@ -15,6 +15,7 @@ import { AuthType } from '@common/types/auth-type.enum';
 import { Role } from '@generated/prisma/enums';
 import { Request } from 'express';
 import { ResponsePayload } from '@common/types/response.interface';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('follows')
 export class FollowController {
@@ -23,6 +24,11 @@ export class FollowController {
   @Post('follow/:sellerId')
   @Roles(Role.BIDDER)
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async follow(
     @Req() req: Request,
@@ -39,6 +45,11 @@ export class FollowController {
   @Post('unfollow/:sellerId')
   @Roles(Role.BIDDER)
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async unfollow(
     @Req() req: Request,
@@ -54,6 +65,11 @@ export class FollowController {
 
   @Post('accept/:bidderId')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async accept(
@@ -71,6 +87,11 @@ export class FollowController {
 
   @Post('decline/:bidderId')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async decline(
@@ -87,6 +108,11 @@ export class FollowController {
 
   @Post('cancel/:sellerId')
   @Roles(Role.BIDDER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async cancel(
@@ -105,6 +131,11 @@ export class FollowController {
 
   @Post('block/:bidderId')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async block(
@@ -121,6 +152,11 @@ export class FollowController {
 
   @Post('unblock/:bidderId')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async unblock(
@@ -139,6 +175,11 @@ export class FollowController {
 
   @Get('followers/:sellerId')
   @Auth(AuthType.OPTIONAL)
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @HttpCode(HttpStatus.OK)
   async getFollowers(
     @Req() req: Request,
@@ -163,6 +204,11 @@ export class FollowController {
 
   @Get('followings/:bidderId')
   @Auth(AuthType.OPTIONAL)
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @HttpCode(HttpStatus.OK)
   async getFollowings(
     @Req() req: Request,
@@ -187,6 +233,11 @@ export class FollowController {
 
   @Get('blocked')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async getBlockedUsers(
@@ -210,6 +261,11 @@ export class FollowController {
 
   @Get('pending')
   @Roles(Role.SELLER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async getPendingReceivedFollowRequests(
@@ -233,6 +289,11 @@ export class FollowController {
 
   @Get('sent')
   @Roles(Role.BIDDER)
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   async getSentFollowRequests(

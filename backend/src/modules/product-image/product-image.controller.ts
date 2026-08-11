@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Delete,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Put,
@@ -16,6 +18,7 @@ import { UpdateProductImagesDto } from '@modules/product-image/dtos/update-produ
 import { DeleteProductImagesDto } from '@modules/product-image/dtos/delete-product-images.body.dto';
 import { ResponsePayload } from '@common/types/response.interface';
 import { Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('product-images')
 export class ProductImageController {
@@ -24,6 +27,12 @@ export class ProductImageController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Put(':productId/images')
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 15 },
+  })
+  @HttpCode(HttpStatus.OK)
   async updateProductImages(
     @Param('productId') productId: string,
     @Body() body: UpdateProductImagesDto,
@@ -44,6 +53,12 @@ export class ProductImageController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Delete(':productId/images/:imageId')
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 20 },
+  })
+  @HttpCode(HttpStatus.OK)
   async deleteProductImage(
     @Param('productId') productId: string,
     @Param('imageId') imageId: string,
@@ -64,6 +79,12 @@ export class ProductImageController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Delete(':productId/images')
+  @Throttle({
+    short: { ttl: 1_000, limit: 1 },
+    medium: { ttl: 10_000, limit: 3 },
+    long: { ttl: 60_000, limit: 10 },
+  })
+  @HttpCode(HttpStatus.OK)
   async deleteMultipleProductImages(
     @Param('productId') productId: string,
     @Body() body: DeleteProductImagesDto,
@@ -84,6 +105,12 @@ export class ProductImageController {
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
   @Patch(':productId/images/:imageId/primary')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
+  @HttpCode(HttpStatus.OK)
   async setPrimaryImage(
     @Req() req: Request,
     @Param('productId') productId: string,

@@ -13,6 +13,7 @@ import { PresignedUrlRequestDto } from '@modules/upload/dtos/create-presigned-up
 import { ResponsePayload } from '@common/types/response.interface';
 import { UploadService } from '@modules/upload/upload.service';
 import { ConfirmUploadRequestDto } from '@modules/upload/dtos/confirm-upload.body.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('upload')
 export class UploadController {
@@ -20,6 +21,11 @@ export class UploadController {
 
   @Post('presigned-urls')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 15 },
+  })
   @HttpCode(HttpStatus.OK)
   async getPresignedUrls(
     @Req() req: Request,
@@ -44,6 +50,11 @@ export class UploadController {
 
   @Post('confirm')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 35 },
+  })
   @HttpCode(HttpStatus.OK)
   async confirmUpload(
     @Body() body: ConfirmUploadRequestDto,

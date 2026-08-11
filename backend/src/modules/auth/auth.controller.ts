@@ -19,12 +19,18 @@ import { VerifyOtpDto } from '@modules/auth/dtos/verify-otp.body.dto';
 import { ForgotPasswordResponseDto } from '@modules/auth/dtos/forgot-password.response.dto';
 import { ForgotPasswordBodyDto } from '@modules/auth/dtos/forgot-password.body.dto';
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 60_000, limit: 10 },
+    long: { ttl: 900_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginBodyDto: LoginBodyDto,
@@ -44,6 +50,11 @@ export class AuthController {
   }
 
   @Post('register')
+  @Throttle({
+    short: { ttl: 60_000, limit: 3 },
+    medium: { ttl: 600_000, limit: 10 },
+    long: { ttl: 3_600_000, limit: 20 },
+  })
   @HttpCode(HttpStatus.CREATED)
   async register(
     @Body() registerBodyDto: RegisterBodyDto,
@@ -57,6 +68,11 @@ export class AuthController {
   }
 
   @Post('refresh-token')
+  @Throttle({
+    short: { ttl: 1_000, limit: 5 },
+    medium: { ttl: 60_000, limit: 30 },
+    long: { ttl: 900_000, limit: 100 },
+  })
   @HttpCode(HttpStatus.OK)
   async refreshToken(
     @Req() req: Request,
@@ -71,6 +87,11 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @Throttle({
+    short: { ttl: 60_000, limit: 3 },
+    medium: { ttl: 600_000, limit: 10 },
+    long: { ttl: 3_600_000, limit: 20 },
+  })
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<ResponsePayload> {
     await this.authService.resetPassword(dto);
@@ -81,6 +102,11 @@ export class AuthController {
   }
 
   @Post('verify-email-otp')
+  @Throttle({
+    short: { ttl: 60_000, limit: 5 },
+    medium: { ttl: 600_000, limit: 10 },
+    long: { ttl: 3_600_000, limit: 20 },
+  })
   @HttpCode(HttpStatus.OK)
   async verifyEmailOtp(@Body() dto: VerifyOtpDto): Promise<ResponsePayload> {
     await this.authService.verifyEmailOtp(dto);
@@ -91,6 +117,11 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Throttle({
+    short: { ttl: 1_000, limit: 5 },
+    medium: { ttl: 60_000, limit: 30 },
+    long: { ttl: 900_000, limit: 100 },
+  })
   @HttpCode(HttpStatus.OK)
   async logout(
     @Req() req: Request,
@@ -104,6 +135,11 @@ export class AuthController {
   }
 
   @Post('logout-all')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 60_000, limit: 10 },
+    long: { ttl: 900_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async logoutAll(
     @Req() req: Request,
@@ -118,6 +154,11 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @Throttle({
+    short: { ttl: 60_000, limit: 2 },
+    medium: { ttl: 600_000, limit: 5 },
+    long: { ttl: 3_600_000, limit: 10 },
+  })
   @HttpCode(HttpStatus.OK)
   async forgotPassword(
     @Body() dto: ForgotPasswordBodyDto,
@@ -131,6 +172,11 @@ export class AuthController {
   }
 
   @Post('verify-reset-password-otp')
+  @Throttle({
+    short: { ttl: 60_000, limit: 5 },
+    medium: { ttl: 600_000, limit: 10 },
+    long: { ttl: 3_600_000, limit: 20 },
+  })
   @HttpCode(HttpStatus.OK)
   async verifyResetPasswordOtp(
     @Body() dto: VerifyOtpDto,
@@ -144,6 +190,11 @@ export class AuthController {
   }
 
   @Post('resend-otp')
+  @Throttle({
+    short: { ttl: 60_000, limit: 2 },
+    medium: { ttl: 600_000, limit: 5 },
+    long: { ttl: 3_600_000, limit: 10 },
+  })
   @HttpCode(HttpStatus.OK)
   async resendOtp(@Body() dto: ResendOtpEmailDto): Promise<ResponsePayload> {
     await this.authService.resendOtpEmail(dto);

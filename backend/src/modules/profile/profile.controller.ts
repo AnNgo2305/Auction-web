@@ -22,6 +22,7 @@ import { ChangePasswordDto } from '@modules/profile/dtos/change-password.body.dt
 import { UpdateCoverImageDto } from '@modules/profile/dtos/update-cover-image.body.dto';
 import { UpdateProfileImageDto } from '@modules/profile/dtos/update-profile-image.body.dto';
 import { RefreshTokenService } from '@modules/refresh-token/refresh-token.service';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('profile')
 export class ProfileController {
@@ -32,6 +33,11 @@ export class ProfileController {
 
   @Patch('password')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 1 },
+    medium: { ttl: 10_000, limit: 3 },
+    long: { ttl: 60_000, limit: 5 },
+  })
   @HttpCode(HttpStatus.OK)
   async changePassword(
     @Req() request: Request,
@@ -49,6 +55,11 @@ export class ProfileController {
 
   @Get('sessions')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 5 },
+    medium: { ttl: 10_000, limit: 20 },
+    long: { ttl: 60_000, limit: 100 },
+  })
   @HttpCode(HttpStatus.OK)
   async getActiveSessions(@Req() request: Request): Promise<ResponsePayload> {
     const userId = request.user!.userId;
@@ -67,6 +78,11 @@ export class ProfileController {
 
   @Delete('sessions/:sessionId')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 20 },
+  })
   @HttpCode(HttpStatus.OK)
   async revokeSession(
     @Req() request: Request,
@@ -84,6 +100,11 @@ export class ProfileController {
 
   @Get(':userId')
   @Auth(AuthType.OPTIONAL)
+  @Throttle({
+    short: { ttl: 1_000, limit: 20 },
+    medium: { ttl: 10_000, limit: 100 },
+    long: { ttl: 60_000, limit: 500 },
+  })
   @HttpCode(HttpStatus.OK)
   async getUserProfile(
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -100,6 +121,11 @@ export class ProfileController {
 
   @Put()
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
   @HttpCode(HttpStatus.OK)
   async updateProfile(
     @Req() req: Request,
@@ -119,6 +145,11 @@ export class ProfileController {
 
   @Patch('avatar')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 15 },
+  })
   @HttpCode(HttpStatus.OK)
   async updateProfileImage(
     @Req() request: Request,
@@ -137,6 +168,11 @@ export class ProfileController {
 
   @Patch('cover')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 15 },
+  })
   @HttpCode(HttpStatus.OK)
   async updateCoverImage(
     @Req() request: Request,
@@ -155,6 +191,11 @@ export class ProfileController {
 
   @Delete('avatar')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 15 },
+  })
   @HttpCode(HttpStatus.OK)
   async deleteProfileImage(@Req() request: Request): Promise<ResponsePayload> {
     const userId = request.user!.userId;
@@ -169,6 +210,11 @@ export class ProfileController {
 
   @Delete('cover')
   @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 2 },
+    medium: { ttl: 10_000, limit: 5 },
+    long: { ttl: 60_000, limit: 15 },
+  })
   @HttpCode(HttpStatus.OK)
   async deleteCoverImage(@Req() request: Request): Promise<ResponsePayload> {
     const userId = request.user!.userId;
