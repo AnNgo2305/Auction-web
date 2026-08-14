@@ -24,16 +24,23 @@ import mailConfig from '@common/config/mail.config';
 import s3Config from '@common/config/s3.config';
 import redisConfig from '@common/config/redis.config';
 import bullmqConfig from '@common/config/bullmq.config';
-import rateLimitConfig from '@common/config/rate-limit.config';
-import {
-  REDIS_CLIENT,
-  THROTTLER_REDIS,
-} from '@common/constants/redis.constant';
+import { REDIS_CLIENT } from '@common/constants/redis.constant';
 import Redis from 'ioredis';
 import { WebsocketAuthService } from '@common/services/websocket-auth.service';
 import { MailProcessor } from '@common/services/mail.processor';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { RedisThrottlerStorageService } from '@common/services/redis-throttler-storage.service';
+import { ThrottlerModule as NestThrottlerModule } from '@nestjs/throttler/dist/throttler.module';
+import { RedisThrottlerStorageModule } from '@common/throttler/redis-throttler-storage.module';
+import rateLimitConfig from '@common/config/rate-limit.config';
+import { RedisThrottlerStorageService } from '@common/throttler/redis-throttler-storage.service';
+import {
+  MAIL_QUEUE,
+  MESSAGE_NOTIFICATION_QUEUE,
+} from '@common/constants/queue.constant';
+import { RateLimitService } from '@common/services/rate-limit.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { RateLimitGuard } from '@common/guards/rate-limit.guard';
+import { CsrfService } from '@common/services/csrf.service';
+import { csrfConfig } from '@common/config/csrf.config';
 
 const service = [
   LoggerService,
@@ -44,8 +51,9 @@ const service = [
   UserService,
   FileService,
   WebsocketAuthService,
-  RedisThrottlerStorageService,
   MailProcessor,
+  RateLimitService,
+  CsrfService,
 ];
 
 @Module({
@@ -60,11 +68,13 @@ const service = [
         redisConfig,
         bullmqConfig,
         rateLimitConfig,
+        csrfConfig,
       ],
     }),
     JwtModule,
-    ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
+    EventEmitterModule.forRoot(),
+    NestThrottlerModule.forRootAsync({
+      imports: [ConfigModule, RedisThrottlerStorageModule],
       inject: [rateLimitConfig.KEY, RedisThrottlerStorageService],
       useFactory: (
         throttler: ConfigType<typeof rateLimitConfig>,
@@ -128,10 +138,13 @@ const service = [
           password: redis.password,
           db: redis.db,
         },
-
         defaultJobOptions: bullmq.defaultJobOptions,
       }),
     }),
+    BullModule.registerQueue(
+      { name: MAIL_QUEUE.NAME },
+      { name: MESSAGE_NOTIFICATION_QUEUE.NAME },
+    ),
   ],
   providers: [
     ...service,
@@ -161,7 +174,7 @@ const service = [
     },
     {
       provide: 'APP_GUARD',
-      useClass: ThrottlerGuard,
+      useClass: RateLimitGuard,
     },
     {
       provide: REDIS_CLIENT,
@@ -172,25 +185,6 @@ const service = [
           port: redis.port,
           password: redis.password,
           db: redis.db,
-        });
-      },
-    },
-    {
-      provide: THROTTLER_REDIS,
-      inject: [redisConfig.KEY],
-      useFactory: (redis: ConfigType<typeof redisConfig>): Redis => {
-        return new Redis({
-          host: redis.host,
-          port: redis.port,
-          password: redis.password,
-          db: redis.db,
-          maxRetriesPerRequest: 3,
-          retryStrategy: (times) => {
-            if (times > 10) {
-              return null;
-            }
-            return Math.min(times * 200, 2000);
-          },
         });
       },
     },

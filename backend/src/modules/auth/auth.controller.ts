@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -20,10 +21,29 @@ import { ForgotPasswordResponseDto } from '@modules/auth/dtos/forgot-password.re
 import { ForgotPasswordBodyDto } from '@modules/auth/dtos/forgot-password.body.dto';
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
 import { Throttle } from '@nestjs/throttler';
+import { CsrfService } from '@common/services/csrf.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly csrfService: CsrfService,
+  ) {}
+
+  @Get('csrf-token')
+  getCsrfToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): ResponsePayload {
+    const csrfToken = this.csrfService.generateToken(req, res);
+
+    return {
+      message: 'CSRF token generated successfully',
+      data: {
+        csrfToken,
+      },
+    };
+  }
 
   @Post('login')
   @Throttle({

@@ -81,3 +81,9 @@ export const ERROR_MISSING_COOKIE_HEADER = {
   errorCode: 'MISSING_COOKIE_HEADER',
   message: 'Cookie header is missing',
 };
+
+export const ERROR_TOO_MANY_REQUESTS = {
+  statusCode: 429,
+  errorCode: 'TOO_MANY_REQUESTS',
+  message: 'Too many requests, please try again later',
+};

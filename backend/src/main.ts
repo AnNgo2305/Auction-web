@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { LoggerService } from '@common/services/logger.service';
+import { CsrfService } from '@common/services/csrf.service';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 const bootstrapLogger = new LoggerService('Bootstrap');
 
@@ -14,6 +16,8 @@ async function bootstrap(): Promise<{
     logger: new LoggerService('NestFactory'),
   });
 
+  app.use(helmet());
+
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://127.0.0.1:5173',
     credentials: true,
@@ -21,6 +25,8 @@ async function bootstrap(): Promise<{
   });
 
   app.use(cookieParser());
+  const csrfService = app.get(CsrfService);
+  app.use(csrfService.protection);
 
   const port = process.env.PORT || 3000;
   const host = process.env.HOST || '127.0.0.1';
