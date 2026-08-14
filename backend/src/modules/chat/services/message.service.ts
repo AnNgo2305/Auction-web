@@ -45,6 +45,8 @@ export class MessageService {
             recipientId: currentUserId,
           },
         ],
+        deletedByInitiatorAt: null,
+        deletedByRecipientAt: null,
       },
       select: {
         conversationId: true,
@@ -117,31 +119,42 @@ export class MessageService {
 
   async deleteMessage(currentUserId: string, messageId: string): Promise<void> {
     this.logger.log(`[CHAT] delete message: ${messageId} by ${currentUserId}`);
-    const message = await this.prisma.message.findFirst({
-      where: {
-        messageId,
-        senderId: currentUserId,
-      },
-      select: {
-        messageId: true,
-        conversationId: true,
-      },
-    });
-
-    if (!message) {
-      this.logger.warn(`[CHAT] message not found: ${messageId}`);
-      throw new NotFoundException(ERROR_MESSAGE_NOT_FOUND);
-    }
 
     await this.prisma.$transaction(async (tx) => {
-      const conversation = await tx.conversation.findUnique({
+      const message = await tx.message.findFirst({
+        where: {
+          messageId,
+          senderId: currentUserId,
+        },
+        select: {
+          messageId: true,
+          conversationId: true,
+        },
+      });
+
+      if (!message) {
+        this.logger.warn(`[CHAT] message not found: ${messageId}`);
+        throw new NotFoundException(ERROR_MESSAGE_NOT_FOUND);
+      }
+
+      const conversation = await tx.conversation.findFirst({
         where: {
           conversationId: message.conversationId,
+          deletedByInitiatorAt: null,
+          deletedByRecipientAt: null,
         },
         select: {
           lastMessageId: true,
         },
       });
+
+      if (!conversation) {
+        this.logger.warn(
+          `[CHAT] conversation not found or deleted: ${message.conversationId}`,
+        );
+
+        throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
+      }
 
       await tx.message.delete({
         where: {
@@ -149,7 +162,7 @@ export class MessageService {
         },
       });
 
-      if (conversation?.lastMessageId === messageId) {
+      if (conversation.lastMessageId === messageId) {
         const latestMessage = await tx.message.findFirst({
           where: {
             conversationId: message.conversationId,
@@ -183,37 +196,60 @@ export class MessageService {
   ): Promise<MessageResponseDto> {
     this.logger.log(`[CHAT] update message: ${messageId} by ${currentUserId}`);
 
-    const message = await this.prisma.message.findUnique({
-      where: {
-        messageId,
-      },
-      select: {
-        senderId: true,
-        type: true,
-      },
-    });
+    const updatedMessage = await this.prisma.$transaction(async (tx) => {
+      const message = await tx.message.findUnique({
+        where: {
+          messageId,
+        },
+        select: {
+          messageId: true,
+          senderId: true,
+          type: true,
+          conversationId: true,
+        },
+      });
 
-    if (!message) {
-      this.logger.warn(`[CHAT] message not found: ${messageId}`);
-      throw new NotFoundException(ERROR_MESSAGE_NOT_FOUND);
-    }
+      if (!message) {
+        this.logger.warn(`[CHAT] message not found: ${messageId}`);
+        throw new NotFoundException(ERROR_MESSAGE_NOT_FOUND);
+      }
 
-    if (message.senderId !== currentUserId) {
-      throw new ForbiddenException(ERROR_CANNOT_EDIT_MESSAGE);
-    }
+      if (message.senderId !== currentUserId) {
+        throw new ForbiddenException(ERROR_CANNOT_EDIT_MESSAGE);
+      }
 
-    if (message.type !== MessageType.TEXT) {
-      throw new BadRequestException(ERROR_ONLY_TEXT_MESSAGE_CAN_BE_EDITED);
-    }
+      if (message.type !== MessageType.TEXT) {
+        throw new BadRequestException(ERROR_ONLY_TEXT_MESSAGE_CAN_BE_EDITED);
+      }
 
-    const updatedMessage = await this.prisma.message.update({
-      where: {
-        messageId,
-      },
-      data: {
-        content,
-      },
-      select: MESSAGE_SELECT,
+      const conversation = await tx.conversation.findFirst({
+        where: {
+          conversationId: message.conversationId,
+          deletedByInitiatorAt: null,
+          deletedByRecipientAt: null,
+        },
+        select: {
+          conversationId: true,
+        },
+      });
+
+      if (!conversation) {
+        this.logger.warn(
+          `[CHAT] conversation not found or deleted: ${message.conversationId}`,
+        );
+
+        throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
+      }
+
+      return tx.message.update({
+        where: {
+          messageId,
+        },
+        data: {
+          content,
+        },
+        select: MESSAGE_SELECT,
+      });
     });
 
     this.logger.log(`[CHAT] message updated: ${messageId}`);

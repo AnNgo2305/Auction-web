@@ -189,6 +189,6 @@ const service = [
       },
     },
   ],
-  exports: [...service, REDIS_CLIENT],
+  exports: [...service, REDIS_CLIENT, BullModule],
 })
 export class CommonModule {}

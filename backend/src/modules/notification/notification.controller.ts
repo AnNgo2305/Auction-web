@@ -47,7 +47,7 @@ export class NotificationController {
 
   @HttpCode(HttpStatus.OK)
   @Auth(AuthType.ACCESS_TOKEN)
-  @Get('unread-count')
+  @Get('unread')
   @Throttle({
     short: { ttl: 1_000, limit: 20 },
     medium: { ttl: 10_000, limit: 100 },

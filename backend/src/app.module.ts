@@ -24,6 +24,7 @@ import { ProductCommentService } from '@modules/product-comment/product-comment.
 import { ProductCommentModule } from '@modules/product-comment/product-comment.module';
 import { PermissionModule } from '@modules/permission/permission.module';
 import { ChatModule } from '@modules/chat/chat.module';
+import { NotificationModule } from '@modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ChatModule } from '@modules/chat/chat.module';
     ProductDocumentModule,
     ProductCommentModule,
     ChatModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

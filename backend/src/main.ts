@@ -25,8 +25,8 @@ async function bootstrap(): Promise<{
   });
 
   app.use(cookieParser());
-  const csrfService = app.get(CsrfService);
-  app.use(csrfService.protection);
+  // const csrfService = app.get(CsrfService);
+  // app.use(csrfService.protection);
 
   const port = process.env.PORT || 3000;
   const host = process.env.HOST || '127.0.0.1';
