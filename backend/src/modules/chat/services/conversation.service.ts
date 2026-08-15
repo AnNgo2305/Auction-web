@@ -133,47 +133,71 @@ export class ConversationService {
     }
   }
 
-  async getUserConversations(
-    currentUserId: string,
-    cursor?: string,
+  async getUserConversations({
+    currentUserId,
+    lastMessageAt,
+    conversationId,
     limit = 10,
-  ): Promise<GetConversationsResponseDto> {
+  }: {
+    currentUserId: string;
+    lastMessageAt?: string;
+    conversationId?: string;
+    limit?: number;
+  }): Promise<GetConversationsResponseDto> {
     this.logger.log(
-      `[GET_CONVERSATIONS] user=${currentUserId} cursor=${cursor ?? 'null'} limit=${limit}`,
+      `[GET_CONVERSATIONS] user=${currentUserId} lastMessageAt=${lastMessageAt ?? 'null'} conversationId=${conversationId ?? 'null'} limit=${limit}`,
     );
 
     const conversations = await this.prisma.conversation.findMany({
       where: {
-        OR: [
+        AND: [
           {
-            initiatorId: currentUserId,
-            deletedByInitiatorAt: null,
+            OR: [
+              {
+                initiatorId: currentUserId,
+                deletedByInitiatorAt: null,
+              },
+              {
+                recipientId: currentUserId,
+                deletedByRecipientAt: null,
+              },
+            ],
           },
-          {
-            recipientId: currentUserId,
-            deletedByRecipientAt: null,
-          },
+          ...(lastMessageAt && conversationId
+            ? [
+                {
+                  OR: [
+                    {
+                      lastMessageAt: {
+                        lt: new Date(lastMessageAt),
+                      },
+                    },
+                    {
+                      lastMessageAt: new Date(lastMessageAt),
+                      conversationId: {
+                        lt: conversationId,
+                      },
+                    },
+                  ],
+                },
+              ]
+            : []),
         ],
       },
-
       take: limit + 1,
-
-      ...(cursor && {
-        cursor: {
-          conversationId: cursor,
+      orderBy: [
+        {
+          lastMessageAt: 'desc',
         },
-        skip: 1,
-      }),
-
-      orderBy: {
-        conversationId: 'desc',
-      },
-
+        {
+          conversationId: 'desc',
+        },
+      ],
       select: {
         conversationId: true,
         initiatorId: true,
         recipientId: true,
-
+        lastMessageAt: true,
         initiator: {
           select: {
             userId: true,
@@ -185,7 +209,6 @@ export class ConversationService {
             },
           },
         },
-
         recipient: {
           select: {
             userId: true,
@@ -197,7 +220,6 @@ export class ConversationService {
             },
           },
         },
-
         lastMessage: {
           select: {
             messageId: true,
@@ -269,7 +291,13 @@ export class ConversationService {
         };
       }),
 
-      nextCursor: hasMore ? sliced[sliced.length - 1].conversationId : null,
+      nextCursor: hasMore
+        ? {
+            lastMessageAt:
+              sliced[sliced.length - 1].lastMessageAt!.toISOString(),
+            conversationId: sliced[sliced.length - 1].conversationId,
+          }
+        : null,
     };
   }
 

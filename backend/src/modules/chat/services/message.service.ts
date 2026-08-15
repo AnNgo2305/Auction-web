@@ -104,6 +104,7 @@ export class MessageService {
         },
         data: {
           lastMessageId: createdMessage.messageId,
+          lastMessageAt: createdMessage.createdAt,
         },
       });
 

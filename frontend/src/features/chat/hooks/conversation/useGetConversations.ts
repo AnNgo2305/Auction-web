@@ -4,15 +4,24 @@ import { conversationKeys } from '@/features/chat/constants/conversation-query-k
 
 const DEFAULT_LIMIT = 10;
 
+type ConversationCursor = {
+  lastMessageAt: string;
+  conversationId: string;
+};
+
 export function useGetConversations(limit: number = DEFAULT_LIMIT) {
   return useInfiniteQuery({
     queryKey: conversationKeys.list(),
 
     queryFn: async ({ pageParam }) => {
-      return await chatApi.getUserConversations(limit, pageParam);
+      return await chatApi.getUserConversations({
+        limit,
+        lastMessageAt: pageParam?.lastMessageAt,
+        conversationId: pageParam?.conversationId,
+      });
     },
 
-    initialPageParam: undefined as string | undefined,
+    initialPageParam: undefined as ConversationCursor | undefined,
 
     getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
 

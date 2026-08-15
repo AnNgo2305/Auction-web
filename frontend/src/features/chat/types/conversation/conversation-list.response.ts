@@ -22,9 +22,14 @@ export class ConversationItem {
   unreadCount!: number;
 }
 
+export class ConversationCursor {
+  lastMessageAt!: string;
+  conversationId!: string;
+}
+
 export class GetConversationsData {
   conversations!: ConversationItem[];
-  nextCursor!: string | null;
+  nextCursor!: ConversationCursor | null;
 }
 
 export type ConversationListResponse = ApiResponse<GetConversationsData>;

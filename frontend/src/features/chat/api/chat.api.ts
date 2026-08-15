@@ -27,16 +27,22 @@ export const chatApi = {
     return res.data;
   },
 
-  getUserConversations: async (
-    limit?: number,
-    cursor?: string,
-  ): Promise<ConversationListResponse> => {
+  getUserConversations: async ({
+    limit = 10,
+    lastMessageAt,
+    conversationId,
+  }: {
+    limit?: number;
+    lastMessageAt?: string;
+    conversationId?: string;
+  }): Promise<ConversationListResponse> => {
     const res = await api.get<ConversationListResponse>(
       `${CHAT_API_PREFIX}/conversations`,
       {
         params: {
           limit,
-          cursor,
+          lastMessageAt,
+          conversationId,
         },
       },
     );

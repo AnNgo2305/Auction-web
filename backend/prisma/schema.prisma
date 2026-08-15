@@ -454,6 +454,8 @@ model Conversation {
   deletedByInitiatorAt DateTime? @map("deleted_by_initiator_at") @db.Timestamp(0)
   deletedByRecipientAt DateTime? @map("deleted_by_recipient_at") @db.Timestamp(0)
 
+  lastMessageAt DateTime? @map("last_message_at") @db.Timestamp(0)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 

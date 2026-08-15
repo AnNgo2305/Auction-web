@@ -80,13 +80,15 @@ export class ChatController {
   async getUserConversations(
     @Req() req: Request,
     @Query('limit') limit?: number,
-    @Query('cursor') cursor?: string,
+    @Query('lastMessageAt') lastMessageAt?: string,
+    @Query('conversationId') conversationId?: string,
   ): Promise<ResponsePayload> {
-    const conversations = await this.conversationService.getUserConversations(
-      req.user!.userId,
-      cursor,
-      limit ? Number(limit) : 10,
-    );
+    const conversations = await this.conversationService.getUserConversations({
+      currentUserId: req.user!.userId,
+      lastMessageAt,
+      conversationId,
+      limit: limit ? Number(limit) : 10,
+    });
 
     return {
       message: 'Conversations retrieved successfully',
