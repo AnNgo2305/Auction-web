@@ -10,7 +10,7 @@ export class DeleteProductDocumentsDto {
   @ArrayMaxSize(10, {
     message: 'A maximum of 10 document IDs can be deleted at once.',
   })
-  @IsUUID('4', {
+  @IsUUID('7', {
     each: true,
     message: 'Each document ID must be a valid UUID.',
   })

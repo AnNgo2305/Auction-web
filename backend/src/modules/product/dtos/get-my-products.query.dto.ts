@@ -39,7 +39,7 @@ export class GetMyProductsQueryDto {
 
   @IsOptional()
   @IsArray({ message: 'Category IDs must be an array.' })
-  @IsUUID('4', {
+  @IsUUID('7', {
     each: true,
     message: 'Each category ID must be a valid UUID.',
   })
@@ -56,7 +56,7 @@ export class GetMyProductsQueryDto {
   createdAtTo?: Date;
 
   @IsOptional()
-  @IsUUID('4', { message: 'Cursor must be a valid UUID.' })
+  @IsUUID('7', { message: 'Cursor must be a valid UUID.' })
   cursor?: string;
 
   @IsOptional()

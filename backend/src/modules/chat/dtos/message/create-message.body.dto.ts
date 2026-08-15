@@ -11,16 +11,16 @@ import {
 import { MessageType } from '@generated/prisma/enums';
 
 export class CreateMessageDto {
-  @IsUUID('4', { message: 'Temp ID must be a valid UUID' })
+  @IsUUID('7', { message: 'Temp ID must be a valid UUID' })
   tempId!: string;
 
-  @IsUUID('4', {
+  @IsUUID('7', {
     message: 'Conversation ID must be a valid UUID',
   })
   conversationId!: string;
 
   @IsOptional()
-  @IsUUID('4', { message: 'Reply message ID must be a valid UUID' })
+  @IsUUID('7', { message: 'Reply message ID must be a valid UUID' })
   replyToMessageId?: string;
 
   @IsEnum(MessageType, { message: 'Invalid message type' })

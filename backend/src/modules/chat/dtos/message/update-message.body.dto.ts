@@ -11,4 +11,8 @@ export class UpdateMessageDto {
     message: 'Content must not exceed 5000 characters',
   })
   content!: string;
+
+  @IsNotEmpty({ message: 'Conversation ID is required' })
+  @IsString({ message: 'Conversation ID must be a string' })
+  conversationId!: string;
 }

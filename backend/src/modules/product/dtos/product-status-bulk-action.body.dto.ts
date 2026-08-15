@@ -9,7 +9,7 @@ export class ProductStatusBulkActionDto {
   @ArrayNotEmpty({
     message: 'Product IDs must not be empty.',
   })
-  @IsUUID('4', {
+  @IsUUID('7', {
     each: true,
     message: 'Each product ID must be a valid UUID.',
   })

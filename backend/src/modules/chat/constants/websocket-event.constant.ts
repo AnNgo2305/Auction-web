@@ -2,10 +2,10 @@ export const CHAT_EVENTS = {
   // Client → Server (Send message)
   MESSAGE_SEND: 'message:send',
 
-  // Server → Sender (Show error message sent)
+  // Server → Client (Show error message sent)
   MESSAGE_ERROR: 'message:error',
 
-  // Server → Sender (Acknowledge message sent)
+  // Server → Client (Acknowledge message sent)
   MESSAGE_ACK: 'message:ack',
 
   // Client → Other conversation clients (Notify new message)

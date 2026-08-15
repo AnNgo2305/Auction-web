@@ -337,7 +337,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       this.server
-        .to(WS_ROOMS.CONVERSATION(message.conversationId))
+        .to(WS_ROOMS.CONVERSATION(payload.conversationId))
         .emit(CHAT_EVENTS.MESSAGE_UPDATED, {
           message,
         });

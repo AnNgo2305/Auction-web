@@ -49,7 +49,7 @@ export class GetProductsQueryDto {
   status?: PublicProductStatus;
 
   @IsOptional()
-  @IsUUID('4', {
+  @IsUUID('7', {
     message: 'Cursor must be a valid UUID.',
   })
   cursor?: string;

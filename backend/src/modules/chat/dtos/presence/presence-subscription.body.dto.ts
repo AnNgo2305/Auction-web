@@ -4,6 +4,6 @@ export class PresenceSubscriptionDto {
   @IsArray()
   @ArrayNotEmpty()
   @ArrayMaxSize(100)
-  @IsUUID('4', { each: true })
+  @IsUUID('7', { each: true })
   userIds: string[];
 }

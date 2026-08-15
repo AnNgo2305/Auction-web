@@ -12,7 +12,7 @@ import { ProductStatus, PublicCategory } from '@generated/prisma/enums';
 import { Transform } from 'class-transformer';
 
 export class UpdateProductDto {
-  @IsUUID('4', {
+  @IsUUID('7', {
     message: 'Product ID must be a valid UUID.',
   })
   productId!: string;
