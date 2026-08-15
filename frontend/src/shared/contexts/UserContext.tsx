@@ -12,6 +12,7 @@ import type { CurrentUser } from '@/shared/types/current-user';
 import { getMe } from '@/shared/api/me';
 import { Loader2 } from 'lucide-react';
 import type { Role } from '@/shared/types/user.ts';
+import { initializeCsrf } from '@/shared/api/csrf.ts';
 
 const UserContext = createContext<UserContextValue | null>(null);
 
@@ -28,6 +29,7 @@ export function UserProvider({ children }: PropsWithChildren) {
         const response = await getMe();
         if (response.data) {
           setCurrentUser(response.data);
+          await initializeCsrf();
         } else {
           clearCurrentUser();
         }

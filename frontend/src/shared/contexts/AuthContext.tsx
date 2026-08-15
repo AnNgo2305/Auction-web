@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useUser } from '@/shared/contexts/UserContext';
 import type { AuthContextValue } from '@/shared/types/auth.context.ts';
 import * as authApi from '@/shared/api/auth';
+import { clearCsrfToken } from '@/shared/api/csrf.ts';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         await action();
 
         clearCurrentUser();
+        clearCsrfToken();
 
         toast.success(successMessage);
       } catch (error) {

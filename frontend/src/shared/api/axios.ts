@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toApiError } from './api-error.ts';
+import { getCsrfToken } from '@/shared/api/csrf.ts';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -29,6 +30,20 @@ const processQueue = (error: unknown) => {
 
   failedQueue = [];
 };
+
+api.interceptors.request.use((config) => {
+  const method = config.method?.toLowerCase();
+
+  if (['post', 'put', 'patch', 'delete'].includes(method ?? '')) {
+    const csrfToken = getCsrfToken();
+
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+
+  return config;
+});
 
 api.interceptors.response.use(
   (response) => response,
