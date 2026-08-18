@@ -3,6 +3,7 @@ import type { MessageType } from '@/shared/types/message';
 export class MessageUserData {
   userId!: string;
   username!: string;
+  profileImageUrl!: string | null;
 }
 
 export class ReplyMessageData {

@@ -18,6 +18,11 @@ import {
 import { MessageResponseDto } from '@modules/chat/dtos/message/message.response.dto';
 import { MessageType } from '@generated/prisma/enums';
 import { GetMessagesResponseDto } from '@modules/chat/dtos/message/get-messages.response.dto';
+import { Prisma } from '@generated/prisma/client';
+
+export type MessageSelectResult = Prisma.MessageGetPayload<{
+  select: typeof MESSAGE_SELECT;
+}>;
 
 @Injectable()
 export class MessageService {
@@ -25,6 +30,35 @@ export class MessageService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
   ) {}
+
+  mapMessageResponse(
+    message: MessageSelectResult,
+    recipientId?: string,
+  ): MessageResponseDto {
+    return {
+      ...message,
+      ...(recipientId !== undefined && {
+        recipientId,
+      }),
+      sender: {
+        userId: message.sender.userId,
+        username: message.sender.username,
+        profileImageUrl: message.sender.profile?.profileImageUrl ?? null,
+      },
+
+      replyToMessage: message.replyToMessage
+        ? {
+            ...message.replyToMessage,
+            sender: {
+              userId: message.replyToMessage.sender.userId,
+              username: message.replyToMessage.sender.username,
+              profileImageUrl:
+                message.replyToMessage.sender.profile?.profileImageUrl ?? null,
+            },
+          }
+        : null,
+    };
+  }
 
   async sendMessage(
     currentUserId: string,
@@ -112,10 +146,7 @@ export class MessageService {
     });
 
     this.logger.log(`[CHAT] message created: ${message.messageId}`);
-    return {
-      ...message,
-      recipientId,
-    };
+    return this.mapMessageResponse(message, recipientId);
   }
 
   async deleteMessage(currentUserId: string, messageId: string): Promise<void> {
@@ -255,7 +286,7 @@ export class MessageService {
 
     this.logger.log(`[CHAT] message updated: ${messageId}`);
 
-    return updatedMessage;
+    return this.mapMessageResponse(updatedMessage);
   }
 
   async getMessages(
@@ -316,7 +347,7 @@ export class MessageService {
     );
 
     return {
-      messages: sliced,
+      messages: sliced.map((message) => this.mapMessageResponse(message)),
       nextCursor: hasMore ? sliced[sliced.length - 1].messageId : null,
     };
   }
@@ -335,7 +366,7 @@ export class MessageService {
       throw new NotFoundException(ERROR_MESSAGE_NOT_FOUND);
     }
 
-    return message;
+    return this.mapMessageResponse(message);
   }
 
   async readMessage(

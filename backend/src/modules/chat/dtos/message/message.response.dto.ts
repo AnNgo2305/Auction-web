@@ -3,6 +3,7 @@ import type { MessageType } from '@generated/prisma/enums';
 export class MessageUserResponseDto {
   userId!: string;
   username!: string;
+  profileImageUrl!: string | null;
 }
 
 export class ReplyMessageResponseDto {

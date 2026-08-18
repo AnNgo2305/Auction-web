@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { CHAT_EVENTS } from '@/features/chat/socket/chat-socket.constant';
-import type { MessageUpdatePayload } from '@/features/chat/socket/types/payload/message-update.payload.ts';
-import type { MessageDeletePayload } from '@/features/chat/socket/types/payload/message-delete.payload.ts';
-import type { TypingPayload } from '@/features/chat/socket/types/payload/typing.payload.ts';
-import type { MessageSendPayload } from '@/features/chat/socket/types/payload/message-send.payload.ts';
-import type { MessageReadPayload } from '@/features/chat/socket/types/payload/message-read.payload.ts';
 import type { MessageDeletedEvent } from '@/features/chat/socket/types/event/message-deleted.event.ts';
 import type { MessageUpdatedEvent } from '@/features/chat/socket/types/event/message-updated.event.ts';
 import type { MessageNewEvent } from '@/features/chat/socket/types/event/message-new.event.ts';
@@ -113,6 +108,12 @@ export function useChatSocket() {
         (currentCache) => {
           if (!currentCache) return currentCache;
 
+          const isViewingConversation =
+            useChatStore.getState().activeConversationId ===
+            newMessage.conversationId &&
+            typeof document !== 'undefined' &&
+            document.visibilityState === 'visible';
+
           return {
             ...currentCache,
             pages: currentCache.pages.map((page) => ({
@@ -133,11 +134,9 @@ export function useChatSocket() {
                       senderId: newMessage.sender.userId,
                       createdAt: newMessage.createdAt,
                     },
-                    unreadCount:
-                      useChatStore.getState().activeConversationId ===
-                      newMessage.conversationId
-                        ? conversation.unreadCount
-                        : conversation.unreadCount + 1,
+                    unreadCount: isViewingConversation
+                      ? conversation.unreadCount
+                      : conversation.unreadCount + 1,
                   };
                 }),
               },
@@ -168,6 +167,40 @@ export function useChatSocket() {
             };
           },
         );
+
+        queryClient.setQueryData<ConversationsCache>(conversationKeys.list(),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
+
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  conversations: page.data.conversations.map((conversation) => {
+                    if (
+                      conversation.conversationId !==
+                      confirmedMessage.conversationId
+                    ) {
+                      return conversation;
+                    }
+
+                    return {
+                      ...conversation,
+                      lastMessage: {
+                        messageId: confirmedMessage.messageId,
+                        content: confirmedMessage.content ?? null,
+                        type: confirmedMessage.type,
+                        senderId: confirmedMessage.sender.userId,
+                        createdAt: confirmedMessage.createdAt,
+                      },
+                    };
+                  }),
+                },
+              })),
+            };
+          })
       },
     );
 
@@ -305,37 +338,5 @@ export function useChatSocket() {
     };
   }, [isAuthenticated, queryClient]);
 
-  const sendMessage = (payload: MessageSendPayload) => {
-    socketRef.current?.emit(CHAT_EVENTS.MESSAGE_SEND, payload);
-  };
-
-  const readMessage = (payload: MessageReadPayload) => {
-    socketRef.current?.emit(CHAT_EVENTS.MESSAGE_READ, payload);
-  };
-
-  const startTyping = (payload: TypingPayload) => {
-    socketRef.current?.emit(CHAT_EVENTS.TYPING_START, payload);
-  };
-
-  const stopTyping = (payload: TypingPayload) => {
-    socketRef.current?.emit(CHAT_EVENTS.TYPING_STOP, payload);
-  };
-
-  const updateMessage = (payload: MessageUpdatePayload) => {
-    socketRef.current?.emit(CHAT_EVENTS.MESSAGE_UPDATE, payload);
-  };
-
-  const deleteMessage = (payload: MessageDeletePayload) => {
-    socketRef.current?.emit(CHAT_EVENTS.MESSAGE_DELETE, payload);
-  };
-
-  return {
-    socketRef,
-    sendMessage,
-    readMessage,
-    startTyping,
-    stopTyping,
-    updateMessage,
-    deleteMessage,
-  };
+  return socketRef;
 }

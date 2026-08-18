@@ -5,6 +5,11 @@ export const MESSAGE_SELECT = {
     select: {
       userId: true,
       username: true,
+      profile: {
+        select: {
+          profileImageUrl: true,
+        },
+      },
     },
   },
   type: true,
@@ -22,6 +27,11 @@ export const MESSAGE_SELECT = {
         select: {
           userId: true,
           username: true,
+          profile: {
+            select: {
+              profileImageUrl: true,
+            },
+          },
         },
       },
       type: true,
