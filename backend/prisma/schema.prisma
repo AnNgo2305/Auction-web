@@ -29,6 +29,7 @@ model User {
   isVerified          Boolean   @default(false) @map("is_verified")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until")
+  lastActiveAt        DateTime? @map("last_active_at") @db.Timestamp(0)
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 

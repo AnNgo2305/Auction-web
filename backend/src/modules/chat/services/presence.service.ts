@@ -1,17 +1,38 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import {
   REDIS_CLIENT,
   REDIS_KEYS,
   REDIS_TTL,
 } from '@common/constants/redis.constant';
 import Redis from 'ioredis';
+import { PrismaService } from '@common/services/prisma.service';
 
 @Injectable()
-export class PresenceService {
+export class PresenceService implements OnModuleInit, OnModuleDestroy {
+  private readonly pendingLastSeen = new Map<string, Date>();
+  private flushTimer: NodeJS.Timeout | null = null;
+
   constructor(
     @Inject(REDIS_CLIENT)
     private readonly redis: Redis,
+    private readonly prisma: PrismaService,
   ) {}
+
+  onModuleInit(): void {
+    this.flushTimer = setInterval(() => {
+      void this.flushLastSeenToDb();
+    }, 60_000).unref();
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    if (this.flushTimer) clearInterval(this.flushTimer);
+    await this.flushLastSeenToDb();
+  }
 
   async markOnline(
     userId: string,
@@ -39,6 +60,7 @@ export class PresenceService {
     pipeline.del(REDIS_KEYS.PRESENCE.LAST_SEEN(userId));
 
     await pipeline.exec();
+    this.pendingLastSeen.delete(userId);
 
     return {
       becameOnline: !wasOnline,
@@ -77,6 +99,7 @@ export class PresenceService {
     );
 
     await offlinePipeline.exec();
+    this.pendingLastSeen.set(userId, lastSeen);
     return {
       isOffline: true,
       lastSeen,
@@ -195,11 +218,15 @@ export class PresenceService {
         );
 
         pipeline.del(REDIS_KEYS.PRESENCE.USER_SOCKETS(userId));
+        this.pendingLastSeen.set(userId, now);
       }
     }
 
     if (becameOnline.length > 0) {
       pipeline.sadd(REDIS_KEYS.PRESENCE.ONLINE_USERS, ...becameOnline);
+      for (const userId of becameOnline) {
+        this.pendingLastSeen.delete(userId);
+      }
     }
 
     await pipeline.exec();
@@ -245,5 +272,29 @@ export class PresenceService {
 
   async removeWatching(userId: string): Promise<void> {
     await this.redis.del(REDIS_KEYS.PRESENCE.WATCHING(userId));
+  }
+
+  private async flushLastSeenToDb(): Promise<void> {
+    if (this.pendingLastSeen.size === 0) return;
+
+    const batch = new Map(this.pendingLastSeen);
+    this.pendingLastSeen.clear();
+
+    try {
+      await this.prisma.$transaction(
+        [...batch.entries()].map(([userId, lastActiveAt]) =>
+          this.prisma.user.update({
+            where: { userId },
+            data: { lastActiveAt },
+          }),
+        ),
+      );
+    } catch {
+      for (const [userId, ts] of batch) {
+        if (!this.pendingLastSeen.has(userId)) {
+          this.pendingLastSeen.set(userId, ts);
+        }
+      }
+    }
   }
 }

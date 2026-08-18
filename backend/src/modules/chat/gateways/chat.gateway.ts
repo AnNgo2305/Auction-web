@@ -34,6 +34,12 @@ interface SocketData {
   userId: string;
 }
 
+export enum MessageErrorType {
+  SEND = 'SEND',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+}
+
 @WebSocketGateway({
   cors: {
     origin: process.env.FRONTEND_URL,
@@ -102,7 +108,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const allowed = await this.rateLimitService.checkSendMessage(currentUserId);
     if (!allowed) {
       client.emit(CHAT_EVENTS.MESSAGE_ERROR, {
+        type: MessageErrorType.SEND,
         tempId: payload.tempId,
+        conversationId: payload.conversationId,
         message: 'Too many messages. Please try again later.',
       });
 
@@ -190,18 +198,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         this.server
           .to(WS_ROOMS.CONVERSATION(payload.conversationId))
-          .emit(CHAT_EVENTS.CONVERSATION_UPDATED, {
-            conversationId: payload.conversationId,
-            lastMessage: {
-              messageId: message.messageId,
-              content: message.content,
-              type: message.type,
-              senderId: message.sender.userId,
-              senderName: message.sender.username,
-              createdAt: message.createdAt,
-            },
-            updatedAt: message.createdAt,
-          });
+          .emit(CHAT_EVENTS.CONVERSATION_UPDATED);
       } else {
         this.eventEmitter.emit(
           INTERNAL_EVENTS.MESSAGE_SENT,
@@ -225,7 +222,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         error,
       );
       client.emit(CHAT_EVENTS.MESSAGE_ERROR, {
+        type: MessageErrorType.SEND,
         tempId: payload.tempId,
+        conversationId: payload.conversationId,
         message: 'Failed to send message. Please try again.',
       });
     }
@@ -243,7 +242,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const currentUserId = data.userId;
 
     try {
-      await this.messageService.readMessage(
+      const { readAt } = await this.messageService.readMessage(
         currentUserId,
         payload.conversationId,
         payload.messageId,
@@ -251,21 +250,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       client
         .to(WS_ROOMS.CONVERSATION(payload.conversationId))
-        .emit(CHAT_EVENTS.MESSAGE_READ, {
+        .emit(CHAT_EVENTS.MESSAGE_SEEN, {
           conversationId: payload.conversationId,
-          messageId: payload.messageId,
           readBy: currentUserId,
+          readAt: readAt.toISOString(),
         });
     } catch (error) {
       this.logger.error(
         `[CHAT] Failed to read message: ${payload.messageId}`,
         error,
       );
-
-      client.emit(CHAT_EVENTS.MESSAGE_ERROR, {
-        messageId: payload.messageId,
-        message: 'Failed to mark message as read.',
-      });
     }
   }
 
@@ -348,7 +342,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       client.emit(CHAT_EVENTS.MESSAGE_ERROR, {
-        messageId: payload.messageId,
+        type: MessageErrorType.UPDATE,
+        conversationId: payload.conversationId,
         message: 'Failed to update message.',
       });
     }
@@ -381,7 +376,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       client.emit(CHAT_EVENTS.MESSAGE_ERROR, {
-        messageId: payload.messageId,
+        type: MessageErrorType.DELETE,
+        conversationId: payload.conversationId,
         message: 'Failed to delete message.',
       });
     }

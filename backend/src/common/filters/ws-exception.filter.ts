@@ -28,7 +28,7 @@ export class WsExceptionFilter extends BaseWsExceptionFilter {
       }
     }
 
-    client.emit('error', {
+    client.emit('exception', {
       statusCode,
       errorCode,
       message,

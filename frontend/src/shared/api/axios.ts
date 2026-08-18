@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { toApiError } from './api-error.ts';
 import { getCsrfToken } from '@/shared/api/csrf.ts';
+import { emitLogoutEvent } from './auth-event.ts';
+import { refreshAccessToken } from './auth-session.ts';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -10,26 +12,6 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-const REFRESH_TOKEN_API_URL = '/auth/refresh-token';
-
-let isRefreshing = false;
-let failedQueue: {
-  resolve: (value?: unknown) => void;
-  reject: (error?: unknown) => void;
-}[] = [];
-
-const processQueue = (error: unknown) => {
-  failedQueue.forEach((promise) => {
-    if (error) {
-      promise.reject(error);
-    } else {
-      promise.resolve();
-    }
-  });
-
-  failedQueue = [];
-};
 
 api.interceptors.request.use((config) => {
   const method = config.method?.toLowerCase();
@@ -54,7 +36,7 @@ api.interceptors.response.use(
     const url = originalRequest?.url || '';
 
     if (statusCode === 500 && errorCode === 'INTERNAL_SERVER_ERROR') {
-      // logout
+      emitLogoutEvent();
       return Promise.reject(toApiError(error));
     }
 
@@ -66,29 +48,12 @@ api.interceptors.response.use(
       ) {
         originalRequest._retry = true;
 
-        if (isRefreshing) {
-          return new Promise(function (resolve, reject) {
-            failedQueue.push({ resolve, reject });
-          })
-            .then(() => {
-              return api(originalRequest);
-            })
-            .catch((err) => {
-              return Promise.reject(err);
-            });
-        }
-
-        isRefreshing = true;
         try {
-          await api.post(REFRESH_TOKEN_API_URL);
-          processQueue(null);
+          await refreshAccessToken();
           return api(originalRequest);
         } catch (refreshError) {
-          // logout
-          processQueue(refreshError);
+          emitLogoutEvent();
           return Promise.reject(refreshError);
-        } finally {
-          isRefreshing = false;
         }
       }
 
@@ -103,14 +68,12 @@ api.interceptors.response.use(
           ].includes(errorCode)) ||
         (statusCode === 403 &&
           ['USER_IS_BANNED', 'USER_NOT_PERMISSION'].includes(errorCode)) ||
-        (statusCode === 404 && ['USER_NOT_EXIST']);
+        (statusCode === 404 && ['USER_NOT_EXIST'].includes(errorCode));
 
       if (shouldLogout) {
-        // logout
+        emitLogoutEvent();
         return Promise.reject(toApiError(error));
       }
-
-      return Promise.reject(toApiError(error));
     }
 
     return Promise.reject(toApiError(error));

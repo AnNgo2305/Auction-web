@@ -1,6 +1,7 @@
 export const CHAT_EVENTS = {
   MESSAGE_SEND: 'message:send',
   MESSAGE_READ: 'message:read',
+  MESSAGE_SEEN: 'message:seen',
   TYPING_START: 'typing:start',
   TYPING_STOP: 'typing:stop',
   MESSAGE_UPDATE: 'message:update',
@@ -12,4 +13,6 @@ export const CHAT_EVENTS = {
   CONVERSATION_UPDATED: 'conversation:updated',
   MESSAGE_UPDATED: 'message:updated',
   MESSAGE_DELETED: 'message:deleted',
+
+  EXCEPTION: 'exception',
 } as const;

@@ -29,6 +29,9 @@ export const CHAT_EVENTS = {
   // Client → Server (Read message)
   MESSAGE_READ: 'message:read',
 
+  // Client → Other conversation clients (Seen message)
+  MESSAGE_SEEN: 'message:seen',
+
   // Client → Server (Start typing)
   TYPING_START: 'typing:start',
 

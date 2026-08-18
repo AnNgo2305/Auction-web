@@ -12,13 +12,44 @@ import type { MessageNewEvent } from '@/features/chat/socket/types/event/message
 import type { TypingEvent } from '@/features/chat/socket/types/event/typing.event.ts';
 import type { MessageReadEvent } from '@/features/chat/socket/types/event/message-read.event.ts';
 import type { MessageEvent } from '@/features/chat/socket/types/event/message.event.ts';
-import type { ConversationUpdatedEvent } from '@/features/chat/socket/types/event/conversation-updated.event.ts';
-import type { MessageErrorEvent } from '@/features/chat/socket/types/event/message-error.event.ts';
+import {
+  type MessageErrorEvent,
+  MessageErrorType,
+} from '@/features/chat/socket/types/event/message-error.event.ts';
+import { useChatStore } from '@/shared/stores/chat.store';
+import { useAuth } from '@/shared/contexts/AuthContext.tsx';
+import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
+import { conversationKeys } from '@/features/chat/constants/conversation-query-key.ts';
+import { messageKeys } from '../constants/message-query-key';
+import type { MessageListResponse } from '@/features/chat/types/message/message-list.response.ts';
+import type { ConversationListResponse } from '@/features/chat/types/conversation/conversation-list.response.ts';
+import { toast } from 'sonner';
+import { refreshAccessToken } from '@/shared/api/auth-session';
+import { emitLogoutEvent } from '@/shared/api/auth-event';
+
+type MessagesCache = InfiniteData<MessageListResponse>;
+type ConversationsCache = InfiniteData<ConversationListResponse>;
 
 export function useChatSocket() {
   const socketRef = useRef<Socket | null>(null);
+  const isAuthenticated = useAuth();
+  const queryClient = useQueryClient();
+
+  const {
+    clearPeerTyping,
+    setPeerTyping,
+    updatePeerReadAt,
+    setActiveConversation,
+    clearAllPeerReadAt,
+    clearAllTyping,
+    resetPresence,
+  } = useChatStore();
+
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+    if (socketRef.current?.connected) return;
+
     const socket = io(`${import.meta.env.VITE_API_URL}/chat`, {
       withCredentials: true,
       reconnection: true,
@@ -28,54 +59,251 @@ export function useChatSocket() {
 
     socketRef.current = socket;
 
-    socket.on('connect', () => {
-
+    socket.on('connect', async () => {
+      await queryClient.invalidateQueries({
+        queryKey: conversationKeys.list(),
+      });
+      const activeId = useChatStore.getState().activeConversationId;
+      if (activeId) {
+        await queryClient.invalidateQueries({
+          queryKey: messageKeys.list(activeId),
+        });
+      }
     });
 
     socket.on('disconnect', () => {
-
+      clearAllTyping();
     });
 
-    socket.on(CHAT_EVENTS.MESSAGE_NEW, ({ message }: MessageNewEvent) => {
+    socket.on(CHAT_EVENTS.MESSAGE_NEW, ({ message: newMessage }: MessageNewEvent) => {
+      queryClient.setQueryData<MessagesCache>(
+        messageKeys.list(newMessage.conversationId),
+        (currentCache) => {
+          if (!currentCache) return currentCache;
 
+          const alreadyExists = currentCache.pages.some((page) =>
+            page.data.messages.some(
+              (currentMessage) =>
+                currentMessage.messageId === newMessage.messageId,
+            ),
+          );
+
+            if (alreadyExists) return currentCache;
+            const [firstPage, ...remainingPages] = currentCache.pages;
+
+            if (!firstPage) return currentCache;
+            return {
+              ...currentCache,
+              pages: [
+                {
+                  ...firstPage,
+                  data: {
+                    ...firstPage.data,
+                    messages: [newMessage, ...firstPage.data.messages],
+                  },
+                },
+                ...remainingPages,
+              ],
+            };
+          },
+        );
+
+      queryClient.setQueryData<ConversationsCache>(
+        conversationKeys.list(),
+        (currentCache) => {
+          if (!currentCache) return currentCache;
+
+          return {
+            ...currentCache,
+            pages: currentCache.pages.map((page) => ({
+              ...page,
+              data: {
+                ...page.data,
+                conversations: page.data.conversations.map((conversation) => {
+                  if (conversation.conversationId !== newMessage.conversationId) {
+                    return conversation;
+                  }
+
+                  return {
+                    ...conversation,
+                    lastMessage: {
+                      messageId: newMessage.messageId,
+                      content: newMessage.content ?? null,
+                      type: newMessage.type,
+                      senderId: newMessage.sender.userId,
+                      createdAt: newMessage.createdAt,
+                    },
+                    unreadCount:
+                      useChatStore.getState().activeConversationId ===
+                      newMessage.conversationId
+                        ? conversation.unreadCount
+                        : conversation.unreadCount + 1,
+                  };
+                }),
+              },
+            })),
+          };
+        },
+      );
     });
 
-    socket.on(CHAT_EVENTS.MESSAGE_ACK, ({ tempId, message }: MessageEvent) => {
 
-    });
-
-    socket.on(CHAT_EVENTS.MESSAGE_ERROR, ({ tempId, message }: MessageErrorEvent) => {
-
-    });
-
-    socket.on(CHAT_EVENTS.MESSAGE_READ, ({ messageId, conversationId, readby }: MessageReadEvent) => {
-
-    });
-
-    socket.on(CHAT_EVENTS.TYPING_START, ({ userId, conversationId }: TypingEvent) => {
-
-    });
-
-    socket.on(CHAT_EVENTS.TYPING_STOP, ({ userId, conversationId }: TypingEvent) => {
-
-    });
-
-    socket.on(CHAT_EVENTS.MESSAGE_UPDATED, ({ message }: MessageUpdatedEvent) => {
-
-    });
-
-    socket.on(CHAT_EVENTS.MESSAGE_DELETED, ({ messageId, conversationId }: MessageDeletedEvent) => {},
+    socket.on(CHAT_EVENTS.MESSAGE_ACK,
+      ({ tempId, message: confirmedMessage }: MessageEvent) => {
+        queryClient.setQueryData<MessagesCache>(
+          messageKeys.list(confirmedMessage.conversationId),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  messages: page.data.messages.map((currentMessage) =>
+                    currentMessage.messageId === tempId ? confirmedMessage : currentMessage,
+                  ),
+                },
+              })),
+            };
+          },
+        );
+      },
     );
 
-    socket.on(CHAT_EVENTS.CONVERSATION_UPDATED, ({ conversationId, updatedAt, lastMessage }: ConversationUpdatedEvent) => {
+    socket.on(CHAT_EVENTS.MESSAGE_ERROR,
+      ({ type, tempId, conversationId, message }: MessageErrorEvent) => {
+        switch (type) {
+          case MessageErrorType.SEND:
+            if (!tempId) break;
+            queryClient.setQueryData<MessagesCache>(
+              messageKeys.list(conversationId),
+              (currentCache) => {
+                if (!currentCache) return currentCache;
+                return {
+                  ...currentCache,
+                  pages: currentCache.pages.map((page) => ({
+                    ...page,
+                    data: {
+                      ...page.data,
+                      messages: page.data.messages.map((m) =>
+                        m.messageId === tempId
+                          ? { ...m, _failed: true }
+                          : m,
+                      ),
+                    },
+                  })),
+                };
+              },
+            );
+            break;
 
+          case MessageErrorType.UPDATE:
+          case MessageErrorType.DELETE: {
+            void queryClient.invalidateQueries({
+              queryKey: messageKeys.list(conversationId),
+            });
+            break;
+          }
+        }
+        if(message) {
+          toast.error(message);
+        }
+      }
+    );
+
+    socket.on(
+      CHAT_EVENTS.MESSAGE_SEEN,
+      ({ conversationId, readby, readAt }: MessageReadEvent) => {
+        updatePeerReadAt(conversationId, readby, readAt);
+      },
+    );
+
+    socket.on(
+      CHAT_EVENTS.TYPING_START,
+      ({ userId, conversationId }: TypingEvent) => {
+        setPeerTyping(conversationId, userId);
+      },
+    );
+
+    socket.on(
+      CHAT_EVENTS.TYPING_STOP,
+      ({ userId, conversationId }: TypingEvent) => {
+        clearPeerTyping(conversationId, userId);
+      },
+    );
+
+    socket.on(
+      CHAT_EVENTS.MESSAGE_UPDATED,
+      ({ message: updatedMessage }: MessageUpdatedEvent) => {
+        queryClient.setQueryData<MessagesCache>(
+          messageKeys.list(updatedMessage.conversationId),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
+
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  messages: page.data.messages.map((currentMessage) =>
+                    currentMessage.messageId === updatedMessage.messageId
+                      ? updatedMessage
+                      : currentMessage,
+                  ),
+                },
+              })),
+            };
+          },
+        );
+      },
+    );
+
+    socket.on(
+      CHAT_EVENTS.MESSAGE_DELETED,
+      async ({ conversationId }: MessageDeletedEvent) => {
+        await queryClient.invalidateQueries({
+          queryKey: messageKeys.list(conversationId),
+        });
+
+        await queryClient.invalidateQueries({
+          queryKey: conversationKeys.list(),
+        });
+      },
+    );
+
+    socket.on(CHAT_EVENTS.CONVERSATION_UPDATED, async () => {
+      await queryClient.invalidateQueries({
+        queryKey: conversationKeys.list(),
+      });
+    });
+
+    socket.on(CHAT_EVENTS.EXCEPTION, async ({ errorCode }) => {
+      if (errorCode !== 'ACCESS_TOKEN_EXPIRED') {
+        socket.disconnect();
+        socketRef.current = null;
+        emitLogoutEvent();
+        return;
+      }
+
+      try {
+        await refreshAccessToken();
+        socket.connect();
+      } catch {
+        emitLogoutEvent();
+      }
     });
 
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      clearAllTyping();
+      clearAllPeerReadAt();
+      setActiveConversation(null);
+      resetPresence();
     };
-  }, []);
+  }, [isAuthenticated, queryClient]);
 
   const sendMessage = (payload: MessageSendPayload) => {
     socketRef.current?.emit(CHAT_EVENTS.MESSAGE_SEND, payload);

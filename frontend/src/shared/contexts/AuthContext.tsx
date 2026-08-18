@@ -3,6 +3,7 @@ import {
   type PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -11,12 +12,20 @@ import { useUser } from '@/shared/contexts/UserContext';
 import type { AuthContextValue } from '@/shared/types/auth.context.ts';
 import * as authApi from '@/shared/api/auth';
 import { clearCsrfToken } from '@/shared/api/csrf.ts';
+import { onLogoutEvent } from '@/shared/api/auth-event';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const { clearCurrentUser } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    return onLogoutEvent(() => {
+      clearCurrentUser();
+      clearCsrfToken();
+    });
+  }, [clearCurrentUser]);
 
   const executeLogout = useCallback(
     async (action: () => Promise<unknown>, successMessage: string) => {

@@ -342,7 +342,7 @@ export class MessageService {
     currentUserId: string,
     conversationId: string,
     messageId: string,
-  ): Promise<void> {
+  ): Promise<{ readAt: Date }> {
     this.logger.log(`[CHAT] read message: ${messageId} by ${currentUserId}`);
 
     const conversation = await this.prisma.conversation.findFirst({
@@ -375,7 +375,6 @@ export class MessageService {
       select: {
         messageId: true,
         senderId: true,
-        isRead: true,
       },
     });
 
@@ -384,13 +383,13 @@ export class MessageService {
       throw new NotFoundException(ERROR_MESSAGE_NOT_FOUND);
     }
 
-    if (message.isRead) {
-      return;
-    }
-
-    await this.prisma.message.update({
+    const readAt = new Date();
+    await this.prisma.message.updateMany({
       where: {
-        messageId,
+        conversationId,
+        senderId: { not: currentUserId },
+        messageId: { lte: messageId },
+        isRead: false,
       },
       data: {
         isRead: true,
@@ -400,5 +399,7 @@ export class MessageService {
     this.logger.log(
       `[CHAT] message marked as read: ${messageId} by ${currentUserId}`,
     );
+
+    return { readAt };
   }
 }
