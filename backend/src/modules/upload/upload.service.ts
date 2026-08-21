@@ -16,6 +16,7 @@ import {
 import { PresignedUrlResponseDto } from '@modules/upload/dtos/create-presigned-upload-url.response.dto';
 import { ConfirmUploadResponseDto } from '@modules/upload/dtos/confirm-upload.response.dto';
 import { LoggerService } from '@common/services/logger.service';
+import { CreatePresignedDownloadUrlsResponseDto } from '@modules/upload/dtos/create-presigned-download-url.response.dto';
 
 @Injectable()
 export class UploadService {
@@ -103,6 +104,30 @@ export class UploadService {
     this.logger.logJson('[UPLOAD] Presigned URLs', urls);
 
     return { urls };
+  }
+
+  async createPresignedDownloadUrls(
+    keys: string[],
+  ): Promise<CreatePresignedDownloadUrlsResponseDto> {
+    if (!keys.length) {
+      return { urls: {} };
+    }
+
+    this.logger.log(
+      `[UPLOAD] Create presigned download URLs requested. count=${keys.length}`,
+    );
+
+    const urls = await Promise.all(
+      keys.map(async (key) => {
+        const url = await this.fileService.createPresignedDownloadUrl(key);
+
+        return [key, url] as const;
+      }),
+    );
+
+    return {
+      urls: Object.fromEntries(urls),
+    };
   }
 
   async confirmUpload(keys: string[]): Promise<ConfirmUploadResponseDto> {

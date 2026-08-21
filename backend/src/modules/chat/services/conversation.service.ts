@@ -20,6 +20,7 @@ import {
 } from '@common/constants/redis.constant';
 import { ConversationResponseDto } from '@modules/chat/dtos/conversation/get-create-conversation.response.dto';
 import { GetConversationsResponseDto } from '@modules/chat/dtos/conversation/get-user-conversations.response.dto';
+import { SearchConversationsResponseDto } from '@modules/chat/dtos/conversation/search-conversations.response.dto';
 import { Prisma } from '@generated/prisma/client';
 
 @Injectable()
@@ -131,6 +132,96 @@ export class ConversationService {
     } finally {
       await this.redis.del(lockKey);
     }
+  }
+
+  async searchConversations({
+    currentUserId,
+    query,
+    cursor,
+    limit = 10,
+  }: {
+    currentUserId: string;
+    query: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<SearchConversationsResponseDto> {
+    this.logger.log(
+      `[SEARCH_CONVERSATIONS] user=${currentUserId} search="${query}" cursor=${cursor ?? 'null'} limit=${limit}`,
+    );
+
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        OR: [
+          {
+            initiatorId: currentUserId,
+            deletedByInitiatorAt: null,
+            recipient: {
+              username: { contains: query },
+            },
+          },
+          {
+            recipientId: currentUserId,
+            deletedByRecipientAt: null,
+            initiator: {
+              username: { contains: query },
+            },
+          },
+        ],
+      },
+      take: limit + 1,
+      ...(cursor && {
+        cursor: {
+          conversationId: cursor,
+        },
+        skip: 1,
+      }),
+      orderBy: {
+        conversationId: 'desc',
+      },
+      select: {
+        conversationId: true,
+        initiatorId: true,
+        recipientId: true,
+        initiator: {
+          select: {
+            username: true,
+            profile: {
+              select: {
+                profileImageUrl: true,
+              },
+            },
+          },
+        },
+        recipient: {
+          select: {
+            username: true,
+            profile: {
+              select: {
+                profileImageUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const hasMore = conversations.length > limit;
+    const sliced = hasMore ? conversations.slice(0, limit) : conversations;
+
+    return {
+      users: sliced.map((conversation) => {
+        const otherUser =
+          conversation.initiatorId === currentUserId
+            ? conversation.recipient
+            : conversation.initiator;
+        return {
+          conversationId: conversation.conversationId,
+          username: otherUser.username,
+          profileImageUrl: otherUser.profile?.profileImageUrl ?? null,
+        };
+      }),
+      nextCursor: hasMore ? sliced[sliced.length - 1].conversationId : null,
+    };
   }
 
   async getUserConversations({

@@ -5,6 +5,8 @@ import type {
   ConfirmUploadResponse,
   CreatePresignedUrlsRequest,
   CreatePresignedUrlsResponse,
+  CreatePresignedDownloadUrlsResponse,
+  CreatePresignedDownloadUrlsRequest,
 } from '@/shared/types/upload';
 
 const UPLOAD_API_PREFIX = '/upload';
@@ -16,6 +18,16 @@ export async function createPresignedUrls(
     `${UPLOAD_API_PREFIX}/presigned-urls`,
     payload,
   );
+
+  return response.data;
+}
+
+export async function createPresignedDownloadUrl(
+  payload: CreatePresignedDownloadUrlsRequest,
+): Promise<ApiResponse<CreatePresignedDownloadUrlsResponse>> {
+  const response = await api.post<
+    ApiResponse<CreatePresignedDownloadUrlsResponse>
+  >(`${UPLOAD_API_PREFIX}/presigned-download-urls`, payload);
 
   return response.data;
 }

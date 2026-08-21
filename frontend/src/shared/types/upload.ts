@@ -42,3 +42,11 @@ export interface ConfirmUploadItem {
 export interface ConfirmUploadResponse {
   files: ConfirmUploadItem[];
 }
+
+export type CreatePresignedDownloadUrlsRequest = {
+  keys: string[];
+};
+
+export type CreatePresignedDownloadUrlsResponse = {
+  urls: Record<string, string>;
+};

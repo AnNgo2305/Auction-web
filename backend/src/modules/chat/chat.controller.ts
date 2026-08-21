@@ -47,6 +47,33 @@ export class ChatController {
   }
 
   @Auth(AuthType.ACCESS_TOKEN)
+  @Get('conversations/search')
+  @Throttle({
+    short: { ttl: 1_000, limit: 10 },
+    medium: { ttl: 10_000, limit: 50 },
+    long: { ttl: 60_000, limit: 200 },
+  })
+  @HttpCode(HttpStatus.OK)
+  async searchConversations(
+    @Req() req: Request,
+    @Query('query') query: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: number,
+  ): Promise<ResponsePayload> {
+    const conversations = await this.conversationService.searchConversations({
+      currentUserId: req.user!.userId,
+      query,
+      cursor,
+      limit: limit ? Number(limit) : 10,
+    });
+
+    return {
+      message: 'Conversations searched successfully',
+      data: conversations,
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
   @Delete('conversations/:conversationId')
   @Throttle({
     short: { ttl: 1_000, limit: 2 },

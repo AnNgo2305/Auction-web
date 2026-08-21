@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   HeadObjectCommandOutput,
   PutObjectCommand,
@@ -13,6 +14,7 @@ import { randomUUID } from 'crypto';
 import {
   FileMetadata,
   PresignedUrlResult,
+  UPLOAD_PURPOSE,
   UploadPurpose,
 } from '@common/types/upload-file';
 
@@ -70,16 +72,16 @@ export class FileService {
     const ext = this.getExtension(mimeType);
 
     switch (purpose) {
-      case 'avatar':
+      case UPLOAD_PURPOSE.AVATAR:
         return `public/users/${entityId}/avatar/${uuid}.${ext}`;
 
-      case 'cover':
+      case UPLOAD_PURPOSE.COVER:
         return `public/users/${entityId}/cover/${uuid}.${ext}`;
 
-      case 'productImage':
+      case UPLOAD_PURPOSE.PRODUCT_IMAGE:
         return `public/products/${entityId}/images/${uuid}.${ext}`;
 
-      case 'productDocument':
+      case UPLOAD_PURPOSE.PRODUCT_DOCUMENT:
         return `public/products/${entityId}/documents/${uuid}.${ext}`;
 
       default:
@@ -89,6 +91,17 @@ export class FileService {
 
   getPublicUrl(key: string): string {
     return `https://${this.config.bucketName}.s3.${this.config.region}.amazonaws.com/${key}`;
+  }
+
+  async createPresignedDownloadUrl(key: string): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.config.bucketName,
+      Key: key,
+    });
+
+    return getSignedUrl(this.s3Client, command, {
+      expiresIn: this.config.presignedUrlExpiresIn,
+    });
   }
 
   async createPresignedUploadUrl(

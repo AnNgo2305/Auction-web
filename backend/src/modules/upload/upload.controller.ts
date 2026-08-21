@@ -14,6 +14,7 @@ import { ResponsePayload } from '@common/types/response.interface';
 import { UploadService } from '@modules/upload/upload.service';
 import { ConfirmUploadRequestDto } from '@modules/upload/dtos/confirm-upload.body.dto';
 import { Throttle } from '@nestjs/throttler';
+import { CreatePresignedDownloadUrlsRequestDto } from '@modules/upload/dtos/create-presigned-download-url.body.dto';
 
 @Controller('upload')
 export class UploadController {
@@ -44,6 +45,27 @@ export class UploadController {
 
     return {
       message: 'Presigned URLs created successfully',
+      data: res,
+    };
+  }
+
+  @Post('presigned-download-urls')
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Throttle({
+    short: { ttl: 1_000, limit: 5 },
+    medium: { ttl: 10_000, limit: 20 },
+    long: { ttl: 60_000, limit: 60 },
+  })
+  @HttpCode(HttpStatus.OK)
+  async getPresignedDownloadUrls(
+    @Body() dto: CreatePresignedDownloadUrlsRequestDto,
+  ): Promise<ResponsePayload> {
+    const { keys } = dto;
+
+    const res = await this.uploadService.createPresignedDownloadUrls(keys);
+
+    return {
+      message: 'Presigned download URLs created successfully',
       data: res,
     };
   }
