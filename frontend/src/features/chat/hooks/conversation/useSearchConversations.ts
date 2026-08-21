@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useGetConversations } from '@/features/chat/hooks/conversation/useGetConversations';
-import type { ConversationItem } from '@/features/chat/types/conversation/conversation-list.response';
+import { useEffect, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { conversationKeys } from '@/features/chat/constants/conversation-query-key.ts';
+import { chatApi } from '@/features/chat/api/chat.api.ts';
 
 const DEBOUNCE_MS = 250;
+const DEFAULT_LIMIT = 10;
 
 function useDebouncedValue<T>(value: T, delay = DEBOUNCE_MS): T {
   const [debounced, setDebounced] = useState(value);
@@ -23,25 +25,32 @@ function useDebouncedValue<T>(value: T, delay = DEBOUNCE_MS): T {
 export function useSearchConversations(query: string) {
   const debouncedQuery = useDebouncedValue(query.trim().toLowerCase());
 
-  const { data, isLoading } = useGetConversations();
+  const queryResult = useInfiniteQuery({
+    queryKey: conversationKeys.search(debouncedQuery.toLowerCase()),
 
-  const conversations: ConversationItem[] = data?.conversations ?? [];
+    queryFn: async ({ pageParam }) => {
+      return await chatApi.searchConversations({
+        query: debouncedQuery,
+        limit: DEFAULT_LIMIT,
+        cursor: pageParam,
+      });
+    },
 
-  const enabled = debouncedQuery.length > 0;
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
 
-  const matches = useMemo(() => {
-    if (!enabled) return [];
+    enabled: debouncedQuery.length > 0,
 
-    return conversations.filter((conversation) => {
-      const username = conversation.otherUser.username.toLowerCase();
+    staleTime: 1000 * 30,
 
-      return username.includes(debouncedQuery);
-    });
-  }, [conversations, debouncedQuery, enabled]);
+    select: ({ pages }) => ({
+      conversations: pages.flatMap((page) => page.data.conversations),
+    }),
+  });
 
   return {
+    ...queryResult,
     query: debouncedQuery,
-    matches,
-    isLoading: enabled && isLoading,
+    conversations: queryResult.data?.conversations ?? [],
   };
 }

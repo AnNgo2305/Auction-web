@@ -31,4 +31,7 @@ export class MessageData {
   isRead!: boolean;
   createdAt!: string;
   replyToMessage?: ReplyMessageData | null;
+
+  _failed?: boolean;
+  _pending?: boolean;
 }

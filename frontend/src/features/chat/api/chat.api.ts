@@ -3,6 +3,7 @@ import type { ConversationResponse } from '@/features/chat/types/conversation/cr
 import type { ConversationListResponse } from '@/features/chat/types/conversation/conversation-list.response';
 import type { MessageListResponse } from '@/features/chat/types/message/message-list.response';
 import type { DeleteConversationResponse } from '@/features/chat/types/conversation/delete-conversation.response.ts';
+import type { SearchConversationsResponse } from '@/features/chat/types/conversation/search-conversations.response';
 
 const CHAT_API_PREFIX = '/chat';
 
@@ -22,6 +23,29 @@ export const chatApi = {
   ): Promise<DeleteConversationResponse> => {
     const res = await api.delete<ConversationListResponse>(
       `${CHAT_API_PREFIX}/conversations/${conversationId}`,
+    );
+
+    return res.data;
+  },
+
+  searchConversations: async ({
+    query,
+    limit = 10,
+    cursor,
+  }: {
+    query: string;
+    limit?: number;
+    cursor?: string;
+  }): Promise<SearchConversationsResponse> => {
+    const res = await api.get<SearchConversationsResponse>(
+      `${CHAT_API_PREFIX}/conversations/search`,
+      {
+        params: {
+          query,
+          limit,
+          cursor,
+        },
+      },
     );
 
     return res.data;

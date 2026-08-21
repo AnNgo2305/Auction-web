@@ -85,6 +85,7 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
           : null,
         isRead: false,
         createdAt: new Date().toISOString(),
+        _pending: true,
       };
 
       queryClient.setQueryData<MessagesCache>(
