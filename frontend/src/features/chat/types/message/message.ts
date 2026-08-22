@@ -29,9 +29,13 @@ export class MessageData {
   mimeType?: string | null;
   fileSize?: number | null;
   isRead!: boolean;
+  readAt!: string | null;
+
   createdAt!: string;
+  updatedAt!: string;
   replyToMessage?: ReplyMessageData | null;
 
   _failed?: boolean;
   _pending?: boolean;
+  _edited?: boolean;
 }

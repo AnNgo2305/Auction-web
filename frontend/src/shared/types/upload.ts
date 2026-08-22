@@ -3,6 +3,7 @@ export const UPLOAD_PURPOSES = {
   COVER: 'cover',
   PRODUCT_IMAGE: 'productImage',
   PRODUCT_DOCUMENT: 'productDocument',
+  CHAT_ATTACHMENT: 'chatAttachment',
 } as const;
 
 export type UploadPurpose =

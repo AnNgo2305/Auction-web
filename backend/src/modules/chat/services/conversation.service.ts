@@ -185,6 +185,7 @@ export class ConversationService {
         initiator: {
           select: {
             username: true,
+            userId: true,
             profile: {
               select: {
                 profileImageUrl: true,
@@ -195,6 +196,7 @@ export class ConversationService {
         recipient: {
           select: {
             username: true,
+            userId: true,
             profile: {
               select: {
                 profileImageUrl: true,
@@ -217,6 +219,7 @@ export class ConversationService {
         return {
           conversationId: conversation.conversationId,
           username: otherUser.username,
+          userId: otherUser.userId,
           profileImageUrl: otherUser.profile?.profileImageUrl ?? null,
         };
       }),

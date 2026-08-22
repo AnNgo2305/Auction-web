@@ -5,7 +5,8 @@ export type MessageStatus =
   | 'failed'
   | 'sent'
   | 'delivered'
-  | 'seen';
+  | 'seen'
+  | 'edited';
 
 export const STATUS_LABEL: Record<MessageStatus, string> = {
   pending: 'Sending…',
@@ -13,14 +14,23 @@ export const STATUS_LABEL: Record<MessageStatus, string> = {
   sent: 'Sent',
   delivered: 'Delivered',
   seen: 'Seen',
+  edited: 'Edited',
 };
 
-type MessageWithStatus = MessageData & {
-  _failed?: boolean;
+const formatTime = (date: string) =>
+  new Date(date).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+export type MessageStatusResult = {
+  status: MessageStatus;
+  time?: string;
+  isEdited: boolean;
 };
 
 type MessageStatusParams = {
-  message: MessageWithStatus;
+  message: MessageData;
   peerLastReadAt: string | null;
   isPeerOnline: boolean;
 };
@@ -29,21 +39,50 @@ export function computeMessageStatus({
   message,
   peerLastReadAt,
   isPeerOnline,
-}: MessageStatusParams): MessageStatus {
+}: MessageStatusParams): MessageStatusResult {
+  const messageCreatedAt = new Date(message.createdAt).getTime();
+  const messageUpdatedAt = new Date(message.updatedAt).getTime();
+
+  const isEdited =
+    message._edited === true || messageUpdatedAt > messageCreatedAt;
+
   if (message._failed) {
-    return 'failed';
+    return {
+      status: 'failed',
+      isEdited,
+    };
   }
 
   if (message._pending) {
-    return 'pending';
+    return {
+      status: 'pending',
+      isEdited,
+    };
   }
 
-  const messageCreatedAt = new Date(message.createdAt).getTime();
-  const peerReadAt = peerLastReadAt ? new Date(peerLastReadAt).getTime() : null;
+  if (peerLastReadAt) {
+    const peerReadAt = new Date(peerLastReadAt).getTime();
 
-  if (peerReadAt !== null && peerReadAt >= messageCreatedAt) {
-    return 'seen';
+    if (peerReadAt >= messageCreatedAt) {
+      return {
+        status: 'seen',
+        time: formatTime(peerLastReadAt),
+        isEdited,
+      };
+    }
   }
 
-  return isPeerOnline ? 'delivered' : 'sent';
+  if (message.readAt) {
+    return {
+      status: 'seen',
+      time: formatTime(message.readAt),
+      isEdited,
+    };
+  }
+
+  return {
+    status: isPeerOnline ? 'delivered' : 'sent',
+    time: formatTime(message.createdAt),
+    isEdited,
+  };
 }

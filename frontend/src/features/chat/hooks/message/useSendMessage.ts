@@ -30,7 +30,7 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
       },
     ) => {
       const socket = socketRef.current;
-      if (!socket?.connected || !isAuthenticated) {
+      if (!socket?.connected || !isAuthenticated || !currentUser) {
         return;
       }
 
@@ -48,22 +48,19 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
       };
 
       const repliedMessage = payload.replyToMessageId
-        ? queryClient.getQueryData<MessagesCache>(messageKeys.list(conversationId))
-          ?.pages
-          .flatMap((page) => page.data.messages)
-          .find(
-            (message) =>
-              message.messageId === payload.replyToMessageId,
-          )
+        ? queryClient
+            .getQueryData<MessagesCache>(messageKeys.list(conversationId))
+            ?.pages.flatMap((page) => page.data.messages)
+            .find((message) => message.messageId === payload.replyToMessageId)
         : undefined;
 
       const optimisticMessage: MessageData = {
         messageId: tempId,
         conversationId,
         sender: {
-          userId: currentUser!.userId,
-          username: currentUser!.username,
-          profileImageUrl: currentUser?.profileImageUrl ?? null,
+          userId: currentUser.userId,
+          username: currentUser.username,
+          profileImageUrl: currentUser.profileImageUrl ?? null,
         },
         type: payload.type,
         content: payload.content ?? null,
@@ -85,6 +82,7 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
           : null,
         isRead: false,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         _pending: true,
       };
 
@@ -113,6 +111,6 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
 
       socket.emit(CHAT_EVENTS.MESSAGE_SEND, payload);
     },
-    [socketRef, queryClient],
+    [socketRef, queryClient, isAuthenticated, currentUser],
   );
 }

@@ -1,5 +1,6 @@
 export class SearchedConversations {
   conversationId!: string;
+  userId!: string;
   username!: string;
   profileImageUrl!: string | null;
 }

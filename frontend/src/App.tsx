@@ -5,6 +5,7 @@ import ProfileRoutes from '@/routes/ProfileRoute';
 import SettingRoutes from '@/routes/SettingRoute';
 import SellerHubRoutes from '@/routes/SellerHubRoute';
 import ProductRoutes from '@/routes/ProductRoute';
+import ChatRoutes from '@/routes/ChatRoute';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/setting/*" element={<SettingRoutes />} />
         <Route path="/sellerhub/*" element={<SellerHubRoutes />} />
         <Route path="products/*" element={<ProductRoutes />} />
+        <Route path="/chat/*" element={<ChatRoutes />} />
       </Routes>
     </BrowserRouter>
   );

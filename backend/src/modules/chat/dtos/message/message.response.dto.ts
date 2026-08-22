@@ -45,6 +45,8 @@ export class MessageResponseDto {
 
   fileSize?: number | null;
 
+  readAt: Date | null;
+
   isRead!: boolean;
 
   createdAt!: Date;

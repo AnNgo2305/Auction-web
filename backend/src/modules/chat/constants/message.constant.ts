@@ -20,6 +20,8 @@ export const MESSAGE_SELECT = {
   fileSize: true,
   isRead: true,
   createdAt: true,
+  readAt: true,
+  updatedAt: true,
   replyToMessage: {
     select: {
       messageId: true,

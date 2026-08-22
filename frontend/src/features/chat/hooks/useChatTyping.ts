@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { TypingPayload } from '@/features/chat/socket/types/payload/typing.payload.ts';
 import { CHAT_EVENTS } from '@/features/chat/socket/chat-socket.constant.ts';
@@ -63,7 +63,7 @@ export function useChatTyping(
         typingTimer.current = null;
       }, TYPING_TIMEOUT);
     },
-    [conversationId, startTyping, stopTyping],
+    [conversationId, socketRef],
   );
 
   const handleStopTyping = useCallback(() => {
@@ -78,7 +78,18 @@ export function useChatTyping(
       stopTyping(socketRef, { conversationId });
       isTyping.current = false;
     }
-  }, [conversationId, stopTyping]);
+  }, [conversationId, socketRef]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimer.current) {
+        clearTimeout(typingTimer.current);
+        typingTimer.current = null;
+      }
+
+      isTyping.current = false;
+    };
+  }, [conversationId]);
 
   return {
     handleStartTyping,

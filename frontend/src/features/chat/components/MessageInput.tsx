@@ -6,6 +6,8 @@ import { Textarea } from '@/shared/ui/textarea.tsx';
 import { cn } from '@/shared/lib/utils.ts';
 import { MessageAttachment, type MessageAttachmentItem } from '@/features/chat/components/MessageAttachment.tsx';
 import type { MessageType } from '@/shared/types/message';
+import { uploadToS3 } from '@/shared/utils/upload-files-s3';
+import { UPLOAD_PURPOSES } from '@/shared/types/upload';
 
 export type MessageInputMode =
   | {
@@ -35,7 +37,7 @@ export type MessageInputProps = {
   mode: MessageInputMode;
   onSend: (payload: MessageInputSendData) => void;
   onEdit: (messageId: string, content: string) => void;
-  onStartTyping: () => void;
+  onStartTyping: (content: string) => void;
   onStopTyping: () => void;
   onCancelMode: () => void;
   disabled?: boolean;
@@ -55,6 +57,7 @@ export function MessageInput({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (mode.type === 'edit') {
@@ -75,7 +78,7 @@ export function MessageInput({
     setText(value);
 
     if (value.trim()) {
-      onStartTyping();
+      onStartTyping(value);
     } else {
       onStopTyping();
     }
@@ -92,7 +95,7 @@ export function MessageInput({
     }
   };
 
-  const handleSelectAttachments = (
+  const handleSelectAttachments = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
@@ -101,10 +104,12 @@ export function MessageInput({
       return;
     }
 
-    const newAttachments: MessageAttachmentItem[] = Array.from(files).map(
+    const selectedFiles = Array.from(files);
+
+    const pendingAttachments: MessageAttachmentItem[] = selectedFiles.map(
       (file) => ({
         id: crypto.randomUUID(),
-        url: '',
+        url: URL.createObjectURL(file),
         originalName: file.name,
         size: file.size,
         mimeType: file.type,
@@ -112,9 +117,66 @@ export function MessageInput({
       }),
     );
 
-    setAttachments((prev) => [...prev, ...newAttachments]);
+    setAttachments((prev) => [...prev, ...pendingAttachments]);
 
-    event.target.value = '';
+    try {
+      setIsUploading(true);
+
+      const uploadedFiles = await uploadToS3(
+        selectedFiles,
+        UPLOAD_PURPOSES.CHAT_ATTACHMENT,
+      );
+
+      const updatedAttachments = pendingAttachments.map((attachment, index) => {
+        const uploaded = uploadedFiles[index];
+
+        if (!uploaded || !uploaded.exists) {
+          return {
+            ...attachment,
+            status: 'error' as const,
+            errorMessage: 'Upload failed',
+          };
+        }
+
+        return {
+          ...attachment,
+          url: uploaded.url || attachment.url,
+          attachmentKey: uploaded.key || '',
+          status: 'done' as const,
+        };
+      });
+
+      setAttachments((prev) =>
+        prev.map((attachment) => {
+          const updated = updatedAttachments.find(
+            (item) => item.id === attachment.id,
+          );
+
+          return updated ?? attachment;
+        }),
+      );
+    } catch {
+      setAttachments((prev) =>
+        prev.map((attachment) => {
+          const failed = pendingAttachments.find(
+            (item) => item.id === attachment.id,
+          );
+
+          if (!failed) {
+            return attachment;
+          }
+
+          return {
+            ...attachment,
+            status: 'error' as const,
+            errorMessage: 'Upload failed',
+          };
+        }),
+      );
+    } finally {
+      setIsUploading(false);
+      event.target.value = '';
+    }
   };
 
   const handleRemoveAttachment = (id: string) => {
@@ -132,11 +194,14 @@ export function MessageInput({
       return;
     }
 
-    if (!content && attachments.length === 0) {
+    const hasAttachments = attachments.length > 0;
+
+    if (isUploading || (!content && !hasAttachments)) {
       return;
     }
-    if (attachments.length === 0) {
-      onSend({ content, type: 'TEXT'});
+
+    if (!hasAttachments) {
+      onSend({ content, type: 'TEXT' });
     } else {
       attachments.forEach((attachment) => {
         if (attachment.status !== 'done' || !attachment.attachmentKey) {

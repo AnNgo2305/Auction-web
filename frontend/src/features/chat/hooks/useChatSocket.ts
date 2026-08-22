@@ -31,6 +31,7 @@ export function useChatSocket() {
   const queryClient = useQueryClient();
 
   const {
+    activeConversationId,
     clearPeerTyping,
     setPeerTyping,
     updatePeerReadAt,
@@ -58,7 +59,7 @@ export function useChatSocket() {
       await queryClient.invalidateQueries({
         queryKey: conversationKeys.list(),
       });
-      const activeId = useChatStore.getState().activeConversationId;
+      const activeId = activeConversationId;
       if (activeId) {
         await queryClient.invalidateQueries({
           queryKey: messageKeys.list(activeId),
@@ -83,25 +84,25 @@ export function useChatSocket() {
             ),
           );
 
-            if (alreadyExists) return currentCache;
-            const [firstPage, ...remainingPages] = currentCache.pages;
+          if (alreadyExists) return currentCache;
+          const [firstPage, ...remainingPages] = currentCache.pages;
 
-            if (!firstPage) return currentCache;
-            return {
-              ...currentCache,
-              pages: [
-                {
-                  ...firstPage,
-                  data: {
-                    ...firstPage.data,
-                    messages: [newMessage, ...firstPage.data.messages],
-                  },
+          if (!firstPage) return currentCache;
+          return {
+            ...currentCache,
+            pages: [
+              {
+                ...firstPage,
+                data: {
+                  ...firstPage.data,
+                  messages: [newMessage, ...firstPage.data.messages],
                 },
-                ...remainingPages,
-              ],
-            };
-          },
-        );
+              },
+              ...remainingPages,
+            ],
+          };
+        },
+      );
 
       queryClient.setQueryData<ConversationsCache>(
         conversationKeys.list(),
@@ -109,10 +110,7 @@ export function useChatSocket() {
           if (!currentCache) return currentCache;
 
           const isViewingConversation =
-            useChatStore.getState().activeConversationId ===
-            newMessage.conversationId &&
-            typeof document !== 'undefined' &&
-            document.visibilityState === 'visible';
+            activeConversationId === newMessage.conversationId && typeof document !== 'undefined' && document.visibilityState === 'visible';
 
           return {
             ...currentCache,
@@ -146,7 +144,6 @@ export function useChatSocket() {
       );
     });
 
-
     socket.on(CHAT_EVENTS.MESSAGE_ACK,
       ({ tempId, message: confirmedMessage }: MessageEvent) => {
         queryClient.setQueryData<MessagesCache>(
@@ -160,7 +157,12 @@ export function useChatSocket() {
                 data: {
                   ...page.data,
                   messages: page.data.messages.map((currentMessage) =>
-                    currentMessage.messageId === tempId ? confirmedMessage : currentMessage,
+                    currentMessage.messageId === tempId
+                      ? {
+                          ...confirmedMessage,
+                          _pending: false,
+                        }
+                      : currentMessage,
                   ),
                 },
               })),
@@ -179,10 +181,7 @@ export function useChatSocket() {
                 data: {
                   ...page.data,
                   conversations: page.data.conversations.map((conversation) => {
-                    if (
-                      conversation.conversationId !==
-                      confirmedMessage.conversationId
-                    ) {
+                    if (conversation.conversationId !== confirmedMessage.conversationId) {
                       return conversation;
                     }
 
@@ -219,10 +218,14 @@ export function useChatSocket() {
                     ...page,
                     data: {
                       ...page.data,
-                      messages: page.data.messages.map((m) =>
-                        m.messageId === tempId
-                          ? { ...m, _failed: true }
-                          : m,
+                      messages: page.data.messages.map(
+                        (message) => message.messageId === tempId
+                          ? {
+                              ...message,
+                              _pending: false,
+                              _failed: true,
+                            }
+                          : message,
                       ),
                     },
                   })),
@@ -282,9 +285,48 @@ export function useChatSocket() {
                   ...page.data,
                   messages: page.data.messages.map((currentMessage) =>
                     currentMessage.messageId === updatedMessage.messageId
-                      ? updatedMessage
+                      ? {
+                          ...updatedMessage,
+                          _edited: true,
+                        }
                       : currentMessage,
                   ),
+                },
+              })),
+            };
+          },
+        );
+
+        queryClient.setQueryData<ConversationsCache>(
+          conversationKeys.list(),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  conversations: page.data.conversations.map((conversation) => {
+                    if (conversation.conversationId !== updatedMessage.conversationId) {
+                      return conversation;
+                    }
+
+                    if (conversation.lastMessage?.messageId !== updatedMessage.messageId) {
+                      return conversation;
+                    }
+
+                    return {
+                      ...conversation,
+                      lastMessage: {
+                        messageId: updatedMessage.messageId,
+                        content: updatedMessage.content ?? null,
+                        type: updatedMessage.type,
+                        senderId: updatedMessage.sender.userId,
+                        createdAt: updatedMessage.createdAt,
+                      },
+                    };
+                  }),
                 },
               })),
             };

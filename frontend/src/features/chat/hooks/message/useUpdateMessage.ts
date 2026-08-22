@@ -17,6 +17,6 @@ export function useUpdateMessage(socketRef: React.RefObject<Socket | null>) {
 
       socket.emit(CHAT_EVENTS.MESSAGE_UPDATE, payload);
     },
-    [socketRef],
+    [socketRef, isAuthenticated],
   );
 }

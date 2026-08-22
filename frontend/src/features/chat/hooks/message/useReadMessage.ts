@@ -17,6 +17,6 @@ export function useReadMessage(socketRef: React.RefObject<Socket | null>) {
 
       socket.emit(CHAT_EVENTS.MESSAGE_READ, payload);
     },
-    [socketRef],
+    [socketRef, isAuthenticated],
   );
 }

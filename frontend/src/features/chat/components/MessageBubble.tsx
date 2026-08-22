@@ -7,6 +7,9 @@ import { computeMessageStatus, STATUS_LABEL } from '@/features/chat/utils/messag
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { Button } from '@/shared/ui/button';
 import { formatFileSize } from '@/shared/utils/format-size';
+import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
+import { useChatStore } from '@/shared/stores/chat.store';
+import { useEffect } from 'react';
 
 export type MessageBubbleProps = {
   message: MessageData;
@@ -17,7 +20,6 @@ export type MessageBubbleProps = {
   isPeerOnline: boolean;
   downloadUrls: Record<string, string>;
 
-  onQuotedMessageClick: (messageId: string) => void;
   onEditRequest?: (messageId: string) => void;
   onDeleteRequest?: (messageId: string) => void;
   onReplyRequest: (messageId: string) => void;
@@ -28,7 +30,6 @@ export function MessageBubble({
   showAvatar,
   isLastOwnMessage,
   onReplyRequest,
-  onQuotedMessageClick,
   onDeleteRequest,
   onEditRequest,
   isMine,
@@ -36,12 +37,37 @@ export function MessageBubble({
   isPeerOnline,
   downloadUrls,
 }: MessageBubbleProps) {
+  const { setPeerReadAt } = useChatStore();
+
+  useEffect(() => {
+    if (!isMine || !isLastOwnMessage) {
+      return;
+    }
+
+    if (peerLastReadAt !== null) {
+      return;
+    }
+
+    if (!message.readAt) {
+      return;
+    }
+
+    setPeerReadAt(message.conversationId, message.readAt);
+  }, [
+    isMine,
+    isLastOwnMessage,
+    peerLastReadAt,
+    message.conversationId,
+    message.readAt,
+    setPeerReadAt,
+  ]);
+
   const time = new Date(message.createdAt).toLocaleTimeString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',
   });
 
-  const status =
+  const messageStatus =
     isMine && isLastOwnMessage
       ? computeMessageStatus({ message, peerLastReadAt, isPeerOnline })
       : null;
@@ -56,7 +82,7 @@ export function MessageBubble({
       {!isMine && showAvatar ? (
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarImage
-            src={message.sender.profileImageUrl ?? undefined}
+            src={message.sender.profileImageUrl ?? defaultAvatarImageUrl}
             alt={message.sender.username}
           />
           <AvatarFallback>
@@ -77,16 +103,12 @@ export function MessageBubble({
               )}
             >
               {message.replyToMessage && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    onQuotedMessageClick(message.replyToMessage!.messageId)
-                  }
+                <div
                   className={cn(
                     'mb-1.5 w-full rounded-lg border-l-2 px-2 py-1 text-left text-xs',
                     isMine
-                      ? 'border-white/50 bg-white/10 text-white/80 hover:bg-white/15'
-                      : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50',
+                      ? 'border-white/50 bg-white/10 text-white/80'
+                      : 'border-gray-300 bg-white text-gray-500',
                   )}
                 >
                   <p className="font-medium">
@@ -109,7 +131,7 @@ export function MessageBubble({
                       <span>Attachment</span>
                     </div>
                   )}
-                </button>
+                </div>
               )}
               {message.type === 'TEXT' && (
                 <p className="wrap-break-word whitespace-pre-wrap">
@@ -181,20 +203,27 @@ export function MessageBubble({
               </div>
             </BubbleContent>
           </Bubble>
-          {isMine && isLastOwnMessage && status && (
-            <span
-              className={cn(
-                'mt-0.5 mr-1 text-[11px] leading-none select-none',
-                status === 'failed' ? 'text-red-500' : 'text-gray-400',
-              )}
+          {isMine && isLastOwnMessage && messageStatus && (
+            <div
+              className="mt-0.5 mr-1 flex items-center gap-1 text-[11px] leading-none select-none"
               aria-live="polite"
               role="status"
             >
-              {STATUS_LABEL[status]}
-              {status === 'pending' && (
-                <span className="ml-1 inline-block animate-pulse">·</span>
+              <span
+                className={cn(
+                  messageStatus.status === 'failed'
+                    ? 'text-red-500'
+                    : 'text-gray-400',
+                )}
+              >
+                {STATUS_LABEL[messageStatus.status]}
+                {messageStatus.time && ` at ${messageStatus.time}`}
+              </span>
+
+              {messageStatus.isEdited && (
+                <span className="text-gray-400 italic">Edited</span>
               )}
-            </span>
+            </div>
           )}
         </BubbleGroup>
         <DropdownMenu>

@@ -11,9 +11,18 @@ import { useSearchConversations } from '@/features/chat/hooks/conversation/useSe
 import { ConversationItem } from '@/features/chat/components/ConversationItem.tsx';
 import { ConversationPreview } from '@/features/chat/components/ConversationPreview.tsx';
 
+type Conversation = {
+  conversationId: string;
+  otherUser: {
+    userId: string;
+    username: string;
+    profileImageUrl: string | null;
+  };
+};
+
 type ConversationListProps = {
   activeConversationId: string | null;
-  onSelectConversation: (conversationId: string) => void;
+  onSelectConversation: (conversation: Conversation) => void;
 };
 
 function ConversationItemSkeleton() {
@@ -143,7 +152,12 @@ export function ConversationList({
               key={conversation.conversationId}
               conversation={conversation}
               isActive={conversation.conversationId === activeConversationId}
-              onClick={onSelectConversation}
+              onClick={() =>
+                onSelectConversation({
+                  conversationId: conversation.conversationId,
+                  otherUser: conversation.otherUser,
+                })
+              }
               isOnline={false}
             />
           ))}
@@ -155,7 +169,16 @@ export function ConversationList({
             <ConversationPreview
               key={user.conversationId}
               user={user}
-              onClick={onSelectConversation}
+              onClick={() =>
+                onSelectConversation({
+                  conversationId: user.conversationId,
+                  otherUser: {
+                    userId: user.userId,
+                    username: user.username,
+                    profileImageUrl: user.profileImageUrl,
+                  },
+                })
+              }
             />
           ))}
 

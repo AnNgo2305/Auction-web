@@ -33,9 +33,11 @@ export const CHAT_EVENTS = {
   MESSAGE_SEEN: 'message:seen',
 
   // Client → Server (Start typing)
+  // Client → Other conversation clients (Start typing)
   TYPING_START: 'typing:start',
 
   // Client → Server (Stop typing)
+  // Client → Other conversation clients (Stop typing)
   TYPING_STOP: 'typing:stop',
 } as const;
 

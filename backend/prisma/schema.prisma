@@ -495,7 +495,9 @@ model Message {
   replyToMessage   Message?  @relation("Message_Has_Replies", fields: [replyToMessageId], references: [messageId], onDelete: SetNull)
   replies          Message[] @relation("Message_Has_Replies")
 
-  isRead    Boolean  @default(false) @map("is_read")
+  isRead Boolean   @default(false) @map("is_read")
+  readAt DateTime? @map("read_at") @db.Timestamp(0)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
