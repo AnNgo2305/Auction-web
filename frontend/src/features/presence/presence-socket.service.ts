@@ -28,7 +28,7 @@ export function connectPresenceSocket(): void {
   if (socket) return; // already connected
 
   const { setUserOnline, setUserOffline, reconcilePresence } =
-    usePresenceStore();
+    usePresenceStore.getState();
 
   socket = io(`${import.meta.env.VITE_API_URL}/presence`, {
     withCredentials: true,

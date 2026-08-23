@@ -23,7 +23,9 @@ export function ProfileFollowersPage() {
       users={data?.bidders ?? []}
       isInitialLoading={isLoading}
       columns={2}
-      onLoadMore={() => fetchNextPage()}
+      onLoadMore={() => {
+        void fetchNextPage();
+      }}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
     />

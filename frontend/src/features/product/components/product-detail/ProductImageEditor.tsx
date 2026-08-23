@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Loader2, Save, Trash2, X, Star, Plus } from 'lucide-react';
 import { MAX_PRODUCT_IMAGES } from '@/shared/types/product.ts';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useDeleteProductImage } from '@/features/product/hooks/product-image/useDeleteProductImage';
 import { useDeleteProductImages } from '@/features/product/hooks/product-image/useDeleteProductImages';
 import { useUpdateProductImages } from '@/features/product/hooks/product-image/useUpdateProductImages';
@@ -26,9 +26,6 @@ export function ProductImageEditor({
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [localImages, setLocalImages] = useState<ProductImageItem[]>(images);
-  useEffect(() => {
-    setLocalImages(images);
-  }, [images]);
 
   const deleteProductImageMutation = useDeleteProductImage(productId);
   const deleteProductImagesMutation = useDeleteProductImages(productId);
@@ -338,7 +335,9 @@ export function ProductImageEditor({
               multiple
               accept="image/*"
               type="file"
-              onChange={handleUpload}
+              onChange={(event) => {
+                void handleUpload(event);
+              }}
               disabled={updateProductImagesMutation.isPending}
             />
           </>

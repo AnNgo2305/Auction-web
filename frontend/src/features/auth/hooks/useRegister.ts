@@ -23,7 +23,7 @@ export function useRegister(
       const code = err?.errorCode;
 
       const message =
-        (code && REGISTER_ERROR_MESSAGES[code]) ||
+        (code && REGISTER_ERROR_MESSAGES[code]) ??
         REGISTER_ERROR_MESSAGES.DEFAULT;
 
       toast.error(message);

@@ -56,7 +56,7 @@ export function ProfileAvatarImage({
     <div className="relative size-44 rounded-full">
       <Avatar className="border-background size-full border-4">
         <AvatarImage
-          src={avatarImageUrl || defaultAvatarImageUrl}
+          src={avatarImageUrl ?? defaultAvatarImageUrl}
           alt="Avatar"
         />
         <AvatarFallback>NA</AvatarFallback>

@@ -1,4 +1,4 @@
-import axios, { type AxiosError } from 'axios';
+import axios from 'axios';
 import type { ApiResponseError } from '../types/error.ts';
 
 const errorMessage = {
@@ -47,7 +47,7 @@ export const toApiError = (error: unknown): ApiError => {
   if (!axios.isAxiosError<ApiResponseError>(error)) {
     return new ApiError(errorMessage.UNKNOWN_ERROR, 500, 'UNKNOWN_ERROR');
   }
-  const axiosError = error as AxiosError<ApiResponseError>;
+  const axiosError = error;
   if (axiosError.code === 'ECONNABORTED') {
     return new ApiError(
       'The request took too long. Please try again.',

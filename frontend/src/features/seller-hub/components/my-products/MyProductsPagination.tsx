@@ -15,7 +15,7 @@ type MyProductsPaginationProps = {
   isFetchingNextPage: boolean;
   onPageChange: (page: number) => void;
   onPreviousPage: () => void;
-  onNextPage: () => void;
+  onNextPage: () => void | Promise<void>;
   limit: number;
   onLimitChange: (limit: number) => void;
 };
@@ -81,7 +81,7 @@ export function MyProductsPagination({
                 disabled={isNextPage && isFetchingNextPage}
                 onClick={() => {
                   if (isNextPage) {
-                    onNextPage();
+                    void onNextPage();
                     return;
                   }
 
@@ -99,7 +99,9 @@ export function MyProductsPagination({
             disabled={
               isFetchingNextPage || (!hasNextPage && page >= loadedPageCount)
             }
-            onClick={onNextPage}
+            onClick={() => {
+              void onNextPage();
+            }}
           >
             <ChevronRight className="size-4" />
           </Button>

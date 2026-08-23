@@ -97,8 +97,7 @@ export function MessageList({
             const isMine = message.sender.userId === currentUserId;
             const showAvatar =
               !isMine &&
-              (!nextMessage ||
-                nextMessage.sender.userId !== message.sender.userId);
+              (nextMessage?.sender.userId !== message.sender.userId);
 
             return (
               <MessageScrollerItem key={message.messageId}>

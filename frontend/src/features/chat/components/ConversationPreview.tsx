@@ -19,7 +19,7 @@ export function ConversationPreview({
     >
       <Avatar className="h-12 w-12 shrink-0">
         <AvatarImage
-          src={user.profileImageUrl || defaultAvatarImageUrl}
+          src={user.profileImageUrl ?? defaultAvatarImageUrl}
           alt={user.username}
         />
         <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>

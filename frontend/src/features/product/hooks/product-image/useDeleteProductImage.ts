@@ -18,7 +18,7 @@ export function useDeleteProductImage(
       return await productImageApi.deleteProductImage(productId, imageId);
     },
 
-    onSuccess: async () => {
+    onSuccess: () => {
       onSuccessCallback?.();
     },
 

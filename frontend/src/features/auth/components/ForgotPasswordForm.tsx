@@ -42,7 +42,7 @@ export function ForgotPasswordForm() {
   } = form;
 
   const forgotPasswordMutation = useForgotPassword((res) => {
-    navigate(authPaths.verifyResetPassword(), {
+    void navigate(authPaths.verifyResetPassword(), {
       state: {
         userId: res.data.userId,
         email: res.data.email,
@@ -57,7 +57,7 @@ export function ForgotPasswordForm() {
       const err = error as ApiResponseError;
 
       const message =
-        (err?.errorCode && FORGOT_PASSWORD_ERROR_MESSAGES[err.errorCode]) ||
+        (err?.errorCode && FORGOT_PASSWORD_ERROR_MESSAGES[err.errorCode]) ??
         FORGOT_PASSWORD_ERROR_MESSAGES.DEFAULT;
 
       setError('email', {
@@ -79,7 +79,12 @@ export function ForgotPasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+          className="space-y-5"
+        >
           <Field>
             <FieldLabel htmlFor="email" className="text-sm font-medium">
               Email

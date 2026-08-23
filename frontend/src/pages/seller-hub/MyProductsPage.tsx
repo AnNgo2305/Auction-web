@@ -234,7 +234,7 @@ export function MyProductsPage() {
           onPreviousPage={() => {
             setPage((prev) => Math.max(prev - 1, 1));
           }}
-          onNextPage={async () => {
+          onNextPage={async (): Promise<void> => {
             await fetchNextPage();
             setPage((prev) => prev + 1);
           }}

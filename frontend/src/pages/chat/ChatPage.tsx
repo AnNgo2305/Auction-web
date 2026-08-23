@@ -26,7 +26,7 @@ export function ChatPage() {
   const handleSelectConversation = (conversation: Conversation) => {
     setActiveConversation(conversation.conversationId);
     setCurrentConversation(conversation);
-    navigate(chatPaths.conversation(conversation.conversationId));
+    void navigate(chatPaths.conversation(conversation.conversationId));
   };
 
   return (

@@ -9,6 +9,9 @@ interface ChatStoreState {
 
   // Set the peer's latest read timestamp for a conversation.
   peerReadAt: Map<string, string | null>;
+
+  // Chat socket status.
+  isSocketConnected: boolean;
 }
 
 interface ChatStoreActions {
@@ -39,6 +42,9 @@ interface ChatStoreActions {
 
   // Clear peer read receipts for every conversation at once.
   clearAllPeerReadAt: () => void;
+
+  // Set chat socket status.
+  setSocketConnected: (connected: boolean) => void;
 }
 
 type ChatStore = ChatStoreState & ChatStoreActions;
@@ -47,6 +53,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   activeConversationId: null,
   typingUsers: new Map(),
   peerReadAt: new Map(),
+  isSocketConnected: false,
 
   setActiveConversation: (id) => set({ activeConversationId: id }),
 
@@ -96,4 +103,6 @@ export const useChatStore = create<ChatStore>((set) => ({
     }),
 
   clearAllPeerReadAt: () => set({ peerReadAt: new Map() }),
+
+  setSocketConnected: (connected) => set({ isSocketConnected: connected }),
 }));

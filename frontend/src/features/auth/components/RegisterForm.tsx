@@ -61,7 +61,7 @@ export function RegisterForm() {
   } = form;
 
   const registerMutation = useRegister((res) => {
-    navigate(authPaths.verifyEmail(), {
+    void navigate(authPaths.verifyEmail(), {
       state: {
         userId: res.data.userId,
         email: res.data.email,
@@ -90,7 +90,12 @@ export function RegisterForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="username" className="text-sm font-medium">

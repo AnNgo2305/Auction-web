@@ -19,7 +19,7 @@ export function useDeleteProductImages(
       return await productImageApi.deleteProductImages(productId, body);
     },
 
-    onSuccess: async () => {
+    onSuccess: () => {
       onSuccessCallback?.();
     },
 

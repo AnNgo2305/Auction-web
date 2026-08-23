@@ -156,7 +156,7 @@ export function MyProductsDataTable({
     if (filteredSelectedIds.length !== selectedProductIds.length) {
       onSelectionProductChange(filteredSelectedIds);
     }
-  }, [products, isSelectAll]);
+  }, [products, isSelectAll, selectedProductIds, onSelectionProductChange]);
 
   const dialogContent = pendingAction
     ? ACTION_CONTENT[pendingAction.action]
@@ -234,7 +234,7 @@ export function MyProductsDataTable({
                     checked={selectedProductIds.includes(product.productId)}
                     onCheckedChange={handleSelectRow}
                     onViewDetail={() => {
-                      navigate(productPaths.detail(product.productId));
+                      void navigate(productPaths.detail(product.productId));
                     }}
                     onDelete={(productId) => {
                       setPendingAction({ productId, action: 'delete' });

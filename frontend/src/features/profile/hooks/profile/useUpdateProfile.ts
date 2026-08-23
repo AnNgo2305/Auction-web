@@ -78,7 +78,7 @@ export function useUpdateProfile(
       return { previousGetProfileResponseCache };
     },
 
-    onSuccess: async (response) => {
+    onSuccess: (response) => {
       onSuccessCallback?.(response);
     },
 

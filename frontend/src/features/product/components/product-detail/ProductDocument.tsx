@@ -94,8 +94,6 @@ export function ProductDocument({
   };
 
   const handleDeleteDocument = (documentId: string) => {
-    console.log('delete id:', documentId);
-    console.table(localDocuments);
     const document = localDocuments.find((item) => item.id === documentId);
     if (!document) return;
 
@@ -207,8 +205,8 @@ export function ProductDocument({
           return {
             ...document,
             status: 'done',
-            url: uploaded?.url || '',
-            documentKey: uploaded?.key || '',
+            url: uploaded?.url ?? '',
+            documentKey: uploaded?.key ?? '',
           };
         }),
       );
@@ -394,7 +392,9 @@ export function ProductDocument({
               multiple
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
               type="file"
-              onChange={handleUpload}
+              onChange={(event) => {
+                void handleUpload(event);
+              }}
             />
           </>
         )}

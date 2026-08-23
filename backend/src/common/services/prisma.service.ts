@@ -44,7 +44,7 @@ export class PrismaService
     this.logger.log('PrismaClient initialized successfully');
 
     // QUERY LOG
-    // @ts-ignore
+    // @ts-expect-error Prisma generated types do not expose $on event overloads correctly
     this.$on('query', (e: QueryEvent) => {
       if (e.duration > 200) {
         this.logger.warn(`SLOW QUERY (${e.duration}ms): ${e.query}`);
@@ -54,19 +54,19 @@ export class PrismaService
     });
 
     // INFO LOG
-    // @ts-ignore
+    // @ts-expect-error Prisma generated types do not expose $on event overloads correctly
     this.$on('info', (e: LogEvent) => {
       this.logger.log(`[PRISMA INFO] ${e.message}`);
     });
 
     // WARN LOG
-    // @ts-ignore
+    // @ts-expect-error Prisma generated types do not expose $on event overloads correctly
     this.$on('warn', (e: LogEvent) => {
       this.logger.warn(`[PRISMA WARN] ${e.message}`);
     });
 
     // ERROR LOG
-    // @ts-ignore
+    // @ts-expect-error Prisma generated types do not expose $on event overloads correctly
     this.$on('error', (e: LogEvent) => {
       this.logger.error(`[PRISMA ERROR] ${e.message}`);
     });

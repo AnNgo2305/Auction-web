@@ -57,12 +57,12 @@ export function ChangePasswordForm() {
 
     await logoutAll();
 
-    navigate(authPaths.login(), {
+    void navigate(authPaths.login(), {
       replace: true,
     });
   });
 
-  const onSubmit = async (data: ChangePasswordBody) => {
+  const onSubmit = (data: ChangePasswordBody) => {
     changePasswordMutation.mutate(data);
   };
 
@@ -77,7 +77,12 @@ export function ChangePasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <FieldGroup>
             <Field>
               <FieldLabel

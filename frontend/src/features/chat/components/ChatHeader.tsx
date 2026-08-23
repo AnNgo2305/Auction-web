@@ -51,7 +51,7 @@ export function ChatHeader({
   const presence = formatPresence(isOnline, lastSeen);
 
   const handleOpenProfile = () => {
-    navigate(profilePaths.overview(otherUser.userId));
+    void navigate(profilePaths.overview(otherUser.userId));
   };
 
   return (

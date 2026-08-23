@@ -43,12 +43,12 @@ export default function AuthHeader() {
 
   const handleLogout = async () => {
     await logout();
-    navigate(authPaths.login());
+    void navigate(authPaths.login());
   };
 
   const handleLogoutAll = async () => {
     await logoutAll();
-    navigate(authPaths.login());
+    void navigate(authPaths.login());
   };
 
   return (
@@ -175,7 +175,9 @@ export default function AuthHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={handleLogout}
+                onSelect={() => {
+                  void handleLogout();
+                }}
                 disabled={isLoading}
                 className="flex items-center gap-2 text-red-600 focus:text-red-600"
               >
@@ -184,7 +186,9 @@ export default function AuthHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={handleLogoutAll}
+                onSelect={() => {
+                  void handleLogoutAll();
+                }}
                 disabled={isLoading}
                 className="flex items-center gap-2 text-red-600 focus:text-red-600"
               >

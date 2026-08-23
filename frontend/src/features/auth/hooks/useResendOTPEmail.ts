@@ -30,7 +30,7 @@ export function useResendOTPEmail(
     onError: (error: ApiResponseError) => {
       const code = error?.errorCode;
       const message =
-        (code && RESEND_OTP_ERROR_MESSAGES[code]) ||
+        (code && RESEND_OTP_ERROR_MESSAGES[code]) ??
         RESEND_OTP_ERROR_MESSAGES.DEFAULT;
       toast.error(message);
       onErrorCallback?.(error);

@@ -49,9 +49,9 @@ export function ProductComment({ productId }: ProductCommentProps) {
     if (!loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
-      async ([entry]) => {
+      ([entry]) => {
         if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-          await fetchNextPage();
+          void fetchNextPage();
         }
       },
       {

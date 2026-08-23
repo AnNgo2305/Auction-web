@@ -59,7 +59,7 @@ export function UserRelationshipCard({
   const timeLabel = RELATIONSHIP_TIME_LABELS[relationshipStatus];
 
   const handleNavigateProfile = () => {
-    navigate(profilePaths.overview(userId));
+    void navigate(profilePaths.overview(userId));
   };
 
   return (

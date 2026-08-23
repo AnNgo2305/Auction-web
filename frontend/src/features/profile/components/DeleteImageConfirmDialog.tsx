@@ -64,13 +64,11 @@ export function DeleteImageDialog({
   ) => {
     event.preventDefault();
 
-    try {
-      if (type === IMAGE_TYPES.AVATAR) {
-        await deleteProfileImageMutation.mutateAsync();
-      } else {
-        await deleteCoverImageMutation.mutateAsync();
-      }
-    } catch {}
+    if (type === IMAGE_TYPES.AVATAR) {
+      await deleteProfileImageMutation.mutateAsync();
+    } else {
+      await deleteCoverImageMutation.mutateAsync();
+    }
   };
 
   return (
@@ -86,7 +84,9 @@ export function DeleteImageDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleDeleteImage}
+            onClick={(event) => {
+              void handleDeleteImage(event);
+            }}
             disabled={isDeleting}
             className="bg-red-600 text-white hover:bg-red-700"
           >

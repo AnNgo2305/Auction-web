@@ -170,28 +170,29 @@ export function ProfileHeader({
                 </DropdownMenuTrigger>
                 {relationshipActions.length > 0 && (
                   <DropdownMenuContent align="end">
-                    {relationshipActions.map((action, index) => {
-                      const config = ACTION_CONFIG[action];
-                      const Icon = config.icon;
-                      return (
-                        <React.Fragment key={action}>
-                          {index > 0 && <DropdownMenuSeparator />}
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleRelationshipAction(
-                                currentUser?.userId!,
-                                userId!,
-                                action,
-                              )
-                            }
-                            className={config.className}
-                          >
-                            <Icon className="mr-2 h-4 w-4" />
-                            {config.label}
-                          </DropdownMenuItem>
-                        </React.Fragment>
-                      );
-                    })}
+                    {currentUser &&
+                      relationshipActions.map((action, index) => {
+                        const config = ACTION_CONFIG[action];
+                        const Icon = config.icon;
+                        return (
+                          <React.Fragment key={action}>
+                            {index > 0 && <DropdownMenuSeparator />}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleRelationshipAction(
+                                  currentUser.userId,
+                                  userId!,
+                                  action,
+                                )
+                              }
+                              className={config.className}
+                            >
+                              <Icon className="mr-2 h-4 w-4" />
+                              {config.label}
+                            </DropdownMenuItem>
+                          </React.Fragment>
+                        );
+                      })}
                   </DropdownMenuContent>
                 )}
               </DropdownMenu>
@@ -200,14 +201,14 @@ export function ProfileHeader({
         </div>
         {/* Profile info */}
         <div className="mt-2 min-w-0 space-y-1">
-          <p className="text-sm font-normal">{fullName || username}</p>
+          <p className="text-sm font-normal">{fullName ?? username}</p>
           {lastSeen && (
             <p className="text-muted-foreground text-xs">
               Last seen {lastSeen}
             </p>
           )}
           <p className="line-clamp-2 max-w-2xl text-sm leading-6 wrap-break-word italic">
-            {bio || ''}
+            {bio ?? ''}
           </p>
         </div>
       </div>

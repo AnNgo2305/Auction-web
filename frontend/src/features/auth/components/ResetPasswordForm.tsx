@@ -35,16 +35,12 @@ export function ResetPasswordForm() {
   const [params] = useSearchParams();
   const resetPasswordToken = params.get('token');
 
-  if (!resetPasswordToken) {
-    return <Navigate to={authPaths.forgotPassword()} replace />;
-  }
-
   const form = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       newPassword: '',
       confirmNewPassword: '',
-      resetPasswordToken,
+      resetPasswordToken: resetPasswordToken ?? '',
     },
     mode: 'onChange',
   });
@@ -56,12 +52,16 @@ export function ResetPasswordForm() {
   } = form;
 
   const resetPasswordMutation = useResetPassword(() => {
-    navigate(authPaths.login(), {
+    void navigate(authPaths.login(), {
       replace: true,
     });
   });
 
-  const onSubmit = async (data: ResetPasswordValues) => {
+  if (!resetPasswordToken) {
+    return <Navigate to={authPaths.forgotPassword()} replace />;
+  }
+
+  const onSubmit = (data: ResetPasswordValues): void => {
     resetPasswordMutation.mutate({
       newPassword: data.newPassword,
       confirmNewPassword: data.confirmNewPassword,
@@ -80,7 +80,12 @@ export function ResetPasswordForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="password" className="text-sm font-medium">

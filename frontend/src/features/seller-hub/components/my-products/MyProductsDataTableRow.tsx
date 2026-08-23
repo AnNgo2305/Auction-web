@@ -91,7 +91,7 @@ export function MyProductsTableRow({
       </TableCell>
       <TableCell>
         <p className="text-muted-foreground max-w-75 truncate text-sm">
-          {description || '-'}
+          {description ?? '-'}
         </p>
       </TableCell>
       <TableCell>

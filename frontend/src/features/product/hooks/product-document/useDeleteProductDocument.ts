@@ -23,7 +23,7 @@ export function useDeleteProductDocument(
       );
     },
 
-    onSuccess: async () => {
+    onSuccess: () => {
       onSuccessCallback?.();
     },
 

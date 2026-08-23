@@ -27,7 +27,7 @@ export function useResetPassword(onCallback?: () => void) {
       const code = error?.errorCode;
 
       const message =
-        (code && RESET_PASSWORD_ERROR_MESSAGES[code]) ||
+        (code && RESET_PASSWORD_ERROR_MESSAGES[code]) ??
         RESET_PASSWORD_ERROR_MESSAGES.DEFAULT;
 
       toast.error(message);

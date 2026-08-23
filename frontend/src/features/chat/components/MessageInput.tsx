@@ -133,7 +133,7 @@ export function MessageInput({
       const updatedAttachments = pendingAttachments.map((attachment, index) => {
         const uploaded = uploadedFiles[index];
 
-        if (!uploaded || !uploaded.exists) {
+        if (!uploaded?.exists) {
           return {
             ...attachment,
             status: 'error' as const,
@@ -143,8 +143,8 @@ export function MessageInput({
 
         return {
           ...attachment,
-          url: uploaded.url || attachment.url,
-          attachmentKey: uploaded.key || '',
+          url: uploaded.url ?? attachment.url,
+          attachmentKey: uploaded.key ?? '',
           status: 'done' as const,
         };
       });
@@ -305,7 +305,9 @@ export function MessageInput({
             multiple
             accept="image/*"
             className="hidden"
-            onChange={handleSelectAttachments}
+            onChange={(event) => {
+              void handleSelectAttachments(event);
+            }}
           />
           <Button
             type="button"
@@ -323,7 +325,9 @@ export function MessageInput({
             multiple
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
             className="hidden"
-            onChange={handleSelectAttachments}
+            onChange={(event) => {
+              void handleSelectAttachments(event);
+            }}
           />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             {attachments.length > 0 && (

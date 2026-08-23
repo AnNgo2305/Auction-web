@@ -35,10 +35,10 @@ export function MyProductsAppliedFilterTags({
   );
 
   const hasFilters =
-    keyword ||
-    status ||
-    publicCategory ||
-    dateRange?.from ||
+    Boolean(keyword) ||
+    Boolean(status) ||
+    Boolean(publicCategory) ||
+    Boolean(dateRange?.from) ||
     selectedCategoryIds.length > 0;
 
   if (!hasFilters) {

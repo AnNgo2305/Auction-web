@@ -50,7 +50,7 @@ import {
   type PublicCategory,
 } from '@/shared/types/product';
 import { Button } from '@/shared/ui/button';
-import { useEffect, useState } from 'react';
+import React, { type ChangeEvent, useEffect, useState } from 'react';
 import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-category/useGetMyproductCategory.ts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -153,7 +153,12 @@ export function CreateProductForm() {
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-8">
-        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-8"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <FieldGroup>
             <Field>
               <FieldLabel
@@ -171,10 +176,11 @@ export function CreateProductForm() {
                   placeholder="e.g. Apple iPhone 16 Pro Max"
                   className="h-11"
                   {...register('name', {
-                    onChange: (e) =>
+                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
                       updateBasicInformation({
                         name: e.target.value,
-                      }),
+                      });
+                    },
                   })}
                 />
               </InputGroup>
@@ -200,7 +206,7 @@ export function CreateProductForm() {
                 placeholder="Describe your product, including its features, specifications, and key benefits..."
                 className="min-h-32 resize-y"
                 {...register('description', {
-                  onChange: (e) =>
+                  onChange: (e: ChangeEvent<HTMLInputElement>) =>
                     updateBasicInformation({
                       description: e.target.value,
                     }),
@@ -237,7 +243,7 @@ export function CreateProductForm() {
                   className="h-11"
                   {...register('stockQuantity', {
                     setValueAs: (value) => (value === '' ? 0 : Number(value)),
-                    onChange: (e) =>
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                       updateBasicInformation({
                         stockQuantity:
                           e.target.value === '' ? 0 : Number(e.target.value),

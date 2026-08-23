@@ -20,7 +20,7 @@ export function SessionControlPage() {
     null,
   );
 
-  const revokeSessionMutation = useRevokeSession(async () => {
+  const revokeSessionMutation = useRevokeSession(() => {
     setSelectedSessionId(null);
   });
 

@@ -62,7 +62,7 @@ export function ProfileInfoCard() {
   }
 
   const handleEdit = () => {
-    navigate(profilePaths.edit(profile.userId));
+    void navigate(profilePaths.edit(profile.userId));
   };
 
   const items: ProfileItem[] = [

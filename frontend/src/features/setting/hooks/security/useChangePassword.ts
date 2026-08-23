@@ -8,7 +8,7 @@ import type { ChangePasswordBody } from '@/features/setting/schemas/change-passw
 import type { ChangePasswordResponse } from '@/features/setting/types/change-password.response.ts';
 import { CHANGE_PASSWORD_ERROR_MESSAGES } from '@/features/setting/constants/security-error.messages.ts';
 
-export function useChangePassword(onCallback?: () => void) {
+export function useChangePassword(onCallback?: () => void | Promise<void>) {
   return useMutation<
     ChangePasswordResponse,
     ApiResponseError,
@@ -22,14 +22,14 @@ export function useChangePassword(onCallback?: () => void) {
 
     onSuccess: (res) => {
       toast.success(res.message);
-      onCallback?.();
+      void onCallback?.();
     },
 
     onError: (error) => {
       const code = error?.errorCode;
 
       const message =
-        (code && CHANGE_PASSWORD_ERROR_MESSAGES[code]) ||
+        (code && CHANGE_PASSWORD_ERROR_MESSAGES[code]) ??
         CHANGE_PASSWORD_ERROR_MESSAGES.DEFAULT;
 
       toast.error(message);

@@ -114,7 +114,7 @@ export function ProductImagesUploader({
       const updatedPendingImages = pendingImages.map((image, index) => {
         const uploaded = uploadedFiles[index];
 
-        if (!uploaded || !uploaded.exists) {
+        if (!uploaded?.exists) {
           return {
             ...image,
             status: 'error' as const,
@@ -125,7 +125,7 @@ export function ProductImagesUploader({
         return {
           ...image,
           imageKey: uploaded.key,
-          imageUrl: uploaded.url || '',
+          imageUrl: uploaded.url ?? '',
           sourceFile: undefined,
           status: 'done' as const,
         };
@@ -181,7 +181,9 @@ export function ProductImagesUploader({
         accept="image/*"
         multiple
         hidden
-        onChange={handleSelectImages}
+        onChange={(event) => {
+          void handleSelectImages(event);
+        }}
       />
 
       {/* Upload box */}

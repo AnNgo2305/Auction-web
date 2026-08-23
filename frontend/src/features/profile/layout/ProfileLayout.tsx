@@ -88,7 +88,7 @@ export function ProfileLayout() {
     }
   };
 
-  const handleSaveAvatarImage = async (file: File) => {
+  const handleSaveAvatarImage = async (file: File): Promise<void> => {
     setIsAvatarSaving(true);
     try {
       const [uploadedFile] = await uploadToS3([file], UPLOAD_PURPOSES.AVATAR);
@@ -104,7 +104,7 @@ export function ProfileLayout() {
     }
   };
 
-  const handleSaveCoverImage = async (file: File) => {
+  const handleSaveCoverImage = async (file: File): Promise<void> => {
     setIsCoverSaving(true);
     try {
       const [uploadedFile] = await uploadToS3([file], UPLOAD_PURPOSES.COVER);
@@ -183,7 +183,9 @@ export function ProfileLayout() {
         selectedFile={selectedAvatarFile}
         onOpenChange={setUploadAvatarImageDialogOpen}
         onFileChange={setSelectedAvatarFile}
-        onSave={handleSaveAvatarImage}
+        onSave={(file) => {
+          void handleSaveAvatarImage(file);
+        }}
       />
       <UploadImageDialog
         open={uploadCoverImageDialogOpen}
@@ -193,7 +195,9 @@ export function ProfileLayout() {
         selectedFile={selectedCoverFile}
         onOpenChange={setUploadCoverImageDialogOpen}
         onFileChange={setSelectedCoverFile}
-        onSave={handleSaveCoverImage}
+        onSave={(file) => {
+          void handleSaveCoverImage(file);
+        }}
       />
       <DeleteImageDialog
         open={deleteAvatarImageDialogOpen}

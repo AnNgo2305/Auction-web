@@ -46,7 +46,7 @@ export function ProfileCoverImage({
   return (
     <div className="bg-muted relative aspect-20/7 w-full overflow-hidden rounded-xl">
       <img
-        src={coverImageUrl || defaultCoverImageUrl}
+        src={coverImageUrl ?? defaultCoverImageUrl}
         alt="Cover"
         className="h-full w-full object-cover transition-opacity"
       />

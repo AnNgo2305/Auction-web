@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import type { Socket } from 'socket.io-client';
 import {
   MessageInput,
@@ -28,6 +28,7 @@ import { useUpdateMessage } from '@/features/chat/hooks/message/useUpdateMessage
 import { useReadMessage } from '@/features/chat/hooks/message/useReadMessage';
 import { useChatTyping } from '@/features/chat/hooks/useChatTyping';
 import { createPresignedDownloadUrl } from '@/shared/api/upload.ts';
+import { toast } from 'sonner';
 
 type ChatPanelConversation = {
   conversationId: string;
@@ -49,6 +50,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     typingUsers,
     peerReadAt,
     clearTypingForConversation,
+    isSocketConnected
   } = useChatStore();
   const { onlineUsers, lastSeenMap } = usePresenceStore();
   const [isDeleteConversationDialogOpen, setIsDeleteConversationDialogOpen] =
@@ -58,7 +60,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     type: 'idle',
   });
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
-
+  const fetchedFileKeysRef = useRef(new Set<string>());
   const { currentUser } = useUser();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -79,7 +81,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     conversation.conversationId,
   );
 
-  const messages = data?.messages ?? [];
+  const messages = useMemo(() => data?.messages ?? [], [data?.messages]);
   const fileKeys = useMemo(() => {
     return [
       ...new Set(
@@ -91,8 +93,11 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
   }, [messages]);
 
   useEffect(() => {
-    if (fileKeys.length === 0) {
-      setDownloadUrls({});
+    const newFileKeys = fileKeys.filter(
+      (key) => !fetchedFileKeysRef.current.has(key),
+    );
+
+    if (newFileKeys.length === 0) {
       return;
     }
 
@@ -100,15 +105,21 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     const fetchDownloadUrls = async () => {
       try {
         const response = await createPresignedDownloadUrl({
-          keys: fileKeys,
+          keys: newFileKeys,
         });
 
-        if (!cancelled) {
-          setDownloadUrls(response.data.urls);
-        }
+        if (cancelled) return;
+        setDownloadUrls((current) => ({
+          ...current,
+          ...response.data.urls,
+        }));
+
+        newFileKeys.forEach((key) => {
+          fetchedFileKeysRef.current.add(key);
+        });
       } catch {
         if (!cancelled) {
-          setDownloadUrls({});
+          toast.error('Failed to load attachment');
         }
       }
     };
@@ -209,7 +220,13 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
       conversationId: conversation.conversationId,
       messageId: lastUnreadMessage.messageId,
     });
-  }, [conversation.conversationId, messages, currentUser?.userId, readMessage]);
+  }, [
+    conversation.conversationId,
+    messages,
+    currentUser?.userId,
+    readMessage,
+    chatSocketRef,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -242,7 +259,9 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
         downloadUrls={downloadUrls}
         hasMore={hasNextPage}
         isLoadingMore={isFetchingNextPage}
-        onLoadMore={() => fetchNextPage()}
+        onLoadMore={() => {
+          void fetchNextPage();
+        }}
         onEditRequest={(messageId: string) => {
           const message = messages.find(
             (message) => message.messageId === messageId,
@@ -281,7 +300,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
         onCancelMode={() => {
           setMessageInputMode({ type: 'idle' });
         }}
-        disabled={!chatSocketRef.current?.connected}
+        disabled={!isSocketConnected}
       />
       <AlertDialog
         open={isDeleteConversationDialogOpen}

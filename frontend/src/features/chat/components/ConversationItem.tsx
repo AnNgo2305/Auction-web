@@ -64,7 +64,7 @@ export function ConversationItem({
       observer.disconnect();
       unsubscribePresence([userId]);
     };
-  }, [userId]);
+  }, [userId, clearUsers]);
 
   const avatarUrl =
     conversation.otherUser.profileImageUrl ?? defaultAvatarImageUrl;

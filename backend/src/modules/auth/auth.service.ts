@@ -285,7 +285,7 @@ export class AuthService {
   }
 
   async refreshToken(req: Request, res: Response): Promise<void> {
-    const refreshToken: string | null = req.cookies?.refresh_token;
+    const refreshToken = req.cookies?.refresh_token as string | null;
 
     if (!refreshToken) {
       this.logger.error('Refresh token missing');
@@ -535,7 +535,7 @@ export class AuthService {
   }
 
   async logout(req: Request, res: Response): Promise<void> {
-    const refreshToken: string | null = req.cookies?.refresh_token;
+    const refreshToken = req.cookies?.refresh_token as string | null;
 
     if (!refreshToken) {
       this.logger.error('Refresh token missing');
@@ -582,7 +582,7 @@ export class AuthService {
   }
 
   async logoutAll(req: Request, res: Response): Promise<void> {
-    const refreshToken: string | null = req.cookies?.refresh_token;
+    const refreshToken = req.cookies?.refresh_token as string | null;
 
     if (!refreshToken) {
       this.logger.error('Refresh token missing');

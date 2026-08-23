@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ProductStatus, PublicCategory } from '@/shared/types/product';
 import React from 'react';
 import { Skeleton } from '@/shared/ui/skeleton.tsx';
+import { profilePaths } from '@/features/profile/constants/profile.routes.ts';
 
 type ProductCategory = {
   categoryId: string;
@@ -95,7 +96,7 @@ export function ProductInformationCard({
       <div className="mt-6 space-y-2">
         <p className="text-muted-foreground text-sm">Description</p>
         <p className="text-sm whitespace-pre-wrap">
-          {description || 'No description.'}
+          {description ?? 'No description.'}
         </p>
       </div>
 
@@ -117,7 +118,7 @@ export function ProductInformationCard({
             <Button
               variant="link"
               className="h-auto p-0 font-medium"
-              onClick={() => navigate(`/users/${sellerId}`)}
+              onClick={() => void navigate(profilePaths.overview(sellerId))}
             >
               {sellerName}
             </Button>

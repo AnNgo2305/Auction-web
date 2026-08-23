@@ -18,7 +18,7 @@ import {
 import { Separator } from '@/shared/ui/separator';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   verifyOtpSchema,
@@ -50,13 +50,13 @@ function getOtpErrorMessage(err: ApiResponseError, type: OtpType) {
   switch (type) {
     case OTP_TYPE.VERIFY_EMAIL:
       return (
-        (code && VERIFY_EMAIL_OTP_ERROR_MESSAGES[code]) ||
+        (code && VERIFY_EMAIL_OTP_ERROR_MESSAGES[code]) ??
         VERIFY_EMAIL_OTP_ERROR_MESSAGES.DEFAULT
       );
 
     case OTP_TYPE.RESET_PASSWORD:
       return (
-        (code && VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES[code]) ||
+        (code && VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES[code]) ??
         VERIFY_RESET_PASSWORD_OTP_ERROR_MESSAGES.DEFAULT
       );
 
@@ -80,10 +80,6 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const userId = state?.userId;
   const email = state?.email;
 
-  if (!userId || !email) {
-    return <Navigate to={authPaths.login()} replace />;
-  }
-
   const form = useForm<Pick<VerifyOTPValues, 'code'>>({
     resolver: zodResolver(
       verifyOtpSchema.pick({
@@ -98,14 +94,18 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const {
     control,
     handleSubmit,
-    watch,
     setError,
     clearErrors,
     formState: { errors },
   } = form;
 
+  const code = useWatch({
+    control,
+    name: 'code',
+  });
+
   const verifyEmailOtpMutation = useVerifyEmailOTP(() => {
-    navigate(authPaths.login(), {
+    void navigate(authPaths.login(), {
       replace: true,
     });
   });
@@ -113,7 +113,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const verifyResetPasswordOtpMutation = useVerifyResetPasswordlOTP((res) => {
     const token = res.data.resetPasswordToken;
 
-    navigate(authPaths.resetPasswordWithToken(token), { replace: true });
+    void navigate(authPaths.resetPasswordWithToken(token), { replace: true });
   });
 
   const mutationMap = {
@@ -128,10 +128,14 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
     (error) => {
       const code = error?.errorCode;
       if (code === 'USER_NOT_FOUND' || code === 'EMAIL_ALREADY_VERIFIED') {
-        navigate(authPaths.login(), { replace: true });
+        void navigate(authPaths.login(), { replace: true });
       }
     },
   );
+
+  if (!userId || !email) {
+    return <Navigate to={authPaths.login()} replace />;
+  }
 
   const onSubmit = async (data: Pick<VerifyOTPValues, 'code'>) => {
     try {
@@ -148,7 +152,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
 
       if (isRedirectError(code)) {
         toast.error(message);
-        navigate(authPaths.login(), { replace: true });
+        await navigate(authPaths.login(), { replace: true });
         return;
       }
 
@@ -162,7 +166,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
   const handleSendEmail = () => {
     if (!userId || !email) {
       toast.error('Invalid verification session. Please try again.');
-      navigate(authPaths.login(), { replace: true });
+      void navigate(authPaths.login(), { replace: true });
       return;
     }
 
@@ -194,7 +198,12 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-5"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <Field>
             <div className="flex w-full justify-center">
               <Controller
@@ -272,7 +281,7 @@ export function VerifyOTPForm({ type }: VerifyOTPFormProps) {
               type="submit"
               variant="outline"
               className="flex-1 bg-blue-600 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={watch('code')?.length !== 6 || isVerifying}
+              disabled={code.length !== 6 || isVerifying}
             >
               {isVerifying ? (
                 <span className="flex items-center gap-2">

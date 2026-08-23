@@ -69,6 +69,19 @@ export function ProductsPage() {
     setPage(1);
   };
 
+  const handleNextPage = () => {
+    if (page < pages.length) {
+      setPage((prev) => prev + 1);
+      return;
+    }
+
+    if (hasNextPage) {
+      void fetchNextPage().then(() => {
+        setPage((prev) => prev + 1);
+      });
+    }
+  };
+
   return (
     <div className="py-6">
       <div className="mx-auto flex w-full max-w-7xl flex-col space-y-6 px-4">
@@ -96,8 +109,8 @@ export function ProductsPage() {
               thumbnail={product.thumbnail}
               categories={product.categories}
               createdAt={product.createdAt}
-              onViewDetails={(id) => navigate(productPaths.detail(id))}
-              onViewSeller={(id) => navigate(profilePaths.overview(id))}
+              onViewDetails={(id) => void navigate(productPaths.detail(id))}
+              onViewSeller={(id) => void navigate(profilePaths.overview(id))}
             />
           ))}
         </div>
@@ -110,17 +123,7 @@ export function ProductsPage() {
           limit={limit}
           onPageChange={setPage}
           onPreviousPage={() => setPage((prev) => prev - 1)}
-          onNextPage={async () => {
-            if (page < pages.length) {
-              setPage((prev) => prev + 1);
-              return;
-            }
-
-            if (hasNextPage) {
-              await fetchNextPage();
-              setPage((prev) => prev + 1);
-            }
-          }}
+          onNextPage={handleNextPage}
           onLimitChange={(value) => {
             setLimit(value);
             setPage(1);

@@ -2,7 +2,6 @@ import { api } from '@/shared/api/axios';
 import type { CreateProductCategoryBody } from '@/features/seller-hub/schemas/product-category/create-product-category.schema';
 import type { DeleteProductCategoriesBody } from '@/features/seller-hub/schemas/product-category/delete-product-categories.schema';
 import type { GetMyProductCategoriesResponse } from '@/features/seller-hub/types/product-category/get-my-product-categories.response';
-import type { ApiResponse } from '@/shared/types/response';
 import type { CreateProductCategoryResponse } from '@/features/seller-hub/types/product-category/create-product-category.response.ts';
 import type { DeleteProductCategoriesResponse } from '@/features/seller-hub/types/product-category/delete-product-categories.response.ts';
 import type { DeleteProductCategoryResponse } from '@/features/seller-hub/types/product-category/delete-product-category.response.ts';
@@ -20,7 +19,7 @@ export const productCategoryApi = {
 
   createProductCategory: async (
     body: CreateProductCategoryBody,
-  ): Promise<ApiResponse<{}>> => {
+  ): Promise<CreateProductCategoryResponse> => {
     const res = await api.post<CreateProductCategoryResponse>(
       PRODUCT_CATEGORY_API_PREFIX,
       body,
@@ -31,7 +30,7 @@ export const productCategoryApi = {
 
   deleteProductCategoryById: async (
     categoryId: string,
-  ): Promise<ApiResponse<{}>> => {
+  ): Promise<DeleteProductCategoryResponse> => {
     const res = await api.delete<DeleteProductCategoryResponse>(
       `${PRODUCT_CATEGORY_API_PREFIX}/${categoryId}`,
     );
@@ -41,7 +40,7 @@ export const productCategoryApi = {
 
   deleteProductCategories: async (
     body: DeleteProductCategoriesBody,
-  ): Promise<ApiResponse<{}>> => {
+  ): Promise<DeleteProductCategoriesResponse> => {
     const res = await api.delete<DeleteProductCategoriesResponse>(
       PRODUCT_CATEGORY_API_PREFIX,
       {

@@ -9,7 +9,7 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Field, FieldError, FieldLabel } from '@/shared/ui/field';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createProductCategorySchema,
@@ -30,7 +30,7 @@ export function CreateProductCategoryDialog({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<CreateProductCategoryBody>({
@@ -46,7 +46,10 @@ export function CreateProductCategoryDialog({
     onOpenChange(false);
   });
 
-  const color = watch('color');
+  const color = useWatch({
+    control,
+    name: 'color',
+  });
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       reset();
@@ -61,7 +64,11 @@ export function CreateProductCategoryDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Create Category</DialogTitle>
             <DialogDescription>

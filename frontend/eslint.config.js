@@ -7,7 +7,12 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    'src/shared/ui/',
+    'src/shared/hooks/',
+    'src/shared/libs/',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -35,6 +40,7 @@ export default defineConfig([
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       '@typescript-eslint/consistent-type-definitions': 'off',
+      'react-refresh/only-export-components': 'off',
     },
   },
 ]);

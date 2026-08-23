@@ -54,7 +54,7 @@ export function LoginForm() {
       toast.info(
         'Please click the "Send OTP" button to receive a verification code to your email before continuing.',
       );
-      navigate(authPaths.verifyEmail(), {
+      void navigate(authPaths.verifyEmail(), {
         state: {
           userId: res.data.user.userId,
           email: res.data.user.email,
@@ -76,7 +76,7 @@ export function LoginForm() {
     });
 
     toast.success(res.message);
-    navigate('/');
+    void navigate('/');
   });
 
   const onSubmit = (data: LoginFormValues) => {
@@ -100,7 +100,12 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="email" className="text-sm font-medium">

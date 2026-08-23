@@ -166,7 +166,7 @@ export function UserPreviewList({
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar className="h-16 w-16">
                   <AvatarImage
-                    src={user.profileImageUrl || defaultAvatarImageUrl}
+                    src={user.profileImageUrl ?? defaultAvatarImageUrl}
                   />
                   <AvatarFallback>NA</AvatarFallback>
                 </Avatar>
@@ -212,7 +212,7 @@ export function UserPreviewList({
                                 e.stopPropagation();
                                 handleRelationshipAction(
                                   ownerUserId!,
-                                  user.userId!,
+                                  user.userId,
                                   action,
                                 );
                               }}

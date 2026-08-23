@@ -23,7 +23,7 @@ import {
   formatIsoToDateInput,
 } from '@/shared/utils/format-time';
 import { Skeleton } from '@/shared/ui/skeleton';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 import { GENDERS } from '@/shared/types/user.ts';
@@ -74,7 +74,7 @@ export function EditProfileForm() {
     mode: 'onChange',
   });
 
-  const resetProfile = () => {
+  const resetProfile = useCallback(() => {
     if (!profile) return;
 
     reset({
@@ -86,11 +86,11 @@ export function EditProfileForm() {
         : '',
       gender: profile.gender ?? undefined,
     });
-  };
+  }, [profile, reset]);
 
   useEffect(() => {
     resetProfile();
-  }, [profile]);
+  }, [profile, resetProfile]);
 
   const updateProfileMutation = useUpdateProfile(profile?.userId, (res) => {
     toast.success(res.message);
@@ -134,9 +134,9 @@ export function EditProfileForm() {
 
   const onSubmit = (values: UpdateProfileBody) => {
     updateProfileMutation.mutate({
-      fullName: values.fullName || null,
-      phoneNumber: values.phoneNumber || null,
-      bio: values.bio || null,
+      fullName: values.fullName ?? null,
+      phoneNumber: values.phoneNumber ?? null,
+      bio: values.bio ?? null,
       dateOfBirth: values.dateOfBirth
         ? new Date(values.dateOfBirth).toISOString()
         : null,
@@ -156,7 +156,12 @@ export function EditProfileForm() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            void handleSubmit(onSubmit)(event);
+          }}
+        >
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="email" className="text-sm font-medium">

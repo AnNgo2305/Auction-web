@@ -31,13 +31,13 @@ export function useChatSocket() {
   const queryClient = useQueryClient();
 
   const {
-    activeConversationId,
     clearPeerTyping,
     setPeerTyping,
     updatePeerReadAt,
     setActiveConversation,
     clearAllPeerReadAt,
     clearAllTyping,
+    setSocketConnected,
   } = useChatStore();
 
   useEffect(() => {
@@ -54,18 +54,20 @@ export function useChatSocket() {
     socketRef.current = socket;
 
     socket.on('connect', async () => {
+      setSocketConnected(true);
       await queryClient.invalidateQueries({
         queryKey: conversationKeys.list(),
       });
-      const activeId = activeConversationId;
-      if (activeId) {
+      const { activeConversationId } = useChatStore.getState();
+      if (activeConversationId) {
         await queryClient.invalidateQueries({
-          queryKey: messageKeys.list(activeId),
+          queryKey: messageKeys.list(activeConversationId),
         });
       }
     });
 
     socket.on('disconnect', () => {
+      setSocketConnected(false);
       clearAllTyping();
     });
 
@@ -109,6 +111,7 @@ export function useChatSocket() {
           (currentCache) => {
             if (!currentCache) return currentCache;
 
+            const { activeConversationId } = useChatStore.getState();
             const isViewingConversation =
               activeConversationId === newMessage.conversationId &&
               typeof document !== 'undefined' &&
@@ -394,8 +397,19 @@ export function useChatSocket() {
       clearAllTyping();
       clearAllPeerReadAt();
       setActiveConversation(null);
+      setSocketConnected(false);
     };
-  }, [isAuthenticated, queryClient]);
+  }, [
+    clearAllPeerReadAt,
+    clearAllTyping,
+    clearPeerTyping,
+    isAuthenticated,
+    queryClient,
+    setActiveConversation,
+    setPeerTyping,
+    updatePeerReadAt,
+    setSocketConnected,
+  ]);
 
   return socketRef;
 }

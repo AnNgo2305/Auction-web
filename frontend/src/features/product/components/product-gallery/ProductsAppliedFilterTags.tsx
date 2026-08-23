@@ -31,9 +31,9 @@ export function ProductsAppliedFilterTags({
   onClearFilters,
 }: ProductsAppliedFilterTagsProps) {
   const hasFilters =
-    keyword ||
-    status ||
-    publicCategory ||
+    Boolean(keyword) ||
+    Boolean(status) ||
+    Boolean(publicCategory) ||
     sortBy !== 'createdAt' ||
     sortOrder !== 'desc';
 

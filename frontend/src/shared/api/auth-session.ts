@@ -3,7 +3,7 @@ import axios from 'axios';
 const REFRESH_TOKEN_API_URL = '/auth/refresh-token';
 
 const refreshApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 10000,
   withCredentials: true,
   headers: {

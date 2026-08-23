@@ -19,7 +19,7 @@ export function useDeleteProductDocuments(
       return await productDocumentApi.deleteProductDocuments(productId, body);
     },
 
-    onSuccess: async () => {
+    onSuccess: () => {
       onSuccessCallback?.();
     },
 

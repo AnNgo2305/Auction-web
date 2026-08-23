@@ -20,7 +20,7 @@ export function useSetPrimaryProductImage(
       return await productImageApi.setPrimaryImage(productId, imageId);
     },
 
-    onSuccess: async () => {
+    onSuccess: () => {
       onSuccessCallback?.();
     },
 

@@ -109,7 +109,7 @@ export function ProductDocumentsUploader({
         (document, index) => {
           const uploaded = uploadedFiles[index];
 
-          if (!uploaded || !uploaded.exists) {
+          if (!uploaded?.exists) {
             return {
               ...document,
               status: 'error' as const,
@@ -119,7 +119,7 @@ export function ProductDocumentsUploader({
 
           return {
             ...document,
-            url: uploaded.url || '',
+            url: uploaded.url ?? '',
             documentKey: uploaded.key || '',
             status: 'done' as const,
           };
@@ -171,7 +171,9 @@ export function ProductDocumentsUploader({
         accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
         multiple
         hidden
-        onChange={handleSelectDocuments}
+        onChange={(event) => {
+          void handleSelectDocuments(event);
+        }}
       />
 
       {/* Upload box */}

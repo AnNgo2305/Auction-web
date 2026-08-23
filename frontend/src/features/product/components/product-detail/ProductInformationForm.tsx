@@ -51,6 +51,7 @@ import { useState } from 'react';
 import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-category/useGetMyproductCategory';
 import { Spinner } from '@/shared/ui/spinner.tsx';
 import { useUpdateProduct } from '@/features/product/hooks/product/useUpdateProduct.ts';
+import { profilePaths } from '@/features/profile/constants/profile.routes.ts';
 
 type ProductBasicInformationFormProps = {
   productId: string;
@@ -96,7 +97,9 @@ export function ProductBasicInformationForm({
   return (
     <form
       className="bg-background space-y-8 rounded-xl border p-6 shadow-sm"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={(event) => {
+        void handleSubmit(onSubmit)(event);
+      }}
     >
       <FieldGroup>
         <Field className="space-y-2">
@@ -251,7 +254,7 @@ export function ProductBasicInformationForm({
               type="button"
               variant="link"
               className="h-11 justify-start px-0"
-              onClick={() => navigate(`/users/${sellerId}`)}
+              onClick={() => void navigate(profilePaths.overview(sellerId))}
             >
               <User className="mr-2 size-4" />
               {sellerName}

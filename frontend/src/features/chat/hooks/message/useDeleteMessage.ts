@@ -17,6 +17,6 @@ export function useDeleteMessage(socketRef: React.RefObject<Socket | null>) {
 
       socket.emit(CHAT_EVENTS.MESSAGE_DELETE, payload);
     },
-    [socketRef],
+    [socketRef, isAuthenticated],
   );
 }

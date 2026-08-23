@@ -74,7 +74,7 @@ export function UserAddressList({
     reset({
       addresses: mapAddressesToFormValues(addresses),
     });
-  }, [addresses, form]);
+  }, [addresses, form, reset]);
 
   if (isInitialLoading) {
     return (
@@ -102,12 +102,10 @@ export function UserAddressList({
     setIsEditing(false);
   };
 
-  const handleSave = handleSubmit(async (values) => {
-    try {
-      await updateAddressesMutation.mutateAsync(values);
-      setIsEditing(false);
-    } catch {}
-  });
+  const onSubmit = async (values: UpdateAddressesBody): Promise<void> => {
+    await updateAddressesMutation.mutateAsync(values);
+    setIsEditing(false);
+  };
 
   const handleAddAddress = () => {
     if (fields.length >= MAX_ADDRESSES) return;
@@ -155,7 +153,12 @@ export function UserAddressList({
             </Button>
           ))}
       </div>
-      <form onSubmit={handleSave} className="space-y-4">
+      <form
+        className="space-y-4"
+        onSubmit={(event): void => {
+          void handleSubmit(onSubmit)(event);
+        }}
+      >
         {isEditing ? (
           fields.length > 0 ? (
             <div className="space-y-4">

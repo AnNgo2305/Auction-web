@@ -3,9 +3,10 @@ import { toApiError } from './api-error.ts';
 import { getCsrfToken } from '@/shared/api/csrf.ts';
 import { emitLogoutEvent } from './auth-event.ts';
 import { refreshAccessToken } from './auth-session.ts';
+import type { ApiResponseError } from '@/shared/types/error.ts';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 10000,
   withCredentials: true,
   headers: {
@@ -29,11 +30,19 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  async (error: unknown) => {
+    if (!axios.isAxiosError<ApiResponseError>(error)) {
+      return Promise.reject(new Error('An unexpected error occurred'));
+    }
+
     const originalRequest = error.config;
+    if (!originalRequest) {
+      return Promise.reject(toApiError(error));
+    }
+
     const statusCode = error.response?.status;
-    const errorCode = error.response?.data?.errorCode;
-    const url = originalRequest?.url || '';
+    const errorCode = error.response?.data?.errorCode ?? '';
+    const url = originalRequest?.url ?? '';
 
     if (statusCode === 500 && errorCode === 'INTERNAL_SERVER_ERROR') {
       emitLogoutEvent();
@@ -53,7 +62,11 @@ api.interceptors.response.use(
           return api(originalRequest);
         } catch (refreshError) {
           emitLogoutEvent();
-          return Promise.reject(refreshError);
+          if (refreshError instanceof Error) {
+            return Promise.reject(refreshError);
+          }
+
+          return Promise.reject(new Error('Failed to refresh access token'));
         }
       }
 
