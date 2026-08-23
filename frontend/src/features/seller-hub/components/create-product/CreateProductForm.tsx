@@ -1,10 +1,42 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Field, FieldLabel, FieldGroup, FieldDescription, FieldError } from '@/shared/ui/field';
-import { InputGroup, InputGroupInput, InputGroupAddon } from '@/shared/ui/input-group';
-import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from '@/shared/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover.tsx';
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/shared/ui/command.tsx';
-import { Badge } from '@/shared/ui/badge'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/ui/card';
+import {
+  Field,
+  FieldLabel,
+  FieldGroup,
+  FieldDescription,
+  FieldError,
+} from '@/shared/ui/field';
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+} from '@/shared/ui/input-group';
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectValue,
+  SelectTrigger,
+} from '@/shared/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/ui/popover.tsx';
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from '@/shared/ui/command.tsx';
+import { Badge } from '@/shared/ui/badge';
 import { ProductImagesUploader } from '@/features/seller-hub/components/create-product/ProductImageUploader';
 import { ProductDocumentsUploader } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
 import { Checkbox } from '@/shared/ui/checkbox.tsx';

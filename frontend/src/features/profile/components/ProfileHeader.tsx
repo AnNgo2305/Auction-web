@@ -25,7 +25,7 @@ import {
   type RelationshipStatus,
 } from '@/shared/types/relationship';
 
-interface ProfileHeaderProps {
+type ProfileHeaderProps = {
   userId: string | undefined;
   username: string | undefined;
   fullName: string | null | undefined;
@@ -36,6 +36,7 @@ interface ProfileHeaderProps {
   mutualFollowedSellerCount?: number;
   relationshipStatus: RelationshipStatus | undefined;
   isInitialProfileLoading: boolean;
+  lastSeen: string | null;
 }
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -59,6 +60,7 @@ export function ProfileHeader({
   mutualFollowedSellerCount,
   relationshipStatus,
   isInitialProfileLoading = false,
+  lastSeen,
 }: ProfileHeaderProps) {
   const { currentUser } = useUser();
   const { handleRelationshipAction } = useRelationshipActions();
@@ -199,6 +201,11 @@ export function ProfileHeader({
         {/* Profile info */}
         <div className="mt-2 min-w-0 space-y-1">
           <p className="text-sm font-normal">{fullName || username}</p>
+          {lastSeen && (
+            <p className="text-muted-foreground text-xs">
+              Last seen {lastSeen}
+            </p>
+          )}
           <p className="line-clamp-2 max-w-2xl text-sm leading-6 wrap-break-word italic">
             {bio || ''}
           </p>

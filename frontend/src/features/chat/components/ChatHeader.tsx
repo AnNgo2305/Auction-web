@@ -9,11 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
-import { Button } from '@/shared/ui/button'
+import { Button } from '@/shared/ui/button';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
-
 
 type OtherUser = {
   userId: string;
@@ -26,7 +25,7 @@ type ChatHeaderProps = {
   isOnline: boolean;
   lastSeen: string | null;
   onDeleteConversation: () => void;
-}
+};
 
 export function ChatHeader({
   otherUser,
@@ -61,7 +60,7 @@ export function ChatHeader({
         <Button
           type="button"
           onClick={handleOpenProfile}
-          className="flex min-w-0 items-center gap-3 rounded-md text-left transition-colors hover:bg-muted/50"
+          className="hover:bg-muted/50 flex min-w-0 items-center gap-3 rounded-md text-left transition-colors"
         >
           <div className="relative shrink-0">
             <Avatar className="h-10 w-10">

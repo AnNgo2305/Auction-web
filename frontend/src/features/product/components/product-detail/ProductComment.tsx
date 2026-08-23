@@ -7,7 +7,10 @@ import { useUpdateProductComment } from '@/features/product/hooks/product-commen
 import type { UpdateProductCommentBody } from '@/features/product/schemas/product-comment/update-product-comment.schema';
 import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
-import { ProductCommentItem, ProductCommentSkeleton } from '@/features/product/components/product-detail/ProductCommentItem';
+import {
+  ProductCommentItem,
+  ProductCommentSkeleton,
+} from '@/features/product/components/product-detail/ProductCommentItem';
 import { useUser } from '@/shared/contexts/UserContext.tsx';
 import {
   AlertDialog,
@@ -17,16 +20,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogDescription,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from '@/shared/ui/alert-dialog.tsx';
 
 type ProductCommentProps = {
   productId: string;
 };
 
-export function ProductComment({
-  productId,
-}: ProductCommentProps) {
+export function ProductComment({ productId }: ProductCommentProps) {
   const [content, setContent] = useState('');
   const [rating, setRating] = useState<number | undefined>();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);

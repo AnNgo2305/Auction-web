@@ -15,14 +15,15 @@ export const DELETE_PRODUCT_IMAGES_ERROR_MESSAGES: Record<string, string> = {
   DEFAULT: 'Failed to delete product images.',
 } as const;
 
-export const SET_PRIMARY_PRODUCT_IMAGE_ERROR_MESSAGES: Record<string, string> = {
-  PRODUCT_IMAGE_NOT_FOUND: 'Product image not found.',
-  PRODUCT_ACCESS_DENIED: 'You do not have permission to modify this product.',
-  PRODUCT_NOT_FOUND: 'Product not found.',
-  PRODUCT_IMAGE_ALREADY_PRIMARY:
-    'The selected image is already the primary image.',
-  DEFAULT: 'Failed to set primary product image.',
-} as const;
+export const SET_PRIMARY_PRODUCT_IMAGE_ERROR_MESSAGES: Record<string, string> =
+  {
+    PRODUCT_IMAGE_NOT_FOUND: 'Product image not found.',
+    PRODUCT_ACCESS_DENIED: 'You do not have permission to modify this product.',
+    PRODUCT_NOT_FOUND: 'Product not found.',
+    PRODUCT_IMAGE_ALREADY_PRIMARY:
+      'The selected image is already the primary image.',
+    DEFAULT: 'Failed to set primary product image.',
+  } as const;
 
 export const UPDATE_PRODUCT_IMAGES_ERROR_MESSAGES: Record<string, string> = {
   PRODUCT_ACCESS_DENIED: 'You do not have permission to modify this product.',

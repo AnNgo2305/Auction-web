@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import type { ProductImageItem } from '@/features/seller-hub/components/create-product/ProductImageUploader';
 import type { ProductDocumentItem } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
-import  { PRODUCT_STATUSES, type ProductStatus, type PublicCategory } from '@/shared/types/product.ts';
+import {
+  PRODUCT_STATUSES,
+  type ProductStatus,
+  type PublicCategory,
+} from '@/shared/types/product.ts';
 
 interface ProductDraft {
   name: string;

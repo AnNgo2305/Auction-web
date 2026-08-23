@@ -10,7 +10,6 @@ export function useDeleteProductDocuments(
   productId: string,
   onSuccessCallback?: () => void,
 ) {
-
   return useMutation<
     DeleteProductDocumentsResponse,
     ApiResponseError,

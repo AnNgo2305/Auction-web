@@ -35,9 +35,7 @@ export function ProductImageEditor({
   const updateProductImagesMutation = useUpdateProductImages(productId);
   const setPrimaryProductImageMutation = useSetPrimaryProductImage(productId);
 
-  const handleUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
 
     if (files.length === 0) return;
@@ -89,10 +87,10 @@ export function ProductImageEditor({
         current.map((image) =>
           uploadingImages.some((item) => item.id === image.id)
             ? {
-              ...image,
-              status: 'error',
-              errorMessage: 'Upload failed',
-            }
+                ...image,
+                status: 'error',
+                errorMessage: 'Upload failed',
+              }
             : image,
         ),
       );
@@ -180,13 +178,13 @@ export function ProductImageEditor({
         },
       },
     );
-  }
+  };
 
   const handleCancel = () => {
     setLocalImages(images);
     setSelectedIds([]);
     onExitEditMode?.();
-  }
+  };
 
   const handleSetPrimary = (image: ProductImageItem) => {
     if (image.isNew) {

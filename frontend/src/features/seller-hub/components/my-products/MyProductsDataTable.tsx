@@ -80,7 +80,9 @@ export function MyProductsDataTable({
   onRestore,
   onArchive,
 }: MyProductsDataTableProps) {
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
+    null,
+  );
   // Tracks whether selection mode was enabled by clicking "Select All".
   const [isSelectAll, setIsSelectAll] = useState(false);
   const navigate = useNavigate();

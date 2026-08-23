@@ -4,7 +4,10 @@ import { ImageIcon, Paperclip, Send, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Textarea } from '@/shared/ui/textarea.tsx';
 import { cn } from '@/shared/lib/utils.ts';
-import { MessageAttachment, type MessageAttachmentItem } from '@/features/chat/components/MessageAttachment.tsx';
+import {
+  MessageAttachment,
+  type MessageAttachmentItem,
+} from '@/features/chat/components/MessageAttachment.tsx';
 import type { MessageType } from '@/shared/types/message';
 import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { UPLOAD_PURPOSES } from '@/shared/types/upload';

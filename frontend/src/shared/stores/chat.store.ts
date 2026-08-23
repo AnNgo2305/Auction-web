@@ -4,12 +4,6 @@ interface ChatStoreState {
   // The ID of the conversation currently opened by the user.
   activeConversationId: string | null;
 
-  // The set of user IDs who are currently online.
-  onlineUsers: Set<string>;
-
-  // Maps each user ID to their last-seen timestamp.
-  lastSeenMap: Map<string, string | null>;
-
   // Maps each conversation ID to the user ID who is currently typing.
   typingUsers: Map<string, string>;
 
@@ -20,21 +14,6 @@ interface ChatStoreState {
 interface ChatStoreActions {
   // Set which conversation is currently open.
   setActiveConversation: (id: string | null) => void;
-
-  // Mark a user as online and clear their stale last-seen entry.
-  setUserOnline: (userId: string) => void;
-
-  // Mark a user as offline and record their last-seen timestamp.
-  setUserOffline: (userId: string, lastSeen: string | null) => void;
-
-  // Replace the entire presence snapshot (used on initial load / reconnect).
-  reconcilePresence: (snapshot: {
-    onlineUserIds: string[];
-    lastSeen: Record<string, string | null>;
-  }) => void;
-
-  // Clear all online users (e.g. socket disconnected) and last-seen data.
-  resetPresence: () => void;
 
   // Mark peer as typing in a given conversation.
   setPeerTyping: (conversationId: string, userId: string) => void;
@@ -66,30 +45,10 @@ type ChatStore = ChatStoreState & ChatStoreActions;
 
 export const useChatStore = create<ChatStore>((set) => ({
   activeConversationId: null,
-  onlineUsers: new Set(),
-  lastSeenMap: new Map(),
   typingUsers: new Map(),
   peerReadAt: new Map(),
 
   setActiveConversation: (id) => set({ activeConversationId: id }),
-
-  setUserOnline: (userId) =>
-    set((state) => {
-      const onlineUsers = new Set(state.onlineUsers);
-      onlineUsers.add(userId);
-      const lastSeenMap = new Map(state.lastSeenMap);
-      lastSeenMap.delete(userId);
-      return { onlineUsers, lastSeenMap };
-    }),
-
-  setUserOffline: (userId, lastSeen) =>
-    set((state) => {
-      const onlineUsers = new Set(state.onlineUsers);
-      onlineUsers.delete(userId);
-      const lastSeenMap = new Map(state.lastSeenMap);
-      lastSeenMap.set(userId, lastSeen ?? new Date().toISOString());
-      return { onlineUsers, lastSeenMap };
-    }),
 
   setPeerTyping: (conversationId, userId) =>
     set((state) => {
@@ -117,18 +76,6 @@ export const useChatStore = create<ChatStore>((set) => ({
     }),
 
   clearAllTyping: () => set({ typingUsers: new Map() }),
-
-  resetPresence: () =>
-    set({
-      onlineUsers: new Set(),
-      lastSeenMap: new Map(),
-    }),
-
-  reconcilePresence: ({ onlineUserIds, lastSeen }) =>
-    set({
-      onlineUsers: new Set(onlineUserIds),
-      lastSeenMap: new Map(Object.entries(lastSeen)),
-    }),
 
   setPeerReadAt: (conversationId, lastReadAt) =>
     set((state) => {

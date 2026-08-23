@@ -1,4 +1,4 @@
-import { type Message } from './message-new.event'
+import { type Message } from './message-new.event';
 
 export interface MessageEvent {
   tempId: string;

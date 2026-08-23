@@ -124,8 +124,8 @@ export function MyProductsPage() {
 
   const handleArchiveProducts = (productIds: string[]) => {
     updateProductsStatus({
-        body: { productIds },
-        action: PRODUCT_STATUS_ACTIONS.REMOVE,
+      body: { productIds },
+      action: PRODUCT_STATUS_ACTIONS.REMOVE,
     });
   };
 
@@ -143,22 +143,22 @@ export function MyProductsPage() {
 
   const handlePublishProduct = (productId: string) => {
     updateProductStatus({
-        productId,
-        action: PRODUCT_STATUS_ACTIONS.PUBLISH,
+      productId,
+      action: PRODUCT_STATUS_ACTIONS.PUBLISH,
     });
   };
 
   const handleArchiveProduct = (productId: string) => {
     updateProductStatus({
-        productId,
-        action: PRODUCT_STATUS_ACTIONS.REMOVE,
+      productId,
+      action: PRODUCT_STATUS_ACTIONS.REMOVE,
     });
   };
 
   const handleRestoreProduct = (productId: string) => {
     updateProductStatus({
-        productId,
-        action: PRODUCT_STATUS_ACTIONS.RESTORE,
+      productId,
+      action: PRODUCT_STATUS_ACTIONS.RESTORE,
     });
   };
 

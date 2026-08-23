@@ -14,9 +14,15 @@ import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { toast } from 'sonner';
 import { IMAGE_TYPES, type ImageType } from '@/shared/types/user.ts';
 import { UPLOAD_PURPOSES } from '@/shared/types/upload.ts';
+import { useMemo } from 'react';
+import { usePresenceSocket } from '@/features/presence/hooks/usePresenceSocket';
+import { usePresenceStore } from '@/shared/stores/presence.store';
 
 export function ProfileLayout() {
   const { userId } = useParams<{ userId: string }>();
+  const presenceUserIds = useMemo(() => (userId ? [userId] : []), [userId]);
+  usePresenceSocket({ userIds: presenceUserIds });
+
   const [uploadAvatarImageDialogOpen, setUploadAvatarImageDialogOpen] =
     useState(false);
   const [uploadCoverImageDialogOpen, setUploadCoverImageDialogOpen] =
@@ -34,6 +40,10 @@ export function ProfileLayout() {
   const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
   const { isCurrentUser, updateProfileImageUrl, updateCoverImageUrl } =
     useUser();
+
+  const { onlineUsers, lastSeenMap } = usePresenceStore();
+  const isOnline = userId ? onlineUsers.has(userId) : false;
+  const lastSeen = userId ? (lastSeenMap.get(userId) ?? null) : null;
 
   const {
     data: profile,
@@ -69,7 +79,6 @@ export function ProfileLayout() {
   }
 
   const isOwner = profile ? isCurrentUser(profile.userId) : false;
-  const isOnline = false;
 
   const handleDeleteImage = (type: ImageType) => {
     if (type === IMAGE_TYPES.AVATAR) {
@@ -146,6 +155,7 @@ export function ProfileLayout() {
               mutualFollowedSellerCount={profile?.mutualFollowedSellerCount}
               relationshipStatus={profile?.relationship.status}
               isInitialProfileLoading={isInitialProfileLoading}
+              lastSeen={lastSeen}
             />
           </div>
         </div>

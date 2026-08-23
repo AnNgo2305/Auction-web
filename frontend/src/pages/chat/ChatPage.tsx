@@ -19,10 +19,7 @@ export function ChatPage() {
   const chatSocketRef = useChatSocket();
   const navigate = useNavigate();
 
-  const {
-    setActiveConversation,
-    activeConversationId,
-  } = useChatStore();
+  const { setActiveConversation, activeConversationId } = useChatStore();
   const [currentConversation, setCurrentConversation] =
     useState<Conversation | null>(null);
 

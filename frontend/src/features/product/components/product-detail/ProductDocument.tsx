@@ -1,7 +1,16 @@
 import type { ProductDocumentItem } from '@/features/seller-hub/components/create-product/ProductDocumentUploader';
 import { Button } from '@/shared/ui/button';
-import { Download, FileText, Loader2, Pencil, Save, Trash2, Upload, X } from 'lucide-react';
-import { Separator } from '@/shared/ui/separator'
+import {
+  Download,
+  FileText,
+  Loader2,
+  Pencil,
+  Save,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react';
+import { Separator } from '@/shared/ui/separator';
 import {
   Attachment,
   AttachmentAction,
@@ -393,4 +402,3 @@ export function ProductDocument({
     </div>
   );
 }
-

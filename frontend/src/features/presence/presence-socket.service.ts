@@ -3,6 +3,10 @@ import { PRESENCE_EVENTS } from '@/features/presence/presence-socket.constant';
 import type { PresenceSubscriptionPayload } from '@/features/presence/payload/presence-subscription.payload';
 import { refreshAccessToken } from '@/shared/api/auth-session';
 import { emitLogoutEvent } from '@/shared/api/auth-event';
+import { usePresenceStore } from '@/shared/stores/presence.store';
+import type { OnlineEvent } from '@/features/presence/event/online.event';
+import type { OfflineEvent } from '@/features/presence/event/offline.event';
+import type { PresenceSnapshotEvent } from '@/features/presence/event/presence-snapshot.event';
 
 const HEARTBEAT_INTERVAL_MS = 20_000;
 let socket: Socket | null = null;
@@ -22,6 +26,9 @@ let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
  */
 export function connectPresenceSocket(): void {
   if (socket) return; // already connected
+
+  const { setUserOnline, setUserOffline, reconcilePresence } =
+    usePresenceStore();
 
   socket = io(`${import.meta.env.VITE_API_URL}/presence`, {
     withCredentials: true,
@@ -58,6 +65,27 @@ export function connectPresenceSocket(): void {
       emitLogoutEvent();
     }
   });
+
+  socket.on(PRESENCE_EVENTS.PRESENCE_ONLINE, ({ userId }: OnlineEvent) => {
+    setUserOnline(userId);
+  });
+
+  socket.on(
+    PRESENCE_EVENTS.PRESENCE_OFFLINE,
+    ({ userId, lastSeen }: OfflineEvent) => {
+      setUserOffline(userId, lastSeen);
+    },
+  );
+
+  socket.on(
+    PRESENCE_EVENTS.PRESENCE_SNAPSHOT,
+    ({ onlineMap, lastSeenMap }: PresenceSnapshotEvent) => {
+      reconcilePresence({
+        onlineMap,
+        lastSeenMap,
+      });
+    },
+  );
 }
 
 /**

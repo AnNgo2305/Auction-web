@@ -38,9 +38,7 @@ export function useChatSocket() {
     setActiveConversation,
     clearAllPeerReadAt,
     clearAllTyping,
-    resetPresence,
   } = useChatStore();
-
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -71,80 +69,88 @@ export function useChatSocket() {
       clearAllTyping();
     });
 
-    socket.on(CHAT_EVENTS.MESSAGE_NEW, ({ message: newMessage }: MessageNewEvent) => {
-      queryClient.setQueryData<MessagesCache>(
-        messageKeys.list(newMessage.conversationId),
-        (currentCache) => {
-          if (!currentCache) return currentCache;
+    socket.on(
+      CHAT_EVENTS.MESSAGE_NEW,
+      ({ message: newMessage }: MessageNewEvent) => {
+        queryClient.setQueryData<MessagesCache>(
+          messageKeys.list(newMessage.conversationId),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
 
-          const alreadyExists = currentCache.pages.some((page) =>
-            page.data.messages.some(
-              (currentMessage) =>
-                currentMessage.messageId === newMessage.messageId,
-            ),
-          );
+            const alreadyExists = currentCache.pages.some((page) =>
+              page.data.messages.some(
+                (currentMessage) =>
+                  currentMessage.messageId === newMessage.messageId,
+              ),
+            );
 
-          if (alreadyExists) return currentCache;
-          const [firstPage, ...remainingPages] = currentCache.pages;
+            if (alreadyExists) return currentCache;
+            const [firstPage, ...remainingPages] = currentCache.pages;
 
-          if (!firstPage) return currentCache;
-          return {
-            ...currentCache,
-            pages: [
-              {
-                ...firstPage,
-                data: {
-                  ...firstPage.data,
-                  messages: [newMessage, ...firstPage.data.messages],
+            if (!firstPage) return currentCache;
+            return {
+              ...currentCache,
+              pages: [
+                {
+                  ...firstPage,
+                  data: {
+                    ...firstPage.data,
+                    messages: [newMessage, ...firstPage.data.messages],
+                  },
                 },
-              },
-              ...remainingPages,
-            ],
-          };
-        },
-      );
+                ...remainingPages,
+              ],
+            };
+          },
+        );
 
-      queryClient.setQueryData<ConversationsCache>(
-        conversationKeys.list(),
-        (currentCache) => {
-          if (!currentCache) return currentCache;
+        queryClient.setQueryData<ConversationsCache>(
+          conversationKeys.list(),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
 
-          const isViewingConversation =
-            activeConversationId === newMessage.conversationId && typeof document !== 'undefined' && document.visibilityState === 'visible';
+            const isViewingConversation =
+              activeConversationId === newMessage.conversationId &&
+              typeof document !== 'undefined' &&
+              document.visibilityState === 'visible';
 
-          return {
-            ...currentCache,
-            pages: currentCache.pages.map((page) => ({
-              ...page,
-              data: {
-                ...page.data,
-                conversations: page.data.conversations.map((conversation) => {
-                  if (conversation.conversationId !== newMessage.conversationId) {
-                    return conversation;
-                  }
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  conversations: page.data.conversations.map((conversation) => {
+                    if (
+                      conversation.conversationId !== newMessage.conversationId
+                    ) {
+                      return conversation;
+                    }
 
-                  return {
-                    ...conversation,
-                    lastMessage: {
-                      messageId: newMessage.messageId,
-                      content: newMessage.content ?? null,
-                      type: newMessage.type,
-                      senderId: newMessage.sender.userId,
-                      createdAt: newMessage.createdAt,
-                    },
-                    unreadCount: isViewingConversation
-                      ? conversation.unreadCount
-                      : conversation.unreadCount + 1,
-                  };
-                }),
-              },
-            })),
-          };
-        },
-      );
-    });
+                    return {
+                      ...conversation,
+                      lastMessage: {
+                        messageId: newMessage.messageId,
+                        content: newMessage.content ?? null,
+                        type: newMessage.type,
+                        senderId: newMessage.sender.userId,
+                        createdAt: newMessage.createdAt,
+                      },
+                      unreadCount: isViewingConversation
+                        ? conversation.unreadCount
+                        : conversation.unreadCount + 1,
+                    };
+                  }),
+                },
+              })),
+            };
+          },
+        );
+      },
+    );
 
-    socket.on(CHAT_EVENTS.MESSAGE_ACK,
+    socket.on(
+      CHAT_EVENTS.MESSAGE_ACK,
       ({ tempId, message: confirmedMessage }: MessageEvent) => {
         queryClient.setQueryData<MessagesCache>(
           messageKeys.list(confirmedMessage.conversationId),
@@ -170,7 +176,8 @@ export function useChatSocket() {
           },
         );
 
-        queryClient.setQueryData<ConversationsCache>(conversationKeys.list(),
+        queryClient.setQueryData<ConversationsCache>(
+          conversationKeys.list(),
           (currentCache) => {
             if (!currentCache) return currentCache;
 
@@ -181,7 +188,10 @@ export function useChatSocket() {
                 data: {
                   ...page.data,
                   conversations: page.data.conversations.map((conversation) => {
-                    if (conversation.conversationId !== confirmedMessage.conversationId) {
+                    if (
+                      conversation.conversationId !==
+                      confirmedMessage.conversationId
+                    ) {
                       return conversation;
                     }
 
@@ -199,11 +209,13 @@ export function useChatSocket() {
                 },
               })),
             };
-          })
+          },
+        );
       },
     );
 
-    socket.on(CHAT_EVENTS.MESSAGE_ERROR,
+    socket.on(
+      CHAT_EVENTS.MESSAGE_ERROR,
       ({ type, tempId, conversationId, message }: MessageErrorEvent) => {
         switch (type) {
           case MessageErrorType.SEND:
@@ -218,8 +230,8 @@ export function useChatSocket() {
                     ...page,
                     data: {
                       ...page.data,
-                      messages: page.data.messages.map(
-                        (message) => message.messageId === tempId
+                      messages: page.data.messages.map((message) =>
+                        message.messageId === tempId
                           ? {
                               ...message,
                               _pending: false,
@@ -242,10 +254,10 @@ export function useChatSocket() {
             break;
           }
         }
-        if(message) {
+        if (message) {
           toast.error(message);
         }
-      }
+      },
     );
 
     socket.on(
@@ -308,11 +320,17 @@ export function useChatSocket() {
                 data: {
                   ...page.data,
                   conversations: page.data.conversations.map((conversation) => {
-                    if (conversation.conversationId !== updatedMessage.conversationId) {
+                    if (
+                      conversation.conversationId !==
+                      updatedMessage.conversationId
+                    ) {
                       return conversation;
                     }
 
-                    if (conversation.lastMessage?.messageId !== updatedMessage.messageId) {
+                    if (
+                      conversation.lastMessage?.messageId !==
+                      updatedMessage.messageId
+                    ) {
                       return conversation;
                     }
 
@@ -376,7 +394,6 @@ export function useChatSocket() {
       clearAllTyping();
       clearAllPeerReadAt();
       setActiveConversation(null);
-      resetPresence();
     };
   }, [isAuthenticated, queryClient]);
 

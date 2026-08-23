@@ -9,7 +9,6 @@ export function useDeleteProductImage(
   productId: string,
   onSuccessCallback?: () => void,
 ) {
-
   return useMutation<
     DeleteProductImageResponse,
     ApiResponseError,

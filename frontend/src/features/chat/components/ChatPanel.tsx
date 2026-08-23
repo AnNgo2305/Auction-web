@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import type { Socket } from 'socket.io-client';
-import { MessageInput, type MessageInputMode } from '@/features/chat/components/MessageInput';
+import {
+  MessageInput,
+  type MessageInputMode,
+} from '@/features/chat/components/MessageInput';
 import { MessageList } from '@/features/chat/components/MessageList';
 import { TypingIndicator } from '@/features/chat/components/TypingIndicator';
 import { ChatHeader } from '@/features/chat/components/ChatHeader';
@@ -16,6 +19,7 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { useUser } from '@/shared/contexts/UserContext';
 import { useChatStore } from '@/shared/stores/chat.store';
+import { usePresenceStore } from '@/shared/stores/presence.store';
 import { useDeleteConversation } from '@/features/chat/hooks/conversation/useDeleteConversation';
 import { useGetMessages } from '@/features/chat/hooks/message/useGetMessages';
 import { useSendMessage } from '@/features/chat/hooks/message/useSendMessage';
@@ -42,27 +46,23 @@ type ChatPanelProps = {
 export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
   const {
     setActiveConversation,
-    onlineUsers,
-    lastSeenMap,
     typingUsers,
     peerReadAt,
     clearTypingForConversation,
   } = useChatStore();
+  const { onlineUsers, lastSeenMap } = usePresenceStore();
   const [isDeleteConversationDialogOpen, setIsDeleteConversationDialogOpen] =
     useState(false);
   const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
-  const [messageInputMode, setMessageInputMode] =
-    useState<MessageInputMode>({ type: 'idle' });
+  const [messageInputMode, setMessageInputMode] = useState<MessageInputMode>({
+    type: 'idle',
+  });
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
 
   const { currentUser } = useUser();
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useGetMessages(conversation.conversationId);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useGetMessages(conversation.conversationId);
 
   const deleteConversation = useDeleteConversation(() => {
     setActiveConversation(null);
@@ -145,10 +145,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     setDeleteMessageId(null);
   };
 
-  const handleEditMessage = (
-    messageId: string,
-    content: string,
-  ) => {
+  const handleEditMessage = (messageId: string, content: string) => {
     updateMessage({
       conversationId: conversation.conversationId,
       messageId,
@@ -158,47 +155,39 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     setMessageInputMode({ type: 'idle' });
   };
 
-  const handleSendMessage = (
-    payload: {
-      content?: string;
-      type: 'TEXT' | 'IMAGE' | 'FILE';
-      attachment?: {
-        fileKey: string;
-        fileName?: string;
-        mimeType?: string;
-        fileSize?: number;
-      };
-    },
-  ) => {
-    sendMessage(
-      conversation.conversationId,
-      payload.content ?? '',
-      {
-        type: payload.type,
-        fileKey: payload.attachment?.fileKey,
-        fileName: payload.attachment?.fileName,
-        mimeType: payload.attachment?.mimeType,
-        fileSize: payload.attachment?.fileSize,
-      },
-    );
+  const handleSendMessage = (payload: {
+    content?: string;
+    type: 'TEXT' | 'IMAGE' | 'FILE';
+    attachment?: {
+      fileKey: string;
+      fileName?: string;
+      mimeType?: string;
+      fileSize?: number;
+    };
+  }) => {
+    sendMessage(conversation.conversationId, payload.content ?? '', {
+      type: payload.type,
+      fileKey: payload.attachment?.fileKey,
+      fileName: payload.attachment?.fileName,
+      mimeType: payload.attachment?.mimeType,
+      fileSize: payload.attachment?.fileSize,
+    });
 
     handleStopTyping();
   };
 
   const otherUser = conversation?.otherUser;
-  const isOnline = otherUser
-    ? onlineUsers.has(otherUser.userId)
-    : false;
+  const isOnline = otherUser ? onlineUsers.has(otherUser.userId) : false;
 
   const lastSeen = otherUser
-    ? lastSeenMap.get(otherUser.userId) ?? null
+    ? (lastSeenMap.get(otherUser.userId) ?? null)
     : null;
 
-  const peerLastReadAt =
-    peerReadAt.get(conversation.conversationId) ?? null;
+  const peerLastReadAt = peerReadAt.get(conversation.conversationId) ?? null;
 
   useEffect(() => {
-    if (document.visibilityState !== 'visible' ||
+    if (
+      document.visibilityState !== 'visible' ||
       !chatSocketRef.current?.connected ||
       !currentUser?.userId
     ) {
@@ -209,8 +198,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
       .reverse()
       .find(
         (message) =>
-          message.sender.userId !== currentUser.userId &&
-          !message.isRead,
+          message.sender.userId !== currentUser.userId && !message.isRead,
       );
 
     if (!lastUnreadMessage) {
@@ -221,12 +209,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
       conversationId: conversation.conversationId,
       messageId: lastUnreadMessage.messageId,
     });
-  }, [
-    conversation.conversationId,
-    messages,
-    currentUser?.userId,
-    readMessage,
-  ]);
+  }, [conversation.conversationId, messages, currentUser?.userId, readMessage]);
 
   useEffect(() => {
     return () => {

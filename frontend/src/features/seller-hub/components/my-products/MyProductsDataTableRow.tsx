@@ -67,7 +67,7 @@ export function MyProductsTableRow({
       <TableCell>
         <AspectRatio
           ratio={1}
-          className="bg-transparent flex items-center justify-center overflow-hidden rounded-md"
+          className="flex items-center justify-center overflow-hidden rounded-md bg-transparent"
         >
           <img
             src={thumbnail ?? defaultProductImage}

@@ -1,6 +1,6 @@
 export type SearchConversationItem = {
-  conversationId: string,
-  userId: string,
+  conversationId: string;
+  userId: string;
   username: string;
   profileImageUrl: string | null;
 };

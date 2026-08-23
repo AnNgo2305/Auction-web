@@ -9,7 +9,6 @@ export function useSetPrimaryProductImage(
   productId: string,
   onSuccessCallback?: () => void,
 ) {
-
   return useMutation<
     SetPrimaryProductImageResponse,
     ApiResponseError,

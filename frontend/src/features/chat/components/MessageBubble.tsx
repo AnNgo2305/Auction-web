@@ -2,9 +2,24 @@ import { MessageData } from '@/features/chat/types/message/message.ts';
 import { cn } from '@/shared/lib/utils.ts';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { Bubble, BubbleContent, BubbleGroup } from '@/shared/ui/bubble';
-import { ImageIcon, Paperclip, MoreHorizontal, Pencil, Trash2, Reply } from 'lucide-react';
-import { computeMessageStatus, STATUS_LABEL } from '@/features/chat/utils/message-status';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
+import {
+  ImageIcon,
+  Paperclip,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Reply,
+} from 'lucide-react';
+import {
+  computeMessageStatus,
+  STATUS_LABEL,
+} from '@/features/chat/utils/message-status';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { Button } from '@/shared/ui/button';
 import { formatFileSize } from '@/shared/utils/format-size';
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';

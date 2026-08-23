@@ -46,8 +46,8 @@ export function MessageList({
   const displayMessages = [...messages].reverse();
 
   const lastOwnMessageId =
-    messages.find((message) => message.sender.userId === currentUserId)?.messageId ??
-    null;
+    messages.find((message) => message.sender.userId === currentUserId)
+      ?.messageId ?? null;
 
   const handleScroll = useCallback(() => {
     const viewport = viewportRef.current;
@@ -81,7 +81,6 @@ export function MessageList({
     previousScrollHeightRef.current = null;
     shouldRestoreScrollRef.current = false;
   }, [messages.length]);
-
 
   return (
     <MessageScroller className="flex-1">

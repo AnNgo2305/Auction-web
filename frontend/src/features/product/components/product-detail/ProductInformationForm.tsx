@@ -1,18 +1,51 @@
 import { Controller, type UseFormReturn } from 'react-hook-form';
 import type { UpdateProductBody } from '@/features/product/schemas/product/update-product.schema';
 import { useNavigate } from 'react-router-dom';
-import { Field, FieldLabel, FieldGroup, FieldDescription, FieldError } from '@/shared/ui/field';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/input-group';
-import { Boxes, Calendar, Clock3, LayoutGrid, Package2, Tags, User } from 'lucide-react';
-import { Badge } from '@/shared/ui/badge'
+import {
+  Field,
+  FieldLabel,
+  FieldGroup,
+  FieldDescription,
+  FieldError,
+} from '@/shared/ui/field';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/shared/ui/input-group';
+import {
+  Boxes,
+  Calendar,
+  Clock3,
+  LayoutGrid,
+  Package2,
+  Tags,
+  User,
+} from 'lucide-react';
+import { Badge } from '@/shared/ui/badge';
 import { Textarea } from '@/shared/ui/textarea';
 import { Separator } from '@/shared/ui/separator';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/select';
-import { PUBLIC_CATEGORIES, PUBLIC_PRODUCT_STATUSES } from '@/shared/types/product';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/shared/ui/select';
+import {
+  PUBLIC_CATEGORIES,
+  PUBLIC_PRODUCT_STATUSES,
+} from '@/shared/types/product';
 import { Button } from '@/shared/ui/button';
 import { formatIsoToDate } from '@/shared/utils/format-time';
 import { Popover, PopoverTrigger, PopoverContent } from '@/shared/ui/popover';
-import { Command, CommandItem, CommandGroup, CommandInput, CommandEmpty } from '@/shared/ui/command';
+import {
+  Command,
+  CommandItem,
+  CommandGroup,
+  CommandInput,
+  CommandEmpty,
+} from '@/shared/ui/command';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { useState } from 'react';
 import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-category/useGetMyproductCategory';

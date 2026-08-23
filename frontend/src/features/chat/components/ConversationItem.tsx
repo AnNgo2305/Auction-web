@@ -11,13 +11,19 @@ import { cn } from '@/shared/lib/utils';
 import { MESSAGE_TYPE } from '@/shared/types/message';
 import { useUser } from '@/shared/contexts/UserContext';
 import { formatIsoToNow } from '@/shared/utils/format-time';
+import {
+  subscribePresence,
+  unsubscribePresence,
+} from '@/features/presence/presence-socket.service';
+import { useEffect, useRef } from 'react';
+import { usePresenceStore } from '@/shared/stores/presence.store';
 
 type ConversationItemProps = {
   conversation: ConversationItemType;
   isActive: boolean;
   isOnline: boolean;
   onClick: (conversationId: string) => void;
-}
+};
 
 export function ConversationItem({
   conversation,
@@ -26,6 +32,40 @@ export function ConversationItem({
   onClick,
 }: ConversationItemProps) {
   const { currentUser } = useUser();
+  const { clearUsers } = usePresenceStore();
+  const itemRef = useRef<HTMLDivElement | null>(null);
+
+  const userId = conversation.otherUser.userId;
+  useEffect(() => {
+    const element = itemRef.current;
+    if (!element) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) {
+          return;
+        }
+        if (entry.isIntersecting) {
+          subscribePresence([userId]);
+        } else {
+          unsubscribePresence([userId]);
+          clearUsers([userId]);
+        }
+      },
+      {
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      unsubscribePresence([userId]);
+    };
+  }, [userId]);
+
   const avatarUrl =
     conversation.otherUser.profileImageUrl ?? defaultAvatarImageUrl;
   const displayName = conversation.otherUser.username;

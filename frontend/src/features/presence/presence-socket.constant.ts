@@ -13,5 +13,5 @@ export const PRESENCE_EVENTS = {
 
   PRESENCE_OFFLINE: 'presence:offline',
 
-  EXCEPTION: 'exception'
+  EXCEPTION: 'exception',
 } as const;

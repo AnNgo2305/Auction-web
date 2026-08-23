@@ -10,6 +10,7 @@ import { Skeleton } from '@/shared/ui/skeleton.tsx';
 import { useSearchConversations } from '@/features/chat/hooks/conversation/useSearchConversations.ts';
 import { ConversationItem } from '@/features/chat/components/ConversationItem.tsx';
 import { ConversationPreview } from '@/features/chat/components/ConversationPreview.tsx';
+import { usePresenceStore } from '@/shared/stores/presence.store';
 
 type Conversation = {
   conversationId: string;
@@ -64,6 +65,8 @@ export function ConversationList({
     hasNextPage: hasNextSearchPage,
     isFetchingNextPage: isFetchingNextSearchPage,
   } = useSearchConversations(searchText);
+
+  const { onlineUsers } = usePresenceStore();
 
   const isSearchInputActive = searchText.trim().length > 0;
 
@@ -158,7 +161,7 @@ export function ConversationList({
                   otherUser: conversation.otherUser,
                 })
               }
-              isOnline={false}
+              isOnline={onlineUsers.has(conversation.otherUser.userId)}
             />
           ))}
 

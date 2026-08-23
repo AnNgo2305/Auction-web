@@ -2,9 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { productApi } from '@/features/seller-hub/api/product.api';
 import { productKeys } from '@/features/seller-hub/constants/product-query-key';
-import {
-  DELETE_PRODUCT_ERROR_MESSAGES,
-} from '@/features/seller-hub/constants/product-error.messages';
+import { DELETE_PRODUCT_ERROR_MESSAGES } from '@/features/seller-hub/constants/product-error.messages';
 import type { DeleteProductResponse } from '@/features/seller-hub/types/product/delete-product.response';
 import type { ApiResponseError } from '@/shared/types/error';
 

@@ -18,9 +18,7 @@ export function useCreateProductComment(
     ApiResponseError,
     CreateProductCommentBody
   >({
-    mutationFn: async (
-      body,
-    ): Promise<CreateProductCommentResponse> => {
+    mutationFn: async (body): Promise<CreateProductCommentResponse> => {
       return await productCommentApi.createProductComment(productId, body);
     },
 

@@ -7,7 +7,10 @@ type ConversationPrewviewProps = {
   onClick: (userId: string) => void;
 };
 
-export function ConversationPreview({ user, onClick }: ConversationPrewviewProps) {
+export function ConversationPreview({
+  user,
+  onClick,
+}: ConversationPrewviewProps) {
   return (
     <button
       type="button"

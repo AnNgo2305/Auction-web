@@ -17,11 +17,10 @@ export function useDeleteProductComment(
     ApiResponseError,
     { commentId: string }
   >({
-    mutationFn: async ({ commentId }): Promise<DeleteProductCommentResponse> => {
-      return await productCommentApi.deleteProductComment(
-        productId,
-        commentId,
-      );
+    mutationFn: async ({
+      commentId,
+    }): Promise<DeleteProductCommentResponse> => {
+      return await productCommentApi.deleteProductComment(productId, commentId);
     },
 
     onSuccess: async (response) => {

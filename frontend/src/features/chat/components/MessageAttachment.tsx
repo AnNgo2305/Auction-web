@@ -11,7 +11,7 @@ import {
 } from '@/shared/ui/attachment.tsx';
 import { FileText, X } from 'lucide-react';
 
-export type MessageAttachmentItem = {
+export interface MessageAttachmentItem {
   // Unique key for tracking document in UI
   id: string;
 
@@ -31,14 +31,17 @@ export type MessageAttachmentItem = {
 
   // Upload failure reason
   errorMessage?: string;
-};
+}
 
-export type MessageAttachmentProps = {
+export interface MessageAttachmentProps {
   attachments: MessageAttachmentItem[];
   onRemove: (id: string) => void;
-};
+}
 
-export function MessageAttachment({ attachments, onRemove }: MessageAttachmentProps) {
+export function MessageAttachment({
+  attachments,
+  onRemove,
+}: MessageAttachmentProps) {
   if (attachments.length === 0) {
     return null;
   }
@@ -91,6 +94,6 @@ export function MessageAttachment({ attachments, onRemove }: MessageAttachmentPr
           </Attachment>
         );
       })}
-      </AttachmentGroup>
-    );
+    </AttachmentGroup>
+  );
 }
