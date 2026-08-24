@@ -18,6 +18,7 @@ import {
   ERROR_PRODUCT_NOT_FOUND,
 } from '@modules/product/product.constant';
 import { ProductPermissionService } from '@modules/permission/product-permission.service';
+import { UPLOAD_PURPOSE } from '@common/types/upload-file';
 
 @Injectable()
 export class ProductImageService {
@@ -83,9 +84,20 @@ export class ProductImageService {
       (key) => !newImageKeys.has(key),
     );
 
-    const addedImageKeys = images.filter(
+    const addedImages = images.filter(
       (image) => !currentImageKeys.has(image.imageKey),
     );
+
+    const destinationKeys = await this.fileService.moveObjects({
+      keys: addedImages.map((image) => image.imageKey),
+      purpose: UPLOAD_PURPOSE.PRODUCT_IMAGE,
+      entityId: productId,
+    });
+
+    const addedImageKeys = addedImages.map((image, index) => ({
+      imageKey: destinationKeys[index],
+      isPrimary: image.isPrimary,
+    }));
 
     await this.prisma.$transaction(async (tx) => {
       if (deletedImageKeys.length > 0) {
@@ -110,10 +122,17 @@ export class ProductImageService {
       }
 
       for (const image of images) {
+        const addedIndex = addedImages.findIndex(
+          (addedImage) => addedImage.imageKey === image.imageKey,
+        );
+
+        const imageKey =
+          addedIndex === -1 ? image.imageKey : destinationKeys[addedIndex];
+
         await tx.productImage.updateMany({
           where: {
             productId,
-            imageKey: image.imageKey,
+            imageKey,
           },
           data: {
             isPrimary: image.isPrimary,
@@ -121,6 +140,21 @@ export class ProductImageService {
         });
       }
     });
+
+    if (deletedImageKeys.length > 0) {
+      try {
+        await Promise.all(
+          deletedImageKeys.map((key) => this.fileService.deleteObject(key)),
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to delete one or more removed product images from S3`,
+          error,
+        );
+
+        throw error;
+      }
+    }
 
     this.logger.debug(
       `Updated ${images.length} images for product ${productId}`,

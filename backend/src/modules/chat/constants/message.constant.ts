@@ -69,3 +69,5 @@ export const ERROR_ONLY_TEXT_MESSAGE_CAN_BE_EDITED = {
   errorCode: 'ONLY_TEXT_MESSAGE_CAN_BE_EDITED',
   message: 'Only text messages can be edited',
 };
+
+export const MAX_CHAT_ATTACHMENTS = 10;

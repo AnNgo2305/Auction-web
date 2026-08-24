@@ -24,6 +24,7 @@ import { ProductCommentModule } from '@modules/product-comment/product-comment.m
 import { PermissionModule } from '@modules/permission/permission.module';
 import { ChatModule } from '@modules/chat/chat.module';
 import { NotificationModule } from '@modules/notification/notification.module';
+import { SchedulerModule } from '@modules/scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { NotificationModule } from '@modules/notification/notification.module';
     ProductCommentModule,
     ChatModule,
     NotificationModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

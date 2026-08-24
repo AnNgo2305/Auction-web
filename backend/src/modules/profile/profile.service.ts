@@ -27,6 +27,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { UpdateProfileImageResponseDto } from '@modules/profile/dtos/update-profile-image.response.dto';
 import { UpdateCoverImageResponseDto } from '@modules/profile/dtos/update-cover-image.response.dto';
 import { ProfilePermissionService } from '@modules/permission/profile-permission.service';
+import { UPLOAD_PURPOSE } from '@common/types/upload-file';
 
 @Injectable()
 export class ProfileService {
@@ -266,6 +267,12 @@ export class ProfileService {
   ): Promise<UpdateProfileImageResponseDto> {
     this.logger.log(`Update profile image for userId=${userId}`);
 
+    const [destinationKey] = await this.fileService.moveObjects({
+      keys: [imageKey],
+      purpose: UPLOAD_PURPOSE.AVATAR,
+      entityId: userId,
+    });
+
     const oldImageKey = await this.prisma.$transaction(async (tx) => {
       const profile = await tx.profile.findUnique({
         where: { userId },
@@ -281,7 +288,7 @@ export class ProfileService {
       await tx.profile.update({
         where: { userId },
         data: {
-          profileImageUrl: imageKey,
+          profileImageUrl: destinationKey,
         },
       });
 
@@ -302,7 +309,7 @@ export class ProfileService {
 
     this.logger.log(`Profile image updated for userId=${userId}`);
     return {
-      profileImageUrl: this.fileService.getPublicUrl(imageKey),
+      profileImageUrl: this.fileService.getPublicUrl(destinationKey),
     };
   }
 
@@ -311,6 +318,12 @@ export class ProfileService {
     imageKey: string,
   ): Promise<UpdateCoverImageResponseDto> {
     this.logger.log(`Update cover image for userId=${userId}`);
+
+    const [destinationKey] = await this.fileService.moveObjects({
+      keys: [imageKey],
+      purpose: UPLOAD_PURPOSE.COVER,
+      entityId: userId,
+    });
 
     const oldImageKey = await this.prisma.$transaction(async (tx) => {
       const profile = await tx.profile.findUnique({
@@ -327,7 +340,7 @@ export class ProfileService {
       await tx.profile.update({
         where: { userId },
         data: {
-          coverImageUrl: imageKey,
+          coverImageUrl: destinationKey,
         },
       });
 
@@ -348,7 +361,7 @@ export class ProfileService {
 
     this.logger.log(`Cover image updated for userId=${userId}`);
     return {
-      coverImageUrl: this.fileService.getPublicUrl(imageKey),
+      coverImageUrl: this.fileService.getPublicUrl(destinationKey),
     };
   }
 

@@ -3,13 +3,15 @@ export enum UPLOAD_PURPOSE {
   COVER = 'cover',
   PRODUCT_IMAGE = 'productImage',
   PRODUCT_DOCUMENT = 'productDocument',
+  CHAT_ATTACHMENT = 'chatAttachment',
 }
 
 export type UploadPurpose =
   | UPLOAD_PURPOSE.AVATAR
   | UPLOAD_PURPOSE.COVER
   | UPLOAD_PURPOSE.PRODUCT_IMAGE
-  | UPLOAD_PURPOSE.PRODUCT_DOCUMENT;
+  | UPLOAD_PURPOSE.PRODUCT_DOCUMENT
+  | UPLOAD_PURPOSE.CHAT_ATTACHMENT;
 
 export enum IMAGE_MIME_TYPE {
   JPEG = 'image/jpeg',

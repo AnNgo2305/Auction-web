@@ -5,6 +5,7 @@ import { LoggerService } from '@common/services/logger.service';
 import { ERROR_PRODUCT_DOCUMENT_NOT_FOUND } from '@modules/product-document/product-document.constant';
 import { ERROR_PRODUCT_NOT_FOUND } from '@modules/product/product.constant';
 import { ProductPermissionService } from '@modules/permission/product-permission.service';
+import { UPLOAD_PURPOSE } from '@common/types/upload-file';
 
 @Injectable()
 export class ProductDocumentService {
@@ -68,9 +69,20 @@ export class ProductDocumentService {
       (key) => !newDocumentKeys.has(key),
     );
 
-    const addedDocumentKeys = documents.filter(
+    const addedDocuments = documents.filter(
       (document) => !currentDocumentKeys.has(document.documentKey),
     );
+
+    const destinationKeys = await this.fileService.moveObjects({
+      keys: addedDocuments.map((document) => document.documentKey),
+      purpose: UPLOAD_PURPOSE.PRODUCT_DOCUMENT,
+      entityId: productId,
+    });
+
+    const addedDocumentKeys = addedDocuments.map((document, index) => ({
+      documentName: document.documentName,
+      documentKey: destinationKeys[index],
+    }));
 
     await this.prisma.$transaction(async (tx) => {
       if (deletedDocumentKeys.length > 0) {
@@ -94,6 +106,21 @@ export class ProductDocumentService {
         });
       }
     });
+
+    if (deletedDocumentKeys.length > 0) {
+      try {
+        await Promise.all(
+          deletedDocumentKeys.map((key) => this.fileService.deleteObject(key)),
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to delete removed product documents from S3 for product ${productId}`,
+          error,
+        );
+
+        throw error;
+      }
+    }
 
     this.logger.debug(
       `Updated ${documents.length} documents for product ${productId}`,

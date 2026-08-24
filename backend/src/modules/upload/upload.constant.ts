@@ -9,12 +9,13 @@ import {
   MAX_PRODUCT_DOCUMENTS,
   MAX_PRODUCT_IMAGES,
 } from '@modules/product/product.constant';
+import { MAX_CHAT_ATTACHMENTS } from '@modules/chat/constants/message.constant';
 
 export const UPLOAD_RULES: Record<
   UploadPurpose,
   {
     maxSize: number;
-    allowedMime: ImageMimeType[] | DocumentMimeType[];
+    allowedMime: (ImageMimeType | DocumentMimeType)[];
     maxFiles: number;
     roles: Role[];
   }
@@ -70,6 +71,26 @@ export const UPLOAD_RULES: Record<
     ],
     maxFiles: MAX_PRODUCT_DOCUMENTS,
     roles: [Role.SELLER],
+  },
+  chatAttachment: {
+    maxSize: 100 * 1024 * 1024,
+    allowedMime: [
+      IMAGE_MIME_TYPE.JPEG,
+      IMAGE_MIME_TYPE.JPG,
+      IMAGE_MIME_TYPE.PNG,
+      IMAGE_MIME_TYPE.WEBP,
+      DOCUMENT_MIME_TYPE.PDF,
+      DOCUMENT_MIME_TYPE.DOC,
+      DOCUMENT_MIME_TYPE.DOCX,
+      DOCUMENT_MIME_TYPE.XLS,
+      DOCUMENT_MIME_TYPE.XLSX,
+      DOCUMENT_MIME_TYPE.PPT,
+      DOCUMENT_MIME_TYPE.PPTX,
+      DOCUMENT_MIME_TYPE.TXT,
+      DOCUMENT_MIME_TYPE.CSV,
+    ],
+    maxFiles: MAX_CHAT_ATTACHMENTS,
+    roles: [Role.SELLER, Role.BIDDER],
   },
 };
 

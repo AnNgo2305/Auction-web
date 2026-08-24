@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
+import { FileService } from '@common/services/file.service';
 import { LoggerService } from '@common/services/logger.service';
 import { ERROR_CONVERSATION_NOT_FOUND } from '@modules/chat/constants/conversation.constant';
 import { CreateMessageDto } from '@modules/chat/dtos/message/create-message.body.dto';
@@ -19,6 +20,7 @@ import { MessageResponseDto } from '@modules/chat/dtos/message/message.response.
 import { MessageType } from '@generated/prisma/enums';
 import { GetMessagesResponseDto } from '@modules/chat/dtos/message/get-messages.response.dto';
 import { Prisma } from '@generated/prisma/client';
+import { UPLOAD_PURPOSE } from '@common/types/upload-file';
 
 export type MessageSelectResult = Prisma.MessageGetPayload<{
   select: typeof MESSAGE_SELECT;
@@ -28,6 +30,7 @@ export type MessageSelectResult = Prisma.MessageGetPayload<{
 export class MessageService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly fileService: FileService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -144,6 +147,25 @@ export class MessageService {
 
       return createdMessage;
     });
+
+    if (message.fileKey) {
+      const [destinationKey] = await this.fileService.moveObjects({
+        keys: [message.fileKey],
+        purpose: UPLOAD_PURPOSE.CHAT_ATTACHMENT,
+        entityId: currentUserId,
+        messageId: message.messageId,
+      });
+      await this.prisma.message.update({
+        where: {
+          messageId: message.messageId,
+        },
+        data: {
+          fileKey: destinationKey,
+        },
+      });
+
+      message.fileKey = destinationKey;
+    }
 
     this.logger.log(`[CHAT] message created: ${message.messageId}`);
     return this.mapMessageResponse(message, recipientId);
