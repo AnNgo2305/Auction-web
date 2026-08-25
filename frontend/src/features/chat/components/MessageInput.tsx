@@ -203,25 +203,30 @@ export function MessageInput({
       return;
     }
 
-    if (!hasAttachments) {
-      onSend({ content, type: 'TEXT' });
-    } else {
-      attachments.forEach((attachment) => {
-        if (attachment.status !== 'done' || !attachment.attachmentKey) {
-          return;
-        }
-        onSend({
-          content,
-          type: attachment.mimeType?.startsWith('image/') ? 'IMAGE' : 'FILE',
-          attachment: {
-            fileKey: attachment.attachmentKey,
-            fileName: attachment.originalName,
-            mimeType: attachment.mimeType,
-            fileSize: attachment.size,
-          },
-        });
+    if (content) {
+      onSend({
+        content,
+        type: 'TEXT',
       });
     }
+
+    attachments.forEach((attachment) => {
+      if (attachment.status !== 'done' || !attachment.attachmentKey) {
+        return;
+      }
+
+      onSend({
+        content: '',
+        type: attachment.mimeType?.startsWith('image/') ? 'IMAGE' : 'FILE',
+        attachment: {
+          fileKey: attachment.attachmentKey,
+          fileName: attachment.originalName,
+          mimeType: attachment.mimeType,
+          fileSize: attachment.size,
+        },
+      });
+    });
+
     setText('');
     setAttachments([]);
     onStopTyping();

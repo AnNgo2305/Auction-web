@@ -91,4 +91,14 @@ export const chatApi = {
 
     return res.data;
   },
+
+  getConversationById: async (
+    conversationId: string,
+  ): Promise<ConversationResponse> => {
+    const res = await api.get<ConversationResponse>(
+      `${CHAT_API_PREFIX}/conversations/${conversationId}`,
+    );
+
+    return res.data;
+  },
 };

@@ -461,6 +461,40 @@ export class ConversationService {
     return conversations.map((conversation) => conversation.conversationId);
   }
 
+  async getConversationById(
+    currentUserId: string,
+    conversationId: string,
+  ): Promise<ConversationResponseDto> {
+    this.logger.log(
+      `[GET_CONVERSATION] user=${currentUserId} conversation=${conversationId}`,
+    );
+
+    const conversation = await this.prisma.conversation.findFirst({
+      where: {
+        conversationId,
+        OR: [
+          {
+            initiatorId: currentUserId,
+            deletedByInitiatorAt: null,
+          },
+          {
+            recipientId: currentUserId,
+            deletedByRecipientAt: null,
+          },
+        ],
+      },
+      select: CONVERSATION_SELECT,
+    });
+
+    if (!conversation) {
+      this.logger.warn(`[CHAT] conversation not found: ${conversationId}`);
+
+      throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
+    }
+
+    return this.mapConversation(conversation);
+  }
+
   private async acquireLock(key: string): Promise<boolean> {
     const result = await this.redis.set(
       key,

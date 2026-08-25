@@ -149,4 +149,27 @@ export class ChatController {
       data: messages,
     };
   }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Get('conversations/:conversationId')
+  @Throttle({
+    short: { ttl: 1_000, limit: 15 },
+    medium: { ttl: 10_000, limit: 75 },
+    long: { ttl: 60_000, limit: 300 },
+  })
+  @HttpCode(HttpStatus.OK)
+  async getConversation(
+    @Req() req: Request,
+    @Param('conversationId') conversationId: string,
+  ): Promise<ResponsePayload> {
+    const conversation = await this.conversationService.getConversationById(
+      req.user!.userId,
+      conversationId,
+    );
+
+    return {
+      message: 'Conversation retrieved successfully',
+      data: conversation,
+    };
+  }
 }

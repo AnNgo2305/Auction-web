@@ -24,6 +24,10 @@ import {
   ACTION_CONFIG,
   type RelationshipStatus,
 } from '@/shared/types/relationship';
+import { MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useCreateOrGetConversation } from '@/features/chat/hooks/conversation/useCreateOrGetConversation';
+import { chatPaths } from '@/features/chat/constants/chat.routes.ts';
 
 type ProfileHeaderProps = {
   userId: string | undefined;
@@ -63,7 +67,22 @@ export function ProfileHeader({
   lastSeen,
 }: ProfileHeaderProps) {
   const { currentUser } = useUser();
+  const navigate = useNavigate();
   const { handleRelationshipAction } = useRelationshipActions();
+
+  const createOrGetConversationMutation = useCreateOrGetConversation(
+    (response) => {
+      void navigate(chatPaths.conversation(response.data.conversationId));
+    },
+  );
+
+  const handleMessage = () => {
+    if (!userId || userId === currentUser?.userId) {
+      return;
+    }
+
+    createOrGetConversationMutation.mutate(userId);
+  };
 
   if (isInitialProfileLoading) {
     return (
@@ -86,7 +105,8 @@ export function ProfileHeader({
             <Skeleton className="h-5 w-36" />
           </div>
         </div>
-        <div className="-mt-2 flex shrink-0 items-center pl-5">
+        <div className="-mt-2 flex shrink-0 items-center gap-2 pl-5">
+          <Skeleton className="h-10 w-24 rounded-md" />
           <Skeleton className="h-10 w-32 rounded-md" />
         </div>
       </div>
@@ -162,7 +182,20 @@ export function ProfileHeader({
             </div>
           </div>
           {/* Right */}
-          <div className="-mt-2 flex shrink-0 items-center pl-5">
+          <div className="-mt-2 flex shrink-0 items-center gap-2 pl-5">
+            {userId && userId !== currentUser?.userId && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleMessage}
+                disabled={createOrGetConversationMutation.isPending}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                {createOrGetConversationMutation.isPending
+                  ? 'Opening...'
+                  : 'Message'}
+              </Button>
+            )}
             {relationshipLabel && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
