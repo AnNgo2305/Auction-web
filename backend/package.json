@@ -19,7 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "tsx prisma/seeds/seed",
+    "prisma:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1075.0",
@@ -44,7 +46,7 @@
     "bullmq": "^5.79.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "cookie": "^2.0.1",
+    "cookie": "^1.1.1",
     "cookie-parser": "^1.4.7",
     "csrf-csrf": "^4.0.3",
     "dotenv": "^17.4.2",

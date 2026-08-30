@@ -86,14 +86,16 @@ export const relationApi = {
 
   getPendingFollowRequests: async (
     limit?: number,
-    cursor?: string,
+    createdAt?: string,
+    followId?: string,
   ): Promise<GetPendingFollowRequestsResponse> => {
     const res = await api.get<GetPendingFollowRequestsResponse>(
       `${FOLLOW_API_PREFIX}/pending`,
       {
         params: {
           limit,
-          cursor,
+          createdAt,
+          followId,
         },
       },
     );
@@ -102,14 +104,16 @@ export const relationApi = {
 
   getSentFollowRequests: async (
     limit?: number,
-    cursor?: string,
+    createdAt?: string,
+    followId?: string,
   ): Promise<GetSentFollowRequestsResponse> => {
     const res = await api.get<GetSentFollowRequestsResponse>(
       `${FOLLOW_API_PREFIX}/sent`,
       {
         params: {
           limit,
-          cursor,
+          createdAt,
+          followId,
         },
       },
     );

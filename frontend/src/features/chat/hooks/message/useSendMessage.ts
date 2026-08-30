@@ -3,7 +3,6 @@ import React, { useCallback } from 'react';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import type { MessageListResponse } from '@/features/chat/types/message/message-list.response.ts';
 import type { MessageData } from '@/features/chat/types/message/message.ts';
-import { useAuth } from '@/shared/contexts/AuthContext.tsx';
 import type { MessageSendPayload } from '@/features/chat/socket/types/payload/message-send.payload.ts';
 import { CHAT_EVENTS } from '@/features/chat/socket/chat-socket.constant.ts';
 import { useUser } from '@/shared/contexts/UserContext.tsx';
@@ -13,8 +12,7 @@ type MessagesCache = InfiniteData<MessageListResponse>;
 
 export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
   const queryClient = useQueryClient();
-  const isAuthenticated = useAuth();
-  const { currentUser } = useUser();
+  const { currentUser, isAuthenticated } = useUser();
 
   return useCallback(
     (
@@ -81,6 +79,7 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
             }
           : null,
         isRead: false,
+        readAt: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         _pending: true,

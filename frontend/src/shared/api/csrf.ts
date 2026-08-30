@@ -15,7 +15,7 @@ export function clearCsrfToken() {
   csrfToken = null;
 }
 
-const CSRF_API_URL = '/auth/csrf';
+const CSRF_API_URL = '/auth/csrf-token';
 export interface CsrfToken {
   csrfToken: string;
 }

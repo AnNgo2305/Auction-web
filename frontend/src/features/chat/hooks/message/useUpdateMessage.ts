@@ -2,10 +2,10 @@ import type { Socket } from 'socket.io-client';
 import React, { useCallback } from 'react';
 import type { MessageUpdatePayload } from '@/features/chat/socket/types/payload/message-update.payload.ts';
 import { CHAT_EVENTS } from '@/features/chat/socket/chat-socket.constant.ts';
-import { useAuth } from '@/shared/contexts/AuthContext.tsx';
+import { useUser } from '@/shared/contexts/UserContext.tsx';
 
 export function useUpdateMessage(socketRef: React.RefObject<Socket | null>) {
-  const isAuthenticated = useAuth();
+  const { isAuthenticated } = useUser();
 
   return useCallback(
     (payload: MessageUpdatePayload) => {

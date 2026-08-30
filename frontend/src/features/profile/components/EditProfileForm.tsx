@@ -18,10 +18,7 @@ import {
 import { useUpdateProfile } from '@/features/profile/hooks/profile/useUpdateProfile';
 import { useOutletContext } from 'react-router-dom';
 import type { ProfileOutletContext } from '@/features/profile/types/profile/profile-outlet-context';
-import {
-  formatDateInputToIso,
-  formatIsoToDateInput,
-} from '@/shared/utils/format-time';
+import { formatIsoToDateInput } from '@/shared/utils/format-time';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -67,7 +64,7 @@ export function EditProfileForm() {
       phoneNumber: profile?.phoneNumber ?? '',
       bio: profile?.bio ?? '',
       dateOfBirth: profile?.dateOfBirth
-        ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
+        ? new Date(profile.dateOfBirth).toISOString()
         : '',
       gender: profile?.gender ?? undefined,
     },
@@ -258,9 +255,10 @@ export function EditProfileForm() {
                         id="dateOfBirth"
                         type="date"
                         value={formatIsoToDateInput(field.value)}
-                        onChange={(e) => {
-                          field.onChange(formatDateInputToIso(e.target.value));
-                        }}
+                        // onChange={(e) => {
+                        //   field.onChange(formatDateInputToIso(e.target.value));
+                        // }}
+                        onChange={field.onChange}
                       />
                     </InputGroup>
                   )}

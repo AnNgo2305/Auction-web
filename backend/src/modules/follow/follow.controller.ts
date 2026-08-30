@@ -270,10 +270,19 @@ export class FollowController {
   @HttpCode(HttpStatus.OK)
   async getPendingReceivedFollowRequests(
     @Req() req: Request,
-    @Query('limit') limit?: number,
-    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+    @Query('createdAt') createdAt?: string,
+    @Query('followId') followId?: string,
   ): Promise<ResponsePayload> {
     const sellerId = req.user?.userId;
+
+    const cursor =
+      createdAt && followId
+        ? {
+            createdAt,
+            followId,
+          }
+        : undefined;
 
     const result = await this.followService.getPendingReceivedFollowRequests(
       sellerId as string,
@@ -298,10 +307,18 @@ export class FollowController {
   @HttpCode(HttpStatus.OK)
   async getSentFollowRequests(
     @Req() req: Request,
-    @Query('limit') limit?: number,
-    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+    @Query('createdAt') createdAt?: string,
+    @Query('followId') followId?: string,
   ): Promise<ResponsePayload> {
     const userId = req.user?.userId;
+    const cursor =
+      createdAt && followId
+        ? {
+            createdAt,
+            followId,
+          }
+        : undefined;
 
     const result = await this.followService.getSentFollowRequests(
       userId as string,

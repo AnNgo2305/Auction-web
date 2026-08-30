@@ -13,6 +13,10 @@ import { getMe } from '@/shared/api/me';
 import { Loader2 } from 'lucide-react';
 import type { Role } from '@/shared/types/user.ts';
 import { initializeCsrf } from '@/shared/api/csrf.ts';
+import {
+  connectPresenceSocket,
+  disconnectPresenceSocket,
+} from '@/features/presence/presence-socket.service.ts';
 
 const UserContext = createContext<UserContextValue | null>(null);
 
@@ -42,6 +46,20 @@ export function UserProvider({ children }: PropsWithChildren) {
 
     void loadCurrentUser();
   }, [setCurrentUser, clearCurrentUser, setIsInitializing]);
+
+  const isAuthenticated = currentUser !== null;
+  useEffect(() => {
+    if (!isAuthenticated) {
+      disconnectPresenceSocket();
+      return;
+    }
+
+    connectPresenceSocket();
+
+    return () => {
+      disconnectPresenceSocket();
+    };
+  }, [isAuthenticated]);
 
   const isCurrentUser = useCallback(
     (userId: string) => {
@@ -88,7 +106,7 @@ export function UserProvider({ children }: PropsWithChildren) {
   const value = useMemo<UserContextValue>(
     () => ({
       currentUser,
-      isAuthenticated: currentUser !== null,
+      isAuthenticated,
       setCurrentUser,
       clearCurrentUser,
       isCurrentUser,
@@ -98,6 +116,7 @@ export function UserProvider({ children }: PropsWithChildren) {
     }),
     [
       currentUser,
+      isAuthenticated,
       setCurrentUser,
       clearCurrentUser,
       isCurrentUser,

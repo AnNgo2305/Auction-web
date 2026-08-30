@@ -17,6 +17,7 @@ import { UPLOAD_PURPOSES } from '@/shared/types/upload.ts';
 import { useMemo } from 'react';
 import { usePresenceSocket } from '@/features/presence/hooks/usePresenceSocket';
 import { usePresenceStore } from '@/shared/stores/presence.store';
+import { formatIsoToNow } from '@/shared/utils/format-time';
 
 export function ProfileLayout() {
   const { userId } = useParams<{ userId: string }>();
@@ -155,7 +156,7 @@ export function ProfileLayout() {
               mutualFollowedSellerCount={profile?.mutualFollowedSellerCount}
               relationshipStatus={profile?.relationship.status}
               isInitialProfileLoading={isInitialProfileLoading}
-              lastSeen={lastSeen}
+              lastSeen={formatIsoToNow(lastSeen)}
             />
           </div>
         </div>

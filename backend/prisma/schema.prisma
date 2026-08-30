@@ -139,7 +139,7 @@ model Profile {
   profileImageUrl String? @map("profile_image_url") @db.VarChar(255)
 
   bio           String?   @db.VarChar(500)
-  dateOfBirth   DateTime? @map("date_of_birth")
+  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
   gender        Gender?
   coverImageUrl String?   @map("cover_image_url")
 
@@ -276,7 +276,7 @@ model Product {
 
 model Category {
   categoryId String @id @default(uuid(7)) @map("category_id") @db.Char(36)
-  name       String @unique @db.VarChar(100)
+  name       String @db.VarChar(100)
   color      String @default("#3B82F6") @db.VarChar(7)
 
   createdById String @map("created_by_id") @db.Char(36)

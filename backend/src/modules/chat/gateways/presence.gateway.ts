@@ -101,7 +101,10 @@ export class PresenceGateway
     const snapshot = await this.presenceService.getPresenceSnapshot(
       payload.userIds,
     );
-    client.emit(PRESENCE_EVENTS.PRESENCE_SNAPSHOT, snapshot);
+    client.emit(PRESENCE_EVENTS.PRESENCE_SNAPSHOT, {
+      onlineMap: Object.fromEntries(snapshot.onlineMap),
+      lastSeenMap: Object.fromEntries(snapshot.lastSeenMap),
+    });
   }
 
   @SubscribeMessage(PRESENCE_EVENTS.PRESENCE_UNSUBSCRIBE)

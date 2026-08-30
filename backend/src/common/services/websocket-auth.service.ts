@@ -5,7 +5,7 @@ import {
   ERROR_MISSING_ACCESS_TOKEN,
   ERROR_MISSING_COOKIE_HEADER,
 } from '@common/constants/error.constant';
-import { parse } from 'cookie';
+import * as cookie from 'cookie';
 import { AccessTokenPayload } from '@common/types/token-payload.interface';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class WebsocketAuthService {
       throw new UnauthorizedException(ERROR_MISSING_COOKIE_HEADER);
     }
 
-    const cookies = parse(cookieHeader);
+    const cookies = cookie.parse(cookieHeader);
     const accessToken = cookies['access_token'];
 
     if (!accessToken) {

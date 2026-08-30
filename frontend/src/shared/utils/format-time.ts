@@ -22,17 +22,6 @@ export function formatIsoToDate(iso: string | null | undefined): string {
 }
 
 /**
- * yyyy-MM-dd -> ISO
- */
-export function formatDateInputToIso(
-  date: string | null | undefined,
-): string | null {
-  if (!date) return null;
-
-  return new Date(date).toISOString();
-}
-
-/**
  * ISO -> relative time
  * Examples:
  * - Just now
@@ -50,7 +39,7 @@ export function formatIsoToNow(iso: string | null | undefined): string {
 
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffInSeconds < 10) return 'Just now';
+  if (diffInSeconds < 10) return 'just now';
 
   const rtf = new Intl.RelativeTimeFormat('en', {
     numeric: 'auto',

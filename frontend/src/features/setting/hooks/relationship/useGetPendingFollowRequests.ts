@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { relationApi } from '@/features/profile/api/relation.api';
 import { relationKeys } from '@/features/profile/constants/relation-query-key';
+import type { FollowCursor } from '@/features/profile/types/relationship/get-pending-follow-requests.response.ts';
 
 const DEFAULT_LIMIT = 10;
 
@@ -8,9 +9,13 @@ export function useGetPendingFollowRequests(limit: number = DEFAULT_LIMIT) {
   return useInfiniteQuery({
     queryKey: relationKeys.pendingRequests(),
     queryFn: async ({ pageParam }) => {
-      return await relationApi.getPendingFollowRequests(limit, pageParam);
+      return await relationApi.getPendingFollowRequests(
+        limit,
+        pageParam?.createdAt,
+        pageParam?.followId,
+      );
     },
-    initialPageParam: undefined as string | undefined,
+    initialPageParam: undefined as FollowCursor | undefined,
     getNextPageParam: (lastPage) => lastPage.data.nextCursor ?? undefined,
     staleTime: 1000 * 30,
     select: ({ pages }) => ({

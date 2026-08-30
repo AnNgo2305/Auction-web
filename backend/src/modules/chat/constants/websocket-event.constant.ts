@@ -1,65 +1,85 @@
 export const CHAT_EVENTS = {
-  // Client → Server (Send message)
+  // Client emits → Server receives
+  // Client emits this event to send a new message.
   MESSAGE_SEND: 'message:send',
 
-  // Server → Client (Show error message sent)
+  // Server emits → Sending client receives
+  // Server emits this event back to the client when a message operation fails (SEND | UPDATE | DELETE).
   MESSAGE_ERROR: 'message:error',
 
-  // Server → Client (Acknowledge message sent)
+  // Server emits → Sending client receives
+  // Server confirms that the message was successfully sent and persisted.
   MESSAGE_ACK: 'message:ack',
 
-  // Client → Other conversation clients (Notify new message)
+  // Server emits → Other clients in conversation receive
+  // Server notifies other clients that a new message was created.
   MESSAGE_NEW: 'message:new',
 
-  // Client → Server (Request to update an existing message)
+  // Client emits → Server receives
+  // Client emits this event to request an update to an existing message.
   MESSAGE_UPDATE: 'message:update',
 
-  // Server → Conversation clients (Notify clients that a message was updated)
+  // Server emits → All clients in conversation receive
+  // Server notifies clients that an existing message was updated.
   MESSAGE_UPDATED: 'message:updated',
 
-  // Client → Server (Request to delete an existing message)
+  // Client emits → Server receives
+  // Client emits this event to delete an existing message.
   MESSAGE_DELETE: 'message:delete',
 
-  // Server → Conversation clients (Notify clients that a message was deleted)
+  // Server emits → All clients in conversation receive
+  // Server notifies clients that an existing message was deleted.
   MESSAGE_DELETED: 'message:deleted',
 
-  // Server → All conversation clients (Update conversation)
+  // Server emits → All clients in conversation receive
+  // Server notifies clients that the conversation information was updated.
   CONVERSATION_UPDATED: 'conversation:updated',
 
-  // Client → Server (Read message)
+  // Client emits → Server receives
+  // Client emits this event to mark a message as read.
   MESSAGE_READ: 'message:read',
 
-  // Client → Other conversation clients (Seen message)
+  // Server emits → Other clients in conversation receive
+  // Server notifies other clients that the message was read.
   MESSAGE_SEEN: 'message:seen',
 
-  // Client → Server (Start typing)
-  // Client → Other conversation clients (Start typing)
+  // Client emits → Server receives
+  // Server emits → Other clients in conversation receive
+  // Indicates that a user in conversation started typing.
   TYPING_START: 'typing:start',
 
-  // Client → Server (Stop typing)
-  // Client → Other conversation clients (Stop typing)
+  // Client emits → Server receives
+  // Server emits → Other clients in conversation receive
+  // Indicates that a user in conversation stopped typing.
   TYPING_STOP: 'typing:stop',
 } as const;
 
 export const PRESENCE_EVENTS = {
-  // Client → Server (Keep the WebSocket connection alive)
+  // Client emits → Server receives
+  // Keeps the WebSocket connection alive and refreshes the client's heartbeat.
   HEARTBEAT: 'presence:heartbeat',
 
-  // Server → Client (Acknowledge presence)
+  // Server emits → Sending client receives
+  // Confirms that the server received the heartbeat.
   HEARTBEAT_ACK: 'presence:ack',
 
-  // Client → Server (Subscribe to presence changes of specific users)
+  // Client emits → Server receives
+  // Subscribes the client to presence updates of the specified users.
   PRESENCE_SUBSCRIBE: 'presence:subscribe',
 
-  // Client → Server (Stop receiving presence changes of specific users)
+  // Client emits → Server receives
+  // Unsubscribes the client from presence updates of the specified users.
   PRESENCE_UNSUBSCRIBE: 'presence:unsubscribe',
 
-  // Server → Client (Send current presence state after subscription)
+  // Server emits → Sending client receives
+  // Sends the current online/last-seen state of the subscribed users.
   PRESENCE_SNAPSHOT: 'presence:snapshot',
 
-  // Server → Client (Notify that a watched user became online)
+  // Server emits → All watching clients receive
+  // Notifies clients that a watched user has become online.
   PRESENCE_ONLINE: 'presence:online',
 
-  // Server → Client (Notify that a watched user became offline)
+  // Server emits → All watching clients receive
+  // Notifies clients that a watched user has become offline.
   PRESENCE_OFFLINE: 'presence:offline',
 } as const;

@@ -652,41 +652,44 @@ export class FollowService {
 
   async getPendingReceivedFollowRequests(
     userId: string,
-    cursor?: string,
+    cursor?: {
+      createdAt: string;
+      followId: string;
+    },
     limit = 10,
   ): Promise<ReceivedFollowRequestsCursorResponseDto> {
     const receivedFollowRequests = await this.prisma.follow.findMany({
       where: {
         sellerId: userId,
         status: FollowStatus.PENDING,
+        ...(cursor && {
+          OR: [
+            {
+              updatedAt: { lt: new Date(cursor.createdAt) },
+            },
+            {
+              updatedAt: new Date(cursor.createdAt),
+              followId: { lt: cursor.followId },
+            },
+          ],
+        }),
       },
       select: {
         followId: true,
-        createdAt: true,
+        updatedAt: true,
         follower: {
           select: {
             userId: true,
             username: true,
             role: true,
-            createdAt: true,
             profile: {
-              select: {
-                profileImageUrl: true,
-              },
+              select: { profileImageUrl: true },
             },
           },
         },
       },
       take: limit + 1,
-      ...(cursor && {
-        cursor: {
-          followId: cursor,
-        },
-        skip: 1,
-      }),
-      orderBy: {
-        followId: 'desc',
-      },
+      orderBy: [{ updatedAt: 'desc' }, { followId: 'desc' }],
     });
 
     const hasMore = receivedFollowRequests.length > limit;
@@ -701,25 +704,48 @@ export class FollowService {
         role: receivedFollowRequest.follower.role,
         profileImageUrl:
           receivedFollowRequest.follower.profile?.profileImageUrl ?? null,
-        createdAt: receivedFollowRequest.createdAt,
+        createdAt: receivedFollowRequest.updatedAt,
       })),
-      nextCursor: hasMore ? sliced[sliced.length - 1].followId : null,
+      nextCursor: hasMore
+        ? {
+            createdAt: sliced[sliced.length - 1].updatedAt.toISOString(),
+            followId: sliced[sliced.length - 1].followId,
+          }
+        : null,
     };
   }
 
   async getSentFollowRequests(
     userId: string,
-    cursor?: string,
+    cursor?: {
+      createdAt: string;
+      followId: string;
+    },
     limit = 10,
   ): Promise<SentFollowRequestsResponseDto> {
     const sentFollowRequests = await this.prisma.follow.findMany({
       where: {
         followerId: userId,
         status: FollowStatus.PENDING,
+        ...(cursor && {
+          OR: [
+            {
+              updatedAt: {
+                lt: new Date(cursor.createdAt),
+              },
+            },
+            {
+              updatedAt: new Date(cursor.createdAt),
+              followId: {
+                lt: cursor.followId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         followId: true,
-        createdAt: true,
+        updatedAt: true,
         seller: {
           select: {
             userId: true,
@@ -734,15 +760,7 @@ export class FollowService {
         },
       },
       take: limit + 1,
-      ...(cursor && {
-        cursor: {
-          followId: cursor,
-        },
-        skip: 1,
-      }),
-      orderBy: {
-        followId: 'desc',
-      },
+      orderBy: [{ updatedAt: 'desc' }, { followId: 'desc' }],
     });
 
     const hasMore = sentFollowRequests.length > limit;
@@ -757,9 +775,14 @@ export class FollowService {
         role: sendFollowRequest.seller.role,
         profileImageUrl:
           sendFollowRequest.seller.profile?.profileImageUrl ?? null,
-        createdAt: sendFollowRequest.createdAt,
+        createdAt: sendFollowRequest.updatedAt,
       })),
-      nextCursor: hasMore ? sliced[sliced.length - 1].followId : null,
+      nextCursor: hasMore
+        ? {
+            createdAt: sliced[sliced.length - 1].updatedAt.toISOString(),
+            followId: sliced[sliced.length - 1].followId,
+          }
+        : null,
     };
   }
 

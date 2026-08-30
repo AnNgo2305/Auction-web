@@ -28,6 +28,7 @@ import {
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { toast } from 'sonner';
 import { useUser } from '@/shared/contexts/UserContext';
+import { initializeCsrf } from '@/shared/api/csrf.ts';
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -74,6 +75,8 @@ export function LoginForm() {
       profileImageUrl,
       coverImageUrl,
     });
+
+    void initializeCsrf();
 
     toast.success(res.message);
     void navigate('/');

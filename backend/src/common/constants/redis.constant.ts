@@ -1,7 +1,7 @@
 export const REDIS_CLIENT = 'REDIS_CLIENT';
 export const THROTTLER_REDIS = 'THROTTLER_REDIS';
 
-export const REDIS_LOCK_CONFIG = {
+export const REDIS_LOCK = {
   CONVERSATION: {
     PREFIX: 'lock:conversation',
     VALUE: 'locked',
@@ -27,8 +27,11 @@ export const REDIS_KEYS = {
       `notification:unread-count:${recipientId}`,
     AGGREGATION: (recipientId: string, type: string, entityId: string) =>
       `notification:aggregation:${recipientId}:${type}:${entityId}`,
-    AGGREGATION_ACTORS: (recipientId: string, type: string, entityId: string) =>
-      `notification:aggregation:${recipientId}:${type}:${entityId}:actors`,
+    AGGREGATION_ACTOR_META: (
+      recipientId: string,
+      type: string,
+      entityId: string,
+    ) => `notification:aggregation:${recipientId}:${type}:${entityId}:actors`,
     AGGREGATION_META: (recipientId: string, type: string, entityId: string) =>
       `notification:aggregation:${recipientId}:${type}:${entityId}:meta`,
     AGGREGATION_PROCESSING: (
@@ -56,6 +59,8 @@ export const REDIS_TTL = {
   },
   NOTIFICATION: {
     AGGREGATION: 30,
+    AGGREGATION_META: 30,
+    AGGREGATION_ACTOR_META: 30,
     DEDUP: 5 * 60,
     UNREAD_COUNT: 60 * 60,
   },

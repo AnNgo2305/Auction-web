@@ -1,4 +1,4 @@
-import { api } from './axios';
+import { api, s3Client } from './axios';
 import type { ApiResponse } from '@/shared/types/response';
 import type {
   ConfirmUploadRequest,
@@ -33,7 +33,7 @@ export async function createPresignedDownloadUrl(
 }
 
 export async function uploadFile(uploadUrl: string, file: File): Promise<void> {
-  await api.put(uploadUrl, file, {
+  await s3Client.put(uploadUrl, file, {
     headers: {
       'Content-Type': file.type,
     },

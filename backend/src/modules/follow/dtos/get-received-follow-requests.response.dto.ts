@@ -3,5 +3,8 @@ import type { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dt
 export class ReceivedFollowRequestsCursorResponseDto {
   receivedFollowRequests: FollowUserDto[];
 
-  nextCursor: string | null;
+  nextCursor: {
+    createdAt: string;
+    followId: string;
+  } | null;
 }

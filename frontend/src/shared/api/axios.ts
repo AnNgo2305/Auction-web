@@ -5,6 +5,8 @@ import { emitLogoutEvent } from './auth-event.ts';
 import { refreshAccessToken } from './auth-session.ts';
 import type { ApiResponseError } from '@/shared/types/error.ts';
 
+export const s3Client = axios.create();
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL as string,
   timeout: 10000,

@@ -38,10 +38,6 @@ export class PresenceService implements OnModuleInit, OnModuleDestroy {
     userId: string,
     socketId: string,
   ): Promise<{ becameOnline: boolean }> {
-    const wasOnline =
-      (await this.redis.sismember(REDIS_KEYS.PRESENCE.ONLINE_USERS, userId)) ===
-      1;
-
     const pipeline = this.redis.pipeline();
     pipeline.sadd(REDIS_KEYS.PRESENCE.ONLINE_USERS, userId);
     pipeline.sadd(REDIS_KEYS.PRESENCE.USER_SOCKETS(userId), socketId);
@@ -62,9 +58,11 @@ export class PresenceService implements OnModuleInit, OnModuleDestroy {
     await pipeline.exec();
     this.pendingLastSeen.delete(userId);
 
-    return {
-      becameOnline: !wasOnline,
-    };
+    const becameOnline =
+      (await this.redis.sismember(REDIS_KEYS.PRESENCE.ONLINE_USERS, userId)) ===
+      1;
+
+    return { becameOnline };
   }
 
   async markOffline(

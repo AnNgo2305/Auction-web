@@ -14,10 +14,7 @@ import {
   ERROR_RECIPIENT_NOT_FOUND,
 } from '@modules/chat/constants/conversation.constant';
 import Redis from 'ioredis';
-import {
-  REDIS_CLIENT,
-  REDIS_LOCK_CONFIG,
-} from '@common/constants/redis.constant';
+import { REDIS_CLIENT, REDIS_LOCK } from '@common/constants/redis.constant';
 import { ConversationResponseDto } from '@modules/chat/dtos/conversation/get-create-conversation.response.dto';
 import { GetConversationsResponseDto } from '@modules/chat/dtos/conversation/get-user-conversations.response.dto';
 import { SearchConversationsResponseDto } from '@modules/chat/dtos/conversation/search-conversations.response.dto';
@@ -91,7 +88,7 @@ export class ConversationService {
     const locked = await this.acquireLock(lockKey);
 
     if (!locked) {
-      const { MAX_RETRY, INTERVAL } = REDIS_LOCK_CONFIG.CONVERSATION.WAIT;
+      const { MAX_RETRY, INTERVAL } = REDIS_LOCK.CONVERSATION.WAIT;
       for (let i = 0; i < MAX_RETRY; i++) {
         await new Promise((resolve) => setTimeout(resolve, INTERVAL));
         const retryConversation = await this.prisma.conversation.findFirst({
@@ -498,9 +495,9 @@ export class ConversationService {
   private async acquireLock(key: string): Promise<boolean> {
     const result = await this.redis.set(
       key,
-      REDIS_LOCK_CONFIG.CONVERSATION.VALUE,
+      REDIS_LOCK.CONVERSATION.VALUE,
       'EX',
-      REDIS_LOCK_CONFIG.CONVERSATION.TTL,
+      REDIS_LOCK.CONVERSATION.TTL,
       'NX',
     );
 
@@ -509,7 +506,7 @@ export class ConversationService {
 
   private getConversationLockKey(userId1: string, userId2: string): string {
     const sortedIds = [userId1, userId2].sort();
-    return `${REDIS_LOCK_CONFIG.CONVERSATION.PREFIX}:${sortedIds[0]}:${sortedIds[1]}`;
+    return `${REDIS_LOCK.CONVERSATION.PREFIX}:${sortedIds[0]}:${sortedIds[1]}`;
   }
 
   private mapConversation(

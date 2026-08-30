@@ -12,7 +12,6 @@ import {
   MessageErrorType,
 } from '@/features/chat/socket/types/event/message-error.event.ts';
 import { useChatStore } from '@/shared/stores/chat.store';
-import { useAuth } from '@/shared/contexts/AuthContext.tsx';
 import { type InfiniteData, useQueryClient } from '@tanstack/react-query';
 import { conversationKeys } from '@/features/chat/constants/conversation-query-key.ts';
 import { messageKeys } from '../constants/message-query-key';
@@ -21,13 +20,14 @@ import type { ConversationListResponse } from '@/features/chat/types/conversatio
 import { toast } from 'sonner';
 import { refreshAccessToken } from '@/shared/api/auth-session';
 import { emitLogoutEvent } from '@/shared/api/auth-event';
+import { useUser } from '@/shared/contexts/UserContext.tsx';
 
 type MessagesCache = InfiniteData<MessageListResponse>;
 type ConversationsCache = InfiniteData<ConversationListResponse>;
 
 export function useChatSocket() {
   const socketRef = useRef<Socket | null>(null);
-  const isAuthenticated = useAuth();
+  const { isAuthenticated } = useUser();
   const queryClient = useQueryClient();
 
   const {

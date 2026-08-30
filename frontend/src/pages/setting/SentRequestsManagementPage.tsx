@@ -96,7 +96,10 @@ export function SentRequestsManagementPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{sentRequests.length}</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-4xl font-bold">{sentRequests.length}</p>
+              <span className="text-muted-foreground text-sm">loaded</span>
+            </div>
             <p className="text-muted-foreground mt-2 text-sm">
               Pending outgoing requests
             </p>

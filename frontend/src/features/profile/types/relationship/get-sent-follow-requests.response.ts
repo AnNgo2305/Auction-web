@@ -2,6 +2,11 @@ import type { ApiResponse } from '@/shared/types/response.ts';
 import type { Role } from '@/shared/types/user.ts';
 import type { RelationshipStatus } from '@/shared/types/relationship.ts';
 
+export type FollowCursor = {
+  createdAt: string;
+  followId: string;
+};
+
 export class RelationshipStatusData {
   status!: RelationshipStatus;
 
@@ -25,7 +30,7 @@ export class FollowUserData {
 export class GetSentFollowRequestsData {
   sentFollowRequests!: FollowUserData[];
 
-  nextCursor!: string | null;
+  nextCursor!: FollowCursor | null;
 }
 
 export type GetSentFollowRequestsResponse =

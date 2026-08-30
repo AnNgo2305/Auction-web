@@ -34,7 +34,7 @@ export class NotificationService {
       type,
       entityId,
     );
-    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTORS(
+    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTOR_META(
       recipientId,
       type,
       entityId,
@@ -63,8 +63,8 @@ export class NotificationService {
 
     multi.set(metaKey, now);
     multi.expire(key, REDIS_TTL.NOTIFICATION.AGGREGATION);
-    multi.expire(actorMetaKey, REDIS_TTL.NOTIFICATION.AGGREGATION);
-    multi.expire(metaKey, REDIS_TTL.NOTIFICATION.AGGREGATION);
+    multi.expire(actorMetaKey, REDIS_TTL.NOTIFICATION.AGGREGATION_ACTOR_META);
+    multi.expire(metaKey, REDIS_TTL.NOTIFICATION.AGGREGATION_META);
 
     await multi.exec();
   }
@@ -216,7 +216,7 @@ export class NotificationService {
       type,
       entityId,
     );
-    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTORS(
+    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTOR_META(
       recipientId,
       type,
       entityId,

@@ -39,6 +39,10 @@ export class ValidationPipe implements PipeTransform {
       return value;
     }
 
+    if (value instanceof metatype) {
+      return value;
+    }
+
     const object: unknown = plainToInstance(
       metatype,
       value,
