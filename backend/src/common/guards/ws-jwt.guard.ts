@@ -16,6 +16,7 @@ import {
   ERROR_USER_NOT_EXIST,
   ERROR_USER_UNVERIFIED,
 } from '@common/constants/error.constant';
+import { UserCacheService } from '@common/cache/user.cache.service';
 
 interface SocketData {
   userId: string;
@@ -26,6 +27,7 @@ export class WsJwtGuard implements CanActivate {
   constructor(
     private readonly tokenService: TokenService,
     private readonly userService: UserService,
+    private readonly userCacheService: UserCacheService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -43,9 +45,19 @@ export class WsJwtGuard implements CanActivate {
       throw new UnauthorizedException(ERROR_MISSING_ACCESS_TOKEN);
     }
 
-    const user = await this.userService.findUserById(payload.userId);
+    let user = await this.userCacheService.get(payload.userId);
     if (!user) {
-      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      const dbUser = await this.userService.findUserById(payload.userId);
+      if (!dbUser) {
+        throw new NotFoundException(ERROR_USER_NOT_EXIST);
+      }
+
+      user = {
+        userId: dbUser.userId,
+        role: dbUser.role,
+        isVerified: dbUser.isVerified,
+        isBanned: dbUser.isBanned,
+      };
     }
     if (!user.isVerified) {
       throw new UnauthorizedException(ERROR_USER_UNVERIFIED);
@@ -54,6 +66,7 @@ export class WsJwtGuard implements CanActivate {
       throw new ForbiddenException(ERROR_USER_BANNED);
     }
 
+    await this.userCacheService.set(user);
     const data = client.data as SocketData;
     data.userId = payload.userId;
 

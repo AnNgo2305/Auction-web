@@ -14,6 +14,7 @@ export const GENDERS = {
 export type Gender = (typeof GENDERS)[keyof typeof GENDERS];
 
 export const ROLES = {
+  ADMIN: 'ADMIN',
   SELLER: 'SELLER',
   BIDDER: 'BIDDER',
 } as const;

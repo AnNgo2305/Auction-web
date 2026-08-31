@@ -27,6 +27,7 @@ import { GetMyProductsResponseDto } from '@modules/product/dtos/get-my-products.
 import { GetProductsResponseDto } from '@modules/product/dtos/get-products.response.dto';
 import { GetProductsQueryDto } from '@modules/product/dtos/get-products.query.dto';
 import { ProductPermissionService } from '@modules/permission/product-permission.service';
+import { UPLOAD_PURPOSE } from '@common/types/upload-file';
 
 @Injectable()
 export class ProductService {
@@ -470,21 +471,33 @@ export class ProductService {
       });
 
       if (productData.images?.length) {
+        const destinationKeys = await this.fileService.moveObjects({
+          keys: productData.images.map((image) => image.imageKey),
+          purpose: UPLOAD_PURPOSE.PRODUCT_IMAGE,
+          entityId: product.productId,
+        });
+
         await tx.productImage.createMany({
-          data: productData.images.map((image) => ({
+          data: destinationKeys.map((imageKey, index) => ({
             productId: product.productId,
-            imageKey: image.imageKey,
-            isPrimary: image.isPrimary,
+            imageKey,
+            isPrimary: productData.images[index].isPrimary,
           })),
         });
       }
 
       if (productData.documents?.length) {
+        const destinationKeys = await this.fileService.moveObjects({
+          keys: productData.documents.map((document) => document.documentKey),
+          purpose: UPLOAD_PURPOSE.PRODUCT_DOCUMENT,
+          entityId: product.productId,
+        });
+
         await tx.productDocument.createMany({
-          data: productData.documents.map((document) => ({
+          data: destinationKeys.map((documentKey, index) => ({
             productId: product.productId,
-            documentName: document.documentName,
-            documentKey: document.documentKey,
+            documentName: productData.documents![index].documentName,
+            documentKey,
           })),
         });
       }

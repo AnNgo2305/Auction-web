@@ -28,6 +28,10 @@ import { UpdateProfileImageResponseDto } from '@modules/profile/dtos/update-prof
 import { UpdateCoverImageResponseDto } from '@modules/profile/dtos/update-cover-image.response.dto';
 import { ProfilePermissionService } from '@modules/permission/profile-permission.service';
 import { UPLOAD_PURPOSE } from '@common/types/upload-file';
+import { Request } from 'express';
+import { RefreshTokenService } from '@modules/refresh-token/refresh-token.service';
+import { TokenService } from '@common/services/token.service';
+import { TokenBlacklistCacheService } from '@common/cache/token-blacklist.cache.service';
 
 @Injectable()
 export class ProfileService {
@@ -38,9 +42,16 @@ export class ProfileService {
     private readonly passwordService: PasswordService,
     private readonly logger: LoggerService,
     private readonly profilePermissionService: ProfilePermissionService,
+    private readonly refreshTokenService: RefreshTokenService,
+    private readonly tokenService: TokenService,
+    private readonly tokenBlacklistCacheService: TokenBlacklistCacheService,
   ) {}
 
-  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+    req: Request,
+  ): Promise<void> {
     this.logger.log(`User ${userId} is attempting to change password`);
     const user = await this.prisma.user.findUnique({
       where: { userId },
@@ -89,6 +100,32 @@ export class ProfileService {
         password: passwordHash,
       },
     });
+
+    await this.refreshTokenService.revokeAllRefreshTokens(userId);
+    const accessToken = req.cookies?.access_token as string | null;
+
+    if (accessToken) {
+      try {
+        const accessPayload =
+          await this.tokenService.verifyAccessToken(accessToken);
+
+        await this.tokenBlacklistCacheService.blacklist(
+          accessPayload.jti,
+          accessPayload.exp,
+        );
+
+        this.logger.log(
+          `Current access token blacklisted after password change | userId=${userId} | jti=${accessPayload.jti}`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Failed to blacklist current access token after password change | userId=${userId} | error=${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+
     this.logger.log(`Password changed successfully for user ${userId}`);
   }
 

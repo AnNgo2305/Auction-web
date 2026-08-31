@@ -17,6 +17,8 @@ export interface AccessTokenPayloadInput {
 }
 
 export interface AccessTokenPayload extends AccessTokenPayloadInput {
+  jti: string;
+
   iat: number;
 
   exp: number;

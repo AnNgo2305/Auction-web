@@ -41,6 +41,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RateLimitGuard } from '@common/guards/rate-limit.guard';
 import { CsrfService } from '@common/services/csrf.service';
 import { csrfConfig } from '@common/config/csrf.config';
+import { UserCacheService } from '@common/cache/user.cache.service';
+import { TokenBlacklistCacheService } from '@common/cache/token-blacklist.cache.service';
+import { OtpCacheService } from '@common/cache/otp.cache.service';
 
 const service = [
   LoggerService,
@@ -54,6 +57,9 @@ const service = [
   MailProcessor,
   RateLimitService,
   CsrfService,
+  UserCacheService,
+  TokenBlacklistCacheService,
+  OtpCacheService,
 ];
 
 @Module({

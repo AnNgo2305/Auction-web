@@ -7,6 +7,7 @@ import VerifyEmailPage from '@/pages/auth/VerifyEmailPage';
 import VerifyResetPasswordPage from '@/pages/auth/VerifyResetPasswordPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
 import PublicRoute from '@/routes/guards/PublicRoute';
+import { NotFoundPage } from '@/pages/NotFoundPage.tsx';
 
 export default function AuthRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AuthRoutes() {
           element={<ResetPasswordPage />}
         />
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

@@ -142,7 +142,7 @@ export function EditProfileForm() {
   };
 
   if (!isOwner) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/403" replace />;
   }
 
   return (

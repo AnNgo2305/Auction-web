@@ -50,6 +50,7 @@ export function MyProductsPage() {
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [isSelectAll, setIsSelectAll] = useState(false);
 
   // selection
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -89,6 +90,7 @@ export function MyProductsPage() {
 
   const handleClearSelection = () => {
     setSelectedProductIds([]);
+    setIsSelectAll(false);
   };
 
   const handleSelectionChange = (ids: string[]) => {
@@ -213,6 +215,8 @@ export function MyProductsPage() {
         isActionLoading={isDeletingProduct || isUpdatingProductStatus}
         isLoading={isGetsMyProductsLoading}
         selectedProductIds={selectedProductIds}
+        isSelectAll={isSelectAll}
+        onSelectAllChange={setIsSelectAll}
         onSelectionProductChange={handleSelectionChange}
         onDelete={handleDeleteProduct}
         onPublish={handlePublishProduct}

@@ -66,6 +66,8 @@ type MyProductsDataTableProps = {
   onPublish: (productId: string) => void;
   onRestore: (productId: string) => void;
   onArchive: (productId: string) => void;
+  isSelectAll: boolean;
+  onSelectAllChange: (value: boolean) => void;
 };
 
 export function MyProductsDataTable({
@@ -79,12 +81,13 @@ export function MyProductsDataTable({
   onPublish,
   onRestore,
   onArchive,
+  isSelectAll,
+  onSelectAllChange,
 }: MyProductsDataTableProps) {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
   // Tracks whether selection mode was enabled by clicking "Select All".
-  const [isSelectAll, setIsSelectAll] = useState(false);
   const navigate = useNavigate();
 
   // Checkbox is checked when:
@@ -98,7 +101,7 @@ export function MyProductsDataTable({
       ));
 
   const handleSelectAll = (checked: boolean) => {
-    setIsSelectAll(checked);
+    onSelectAllChange(checked);
 
     // Clear selection when user turns off select all.
     if (!checked) {
@@ -122,7 +125,7 @@ export function MyProductsDataTable({
 
     // Selecting a single row manually disables select-all mode.
     // Remove product from current selection.
-    setIsSelectAll(false);
+    onSelectAllChange(false);
     onSelectionProductChange(
       selectedProductIds.filter((id) => id !== productId),
     );

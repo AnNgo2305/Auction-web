@@ -17,6 +17,7 @@ import {
 } from '@common/constants/error.constant';
 import jwtConfig from '@common/config/jwt.config';
 import { ConfigType } from '@nestjs/config';
+import crypto from 'crypto';
 
 @Injectable()
 export class TokenService {
@@ -38,12 +39,20 @@ export class TokenService {
   }
 
   async generateAccessToken(payload: AccessTokenPayloadInput): Promise<string> {
+    const jti = crypto.randomUUID();
+
     try {
-      return await this.jwtService.signAsync(payload, {
-        secret: this.accessTokenKey,
-        expiresIn: this.accessTokenExpiresIn,
-        algorithm: 'HS256',
-      });
+      return await this.jwtService.signAsync(
+        {
+          ...payload,
+          jti,
+        },
+        {
+          secret: this.accessTokenKey,
+          expiresIn: this.accessTokenExpiresIn,
+          algorithm: 'HS256',
+        },
+      );
     } catch {
       throw new Error('Failed to generate access token');
     }

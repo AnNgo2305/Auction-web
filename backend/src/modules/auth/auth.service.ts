@@ -46,6 +46,8 @@ import { VerifyResetPasswordOtpResponseDto } from '@modules/auth/dtos/verify-res
 import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp-email.body.dto';
 import { ProfileService } from '@modules/profile/profile.service';
 import { FileService } from '@common/services/file.service';
+import { UserCacheService } from '@common/cache/user.cache.service';
+import { TokenBlacklistCacheService } from '@common/cache/token-blacklist.cache.service';
 
 @Injectable()
 export class AuthService {
@@ -66,6 +68,8 @@ export class AuthService {
     private readonly profileService: ProfileService,
     private readonly logger: LoggerService,
     private readonly fileService: FileService,
+    private readonly userCacheService: UserCacheService,
+    private readonly tokenBlacklistCacheService: TokenBlacklistCacheService,
   ) {}
 
   async login(
@@ -179,6 +183,13 @@ export class AuthService {
     );
 
     this.logger.log(`Login successful: ${user.email}`);
+
+    await this.userCacheService.set({
+      userId: user.userId,
+      role: user.role,
+      isVerified: user.isVerified,
+      isBanned: user.isBanned,
+    });
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
@@ -535,6 +546,7 @@ export class AuthService {
   }
 
   async logout(req: Request, res: Response): Promise<void> {
+    const accessToken = req.cookies?.access_token as string | null;
     const refreshToken = req.cookies?.refresh_token as string | null;
 
     if (!refreshToken) {
@@ -564,6 +576,28 @@ export class AuthService {
       provider,
     );
 
+    if (accessToken) {
+      try {
+        const accessPayload =
+          await this.tokenService.verifyAccessToken(accessToken);
+
+        await this.tokenBlacklistCacheService.blacklist(
+          accessPayload.jti,
+          accessPayload.exp,
+        );
+
+        this.logger.log(
+          `Access token blacklisted | userId=${accessPayload.userId} | jti=${accessPayload.jti}`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Failed to blacklist access token | reason=${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -582,6 +616,7 @@ export class AuthService {
   }
 
   async logoutAll(req: Request, res: Response): Promise<void> {
+    const accessToken = req.cookies?.access_token as string | null;
     const refreshToken = req.cookies?.refresh_token as string | null;
 
     if (!refreshToken) {
@@ -606,6 +641,28 @@ export class AuthService {
     }
 
     await this.refreshTokenService.revokeAllRefreshTokens(userId);
+
+    if (accessToken) {
+      try {
+        const accessPayload =
+          await this.tokenService.verifyAccessToken(accessToken);
+
+        await this.tokenBlacklistCacheService.blacklist(
+          accessPayload.jti,
+          accessPayload.exp,
+        );
+
+        this.logger.log(
+          `Access token blacklisted successfully during logout all | jti=${accessPayload.jti} | userId=${accessPayload.userId}`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Failed to blacklist current access token during logout all | userId=${userId} | error=${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
 
     res.clearCookie('access_token', {
       httpOnly: true,

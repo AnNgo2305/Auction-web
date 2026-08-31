@@ -7,10 +7,14 @@ import {
   ERROR_OTP_EXPIRED,
   ERROR_OTP_NOT_FOUND,
 } from '@modules/otp/otp.constant';
+import { OtpCacheService } from '@common/cache/otp.cache.service';
 
 @Injectable()
 export class OtpService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly otpCacheService: OtpCacheService,
+  ) {}
 
   private generateOtpCode(): string {
     return randomInt(100000, 999999).toString();
@@ -35,6 +39,7 @@ export class OtpService {
       });
     }
 
+    await this.otpCacheService.set(userId, type, otpCode);
     return otpCode;
   }
 
@@ -43,6 +48,15 @@ export class OtpService {
     type: OtpType,
     code: string,
   ): Promise<boolean> {
+    const cachedCode = await this.otpCacheService.get(userId, type);
+    if (cachedCode) {
+      if (cachedCode !== code) {
+        throw new UnauthorizedException(ERROR_OTP_NOT_FOUND);
+      }
+
+      return true;
+    }
+
     const otp = await this.prisma.otp.findFirst({
       where: { userId, type, code },
     });
@@ -55,6 +69,7 @@ export class OtpService {
       throw new UnauthorizedException(ERROR_OTP_EXPIRED);
     }
 
+    await this.otpCacheService.set(userId, type, otp.code!);
     return true;
   }
 
@@ -63,5 +78,7 @@ export class OtpService {
       where: { userId, type },
       data: { code: null, expiresAt: null },
     });
+
+    await this.otpCacheService.delete(userId, type);
   }
 }

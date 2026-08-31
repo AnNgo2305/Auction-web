@@ -49,6 +49,16 @@ export const REDIS_KEYS = {
     DEDUP: (type: string, entityId: string, recipientId: string) =>
       `notification:dedup:${type}:${entityId}:${recipientId}`,
   },
+  USER: {
+    USER_ID: (userId: string) => `user:${userId}`,
+  },
+  AUTH: {
+    BLACKLIST_TOKEN: (jti: string) => `auth:blacklist:token:${jti}`,
+  },
+  OTP: {
+    VERIFY_EMAIL: (userId: string) => `otp:verify-email:${userId}`,
+    RESET_PASSWORD: (userId: string) => `otp:reset-password:${userId}`,
+  },
 } as const;
 
 export const REDIS_TTL = {
@@ -63,6 +73,13 @@ export const REDIS_TTL = {
     AGGREGATION_ACTOR_META: 30,
     DEDUP: 5 * 60,
     UNREAD_COUNT: 60 * 60,
+  },
+  USER: {
+    USER_ID: 60 * 5,
+  },
+  OTP: {
+    VERIFY_EMAIL: 5 * 60,
+    RESET_PASSWORD: 5 * 60,
   },
 } as const;
 

@@ -6,6 +6,8 @@ import SettingRoutes from '@/routes/SettingRoute';
 import SellerHubRoutes from '@/routes/SellerHubRoute';
 import ProductRoutes from '@/routes/ProductRoute';
 import ChatRoutes from '@/routes/ChatRoute';
+import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ForbiddenPage } from '@/pages/ForbiddenPage';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/sellerhub/*" element={<SellerHubRoutes />} />
         <Route path="products/*" element={<ProductRoutes />} />
         <Route path="/chat/*" element={<ChatRoutes />} />
+        <Route path="/403" element={<ForbiddenPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

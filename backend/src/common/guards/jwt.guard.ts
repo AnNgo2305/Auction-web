@@ -18,12 +18,14 @@ import {
 } from '@common/constants/error.constant';
 import { UserService } from '@modules/user/user.service';
 import { AUTH_TYPE_KEY } from '@common/decorators/auth.decorator';
+import { UserCacheService } from '@common/cache/user.cache.service';
 
 @Injectable()
 export class JwtGuard implements CanActivate {
   constructor(
     private readonly tokenService: TokenService,
     private readonly userService: UserService,
+    private readonly userCacheService: UserCacheService,
     private readonly reflector: Reflector,
   ) {}
 
@@ -43,9 +45,20 @@ export class JwtGuard implements CanActivate {
 
     try {
       const payload = await this.tokenService.verifyAccessToken(token);
-      const user = await this.userService.findUserById(payload.userId);
+      let user = await this.userCacheService.get(payload.userId);
+
       if (!user) {
-        throw new NotFoundException(ERROR_USER_NOT_EXIST);
+        const dbUser = await this.userService.findUserById(payload.userId);
+        if (!dbUser) {
+          throw new NotFoundException(ERROR_USER_NOT_EXIST);
+        }
+
+        user = {
+          userId: payload.userId,
+          role: payload.role,
+          isVerified: dbUser.isVerified,
+          isBanned: dbUser.isBanned,
+        };
       }
 
       if (!user.isVerified) {
@@ -56,6 +69,7 @@ export class JwtGuard implements CanActivate {
         throw new ForbiddenException(ERROR_USER_BANNED);
       }
 
+      await this.userCacheService.set(user);
       request['user'] = payload;
       request.sessionId = payload.sessionId;
       return true;

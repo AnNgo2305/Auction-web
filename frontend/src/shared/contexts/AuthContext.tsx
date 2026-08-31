@@ -22,8 +22,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     return onLogoutEvent(() => {
-      clearCurrentUser();
-      clearCsrfToken();
+      void authApi.logout().finally(() => {
+        clearCurrentUser();
+        clearCsrfToken();
+      });
     });
   }, [clearCurrentUser]);
 

@@ -45,7 +45,7 @@ export class ProfileController {
   ): Promise<ResponsePayload> {
     const userId = request.user!.userId;
 
-    await this.profileService.changePassword(userId, dto);
+    await this.profileService.changePassword(userId, dto, request);
 
     return {
       message: 'Password changed successfully',

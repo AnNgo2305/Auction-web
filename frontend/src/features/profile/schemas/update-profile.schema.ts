@@ -28,13 +28,15 @@ export const updateProfileSchema = z.object({
       error: 'dateOfBirth must be a string',
     })
     .pipe(z.iso.date('dateOfBirth must be a valid ISO date string'))
+    .or(z.literal(''))
     .nullable(),
 
   gender: z
     .enum([GENDERS.MALE, GENDERS.FEMALE, GENDERS.OTHER], {
       error: 'gender must be a valid enum value',
     })
-    .nullable(),
+    .nullable()
+    .optional(),
 });
 
 export type UpdateProfileBody = z.infer<typeof updateProfileSchema>;

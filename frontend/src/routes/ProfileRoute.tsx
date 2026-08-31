@@ -8,6 +8,8 @@ import { EditProfilePage } from '@/pages/profile/EditProfilePage';
 import { ProfileAddressesPage } from '@/pages/profile/ProfileAddressPage';
 import PublicRoute from '@/routes/guards/PublicRoute';
 import ProtectedRoute from '@/routes/guards/ProtectedRoute';
+import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ROLES } from '@/shared/types/user';
 
 export default function ProfileRoutes() {
   return (
@@ -32,11 +34,14 @@ export default function ProfileRoutes() {
           />
         </Route>
       </Route>
-      <Route element={<ProtectedRoute />}>
+      <Route
+        element={<ProtectedRoute allowedRoles={[ROLES.SELLER, ROLES.BIDDER]} />}
+      >
         <Route element={<ProfileLayout />}>
           <Route path={PROFILE_ROUTES.EDIT} element={<EditProfilePage />} />
         </Route>
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

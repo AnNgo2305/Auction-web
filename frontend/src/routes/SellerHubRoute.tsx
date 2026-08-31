@@ -4,12 +4,14 @@ import { SellerHubLayout } from '@/features/seller-hub/layout/SellerHubLayout';
 import { SELLER_HUB_ROUTES } from '@/features/seller-hub/constants/seller-hub.routes';
 import { MyProductCategoriesPage } from '@/pages/seller-hub/MyProductCategoriesPage';
 import { CreateProductPage } from '@/pages/seller-hub/CreateProductPage';
-import { MyProductsPage } from '@/pages/seller-hub/MyProductsPage.tsx';
+import { MyProductsPage } from '@/pages/seller-hub/MyProductsPage';
+import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ROLES } from '@/shared/types/user';
 
 export default function SellerHubRoutes() {
   return (
     <Routes>
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.SELLER]} />}>
         <Route element={<SellerHubLayout />}>
           <Route
             path={SELLER_HUB_ROUTES.PRODUCTS}
@@ -25,6 +27,7 @@ export default function SellerHubRoutes() {
           />
         </Route>
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

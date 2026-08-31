@@ -51,19 +51,19 @@ export function connectPresenceSocket(): void {
   });
 
   socket.on(PRESENCE_EVENTS.EXCEPTION, async ({ errorCode }) => {
-    if (errorCode !== 'ACCESS_TOKEN_EXPIRED') {
-      socket?.disconnect();
-      socket = null;
-      emitLogoutEvent();
+    if (errorCode === 'ACCESS_TOKEN_EXPIRED') {
+      try {
+        await refreshAccessToken();
+        socket?.connect();
+      } catch {
+        emitLogoutEvent();
+      }
+
       return;
     }
 
-    try {
-      await refreshAccessToken();
-      socket?.connect();
-    } catch {
-      emitLogoutEvent();
-    }
+    socket?.disconnect();
+    socket = null;
   });
 
   socket.on(PRESENCE_EVENTS.PRESENCE_ONLINE, ({ userId }: OnlineEvent) => {

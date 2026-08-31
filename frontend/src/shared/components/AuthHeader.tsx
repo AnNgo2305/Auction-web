@@ -30,6 +30,7 @@ import { settingsPaths } from '@/features/setting/constants/setting.routes.ts';
 import { ROLES } from '@/shared/types/user.ts';
 import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes.ts';
 import { productPaths } from '@/features/product/constants/product.routes';
+import { chatPaths } from '@/features/chat/constants/chat.routes';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -99,6 +100,17 @@ export default function AuthHeader() {
                 Seller Hub
               </Link>
             )}
+            <Link
+              to={chatPaths.root()}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                location.pathname.startsWith(chatPaths.root())
+                  ? 'text-white'
+                  : 'text-white/80 hover:text-white',
+              )}
+            >
+              Chat
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-3">

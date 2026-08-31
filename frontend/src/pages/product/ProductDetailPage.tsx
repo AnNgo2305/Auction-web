@@ -98,7 +98,7 @@ export function ProductDetailPage() {
 
   if (isError || !product) {
     return (
-      <div className="container flex min-h-[60vh] flex-col items-center justify-center gap-4 py-12 text-center">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 py-12 text-center">
         <h2 className="text-2xl font-semibold">Product not found</h2>
 
         <p className="text-muted-foreground max-w-md">

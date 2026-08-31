@@ -46,11 +46,6 @@ api.interceptors.response.use(
     const errorCode = error.response?.data?.errorCode ?? '';
     const url = originalRequest?.url ?? '';
 
-    if (statusCode === 500 && errorCode === 'INTERNAL_SERVER_ERROR') {
-      emitLogoutEvent();
-      return Promise.reject(toApiError(error));
-    }
-
     if (!url.startsWith('/auth/')) {
       if (
         !originalRequest._retry &&
@@ -81,8 +76,7 @@ api.interceptors.response.use(
             'USER_IS_UNVERIFIED',
             'USER_NOT_EXIST',
           ].includes(errorCode)) ||
-        (statusCode === 403 &&
-          ['USER_IS_BANNED', 'USER_NOT_PERMISSION'].includes(errorCode)) ||
+        (statusCode === 403 && errorCode === 'USER_IS_BANNED') ||
         (statusCode === 404 && ['USER_NOT_EXIST'].includes(errorCode));
 
       if (shouldLogout) {

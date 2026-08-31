@@ -8,6 +8,7 @@ import { NotificationSettingPage } from '@/pages/setting/NotificationSettingPage
 import { PendingRequestsManagementPage } from '@/pages/setting/PendingRequestsManagementPage';
 import { SentRequestsManagementPage } from '@/pages/setting/SentRequestsManagementPage';
 import { BlockedUsersManagementPage } from '@/pages/setting/BlockedUsersManagementPage';
+import { NotFoundPage } from '@/pages/NotFoundPage.tsx';
 
 export default function SettingRoutes() {
   return (
@@ -40,6 +41,7 @@ export default function SettingRoutes() {
           />
         </Route>
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
