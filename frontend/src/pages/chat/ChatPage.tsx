@@ -5,7 +5,7 @@ import { useChatStore } from '@/shared/stores/chat.store';
 import { chatPaths } from '@/features/chat/constants/chat.routes';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetConversationById } from '@/features/chat/hooks/conversation/useGetConversationById';
-import { ChatPanelSkeleton } from '@/features/chat/components/ChatPanelSkeleton.tsx';
+import { ChatPanelSkeleton } from '@/features/chat/components/ChatPanelSkeleton';
 import { useUser } from '@/shared/contexts/UserContext';
 import { useEffect } from 'react';
 
@@ -92,6 +92,7 @@ export function ChatPage() {
                 username: otherUser.username,
                 profileImageUrl: otherUser.profileImageUrl,
               },
+              isDeleted: currentConversation.isDeleted
             }}
             chatSocketRef={chatSocketRef}
           />

@@ -6,6 +6,7 @@ import {
   MessageScrollerItem,
   MessageScrollerButton,
   MessageScrollerViewport,
+  MessageScrollerProvider
 } from '@/shared/ui/message-scroller';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
@@ -83,8 +84,9 @@ export function MessageList({
   }, [messages.length]);
 
   return (
-    <MessageScroller className="flex-1">
-      <MessageScrollerViewport ref={viewportRef} onScroll={handleScroll}>
+    <MessageScrollerProvider>
+      <MessageScroller className="flex-1">
+        <MessageScrollerViewport ref={viewportRef} onScroll={handleScroll}>
         <MessageScrollerContent className="gap-1 px-4 py-4">
           {isLoadingMore && (
             <div className="flex justify-center py-2">
@@ -118,7 +120,8 @@ export function MessageList({
           })}
         </MessageScrollerContent>
       </MessageScrollerViewport>
-      <MessageScrollerButton direction="end" />
-    </MessageScroller>
+        <MessageScrollerButton direction="end" />
+      </MessageScroller>
+    </MessageScrollerProvider>
   );
 }

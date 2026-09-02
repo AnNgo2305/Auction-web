@@ -7,6 +7,23 @@ import type { MessageSendPayload } from '@/features/chat/socket/types/payload/me
 import { CHAT_EVENTS } from '@/features/chat/socket/chat-socket.constant.ts';
 import { useUser } from '@/shared/contexts/UserContext.tsx';
 import { messageKeys } from '@/features/chat/constants/message-query-key.ts';
+import type { MessageType } from '@/shared/types/message.ts';
+
+export type MessageInputSendData = {
+  type: MessageType;
+  replyToMessageId?: string;
+  content?: string;
+  attachment?: {
+    fileKey: string;
+    fileName?: string;
+    mimeType?: string;
+    fileSize?: number;
+  };
+};
+
+type SendMessageInput = MessageInputSendData & {
+  conversationId: string;
+};
 
 type MessagesCache = InfiniteData<MessageListResponse>;
 
@@ -15,18 +32,13 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
   const { currentUser, isAuthenticated } = useUser();
 
   return useCallback(
-    (
-      conversationId: string,
-      content: string,
-      options?: {
-        type?: MessageData['type'];
-        fileKey?: string;
-        fileName?: string;
-        mimeType?: string;
-        fileSize?: number;
-        replyToMessageId?: string;
-      },
-    ) => {
+    ({
+       conversationId,
+       content = '',
+       type,
+       replyToMessageId,
+       attachment,
+    }: SendMessageInput) => {
       const socket = socketRef.current;
       if (!socket?.connected || !isAuthenticated || !currentUser) {
         return;
@@ -37,12 +49,12 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
         tempId,
         conversationId,
         content,
-        type: options?.type ?? 'TEXT',
-        fileKey: options?.fileKey,
-        fileName: options?.fileName,
-        mimeType: options?.mimeType,
-        fileSize: options?.fileSize,
-        replyToMessageId: options?.replyToMessageId,
+        type,
+        fileKey: attachment?.fileKey,
+        fileName: attachment?.fileName,
+        mimeType: attachment?.mimeType,
+        fileSize: attachment?.fileSize,
+        replyToMessageId,
       };
 
       const repliedMessage = payload.replyToMessageId

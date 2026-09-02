@@ -103,60 +103,62 @@ export function ConversationItem({
   })();
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      onClick={handleClick}
-      className={cn(
-        'h-auto w-full justify-start gap-3 rounded-none px-4 py-3',
-        'hover:bg-muted/50 text-left',
-        isActive && 'bg-muted',
-      )}
-    >
-      <div className="relative shrink-0">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={avatarUrl} alt={displayName} />
-          <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
-          <AvatarBadge
-            className={cn(
-              'border-background right-0 bottom-0',
-              isOnline ? 'bg-green-500' : 'bg-muted-foreground',
-            )}
-          />
-        </Avatar>
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={cn(
-              'truncate text-sm font-semibold',
-              conversation.unreadCount > 0 && 'font-bold',
-            )}
-          >
-            {displayName}
-          </span>
-          {conversation.lastMessage && (
-            <span className="text-muted-foreground shrink-0 text-xs">
-              {formatIsoToNow(conversation.lastMessage.createdAt)}
-            </span>
-          )}
+    <div ref={itemRef}>
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={handleClick}
+        className={cn(
+          'h-auto w-full justify-start gap-3 rounded-none px-4 py-3',
+          'hover:bg-muted/50 text-left',
+          isActive && 'bg-muted',
+        )}
+      >
+        <div className="relative shrink-0">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={avatarUrl} alt={displayName} />
+            <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarBadge
+              className={cn(
+                'border-background right-0 bottom-0',
+                isOnline ? 'bg-green-500' : 'bg-muted-foreground',
+              )}
+            />
+          </Avatar>
         </div>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <span
-            className={cn(
-              'text-muted-foreground truncate text-sm',
-              conversation.unreadCount > 0 && 'text-foreground font-medium',
-            )}
-          >
-            {lastMessagePreview}
-          </span>
-          {conversation.unreadCount > 0 && (
-            <span className="bg-primary text-primary-foreground flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
-              {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span
+              className={cn(
+                'truncate text-sm font-semibold',
+                conversation.unreadCount > 0 && 'font-bold',
+              )}
+            >
+              {displayName}
             </span>
-          )}
+            {conversation.lastMessage && (
+              <span className="text-muted-foreground shrink-0 text-xs">
+                {formatIsoToNow(conversation.lastMessage.createdAt)}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span
+              className={cn(
+                'text-muted-foreground truncate text-sm',
+                conversation.unreadCount > 0 && 'text-foreground font-medium',
+              )}
+            >
+              {lastMessagePreview}
+            </span>
+            {conversation.unreadCount > 0 && (
+              <span className="bg-primary text-primary-foreground flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-    </Button>
+      </Button>
+    </div>
   );
 }

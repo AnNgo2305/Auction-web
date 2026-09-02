@@ -46,7 +46,11 @@ export class MessageService {
       sender: {
         userId: message.sender.userId,
         username: message.sender.username,
-        profileImageUrl: message.sender.profile?.profileImageUrl ?? null,
+        profileImageUrl: message.sender.profile?.profileImageUrl
+          ? this.fileService.getPublicUrl(
+              message.sender.profile.profileImageUrl,
+            )
+          : null,
       },
 
       replyToMessage: message.replyToMessage
@@ -55,8 +59,12 @@ export class MessageService {
             sender: {
               userId: message.replyToMessage.sender.userId,
               username: message.replyToMessage.sender.username,
-              profileImageUrl:
-                message.replyToMessage.sender.profile?.profileImageUrl ?? null,
+              profileImageUrl: message.replyToMessage.sender.profile
+                ?.profileImageUrl
+                ? this.fileService.getPublicUrl(
+                    message.replyToMessage.sender.profile.profileImageUrl,
+                  )
+                : null,
             },
           }
         : null,
@@ -395,7 +403,10 @@ export class MessageService {
     currentUserId: string,
     conversationId: string,
     messageId: string,
-  ): Promise<{ readAt: Date }> {
+  ): Promise<{
+    readAt: Date;
+    unreadCount: number;
+  }> {
     this.logger.log(`[CHAT] read message: ${messageId} by ${currentUserId}`);
 
     const conversation = await this.prisma.conversation.findFirst({
@@ -449,10 +460,18 @@ export class MessageService {
       },
     });
 
+    const unreadCount = await this.prisma.message.count({
+      where: {
+        conversationId,
+        senderId: { not: currentUserId },
+        isRead: false,
+      },
+    });
+
     this.logger.log(
       `[CHAT] message marked as read: ${messageId} by ${currentUserId}`,
     );
 
-    return { readAt };
+    return { readAt, unreadCount };
   }
 }

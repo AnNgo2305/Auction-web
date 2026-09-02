@@ -5,7 +5,7 @@ import { Bubble, BubbleContent, BubbleGroup } from '@/shared/ui/bubble';
 import {
   ImageIcon,
   Paperclip,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Trash2,
   Reply,
@@ -25,6 +25,7 @@ import { formatFileSize } from '@/shared/utils/format-size';
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 import { useChatStore } from '@/shared/stores/chat.store';
 import { useEffect } from 'react';
+import { useUser } from '@/shared/contexts/UserContext.tsx';
 
 export type MessageBubbleProps = {
   message: MessageData;
@@ -53,6 +54,7 @@ export function MessageBubble({
   downloadUrls,
 }: MessageBubbleProps) {
   const { setPeerReadAt } = useChatStore();
+  const { currentUser } = useUser();
 
   useEffect(() => {
     if (!isMine || !isLastOwnMessage) {
@@ -95,7 +97,7 @@ export function MessageBubble({
       )}
     >
       {!isMine && showAvatar ? (
-        <Avatar className="h-8 w-8 shrink-0">
+        <Avatar className="h-8 w-8 shrink-0 -translate-y-0.5">
           <AvatarImage
             src={message.sender.profileImageUrl ?? defaultAvatarImageUrl}
             alt={message.sender.username}
@@ -107,181 +109,189 @@ export function MessageBubble({
       ) : (
         !isMine && <div className="w-8 shrink-0" />
       )}
-      <div className="group flex items-center justify-end gap-1">
-        <BubbleGroup>
-          <Bubble align={isMine ? 'end' : 'start'}>
-            <BubbleContent
-              className={cn(
-                isMine
-                  ? 'bg-blue-primary rounded-br-md text-white'
-                  : 'rounded-bl-md bg-gray-100 text-gray-900',
-              )}
-            >
+      <div className="flex flex-col items-end">
+        <div className="group flex items-center justify-end gap-1">
+          <BubbleGroup>
+            <Bubble align={isMine ? 'end' : 'start'} variant="custom">
               {message.replyToMessage && (
                 <div
                   className={cn(
-                    'mb-1.5 w-full rounded-lg border-l-2 px-2 py-1 text-left text-xs',
-                    isMine
-                      ? 'border-white/50 bg-white/10 text-white/80'
-                      : 'border-gray-300 bg-white text-gray-500',
+                    'mx-1 mt-1 -mb-2 px-2 py-1.5',
+                    'rounded-t-md rounded-b-none',
+                    'text-left text-xs',
+                    'bg-gray-100 text-gray-900',
                   )}
                 >
-                  <p className="font-medium">
-                    {message.replyToMessage.sender.username}
-                  </p>
+                  <div className="mb-0.5 flex items-center gap-1 text-[11px] text-gray-500">
+                    <Reply className="h-3 w-3 shrink-0" />
+                    <span>
+                      Reply to{' '}
+                      <span className="font-medium">
+                        {message.replyToMessage.sender.userId ===
+                        currentUser?.userId
+                          ? 'me'
+                          : message.replyToMessage.sender.username}
+                      </span>
+                    </span>
+                  </div>
                   {message.replyToMessage.type === 'TEXT' && (
-                    <p className="truncate">
+                    <p className="truncate text-gray-700">
                       {message.replyToMessage.content ?? ''}
                     </p>
                   )}
                   {message.replyToMessage.type === 'IMAGE' && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-gray-600">
                       <ImageIcon className="h-4 w-4 shrink-0" />
                       <span>Image</span>
                     </div>
                   )}
                   {message.replyToMessage.type === 'FILE' && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-gray-600">
                       <Paperclip className="h-4 w-4 shrink-0" />
                       <span>Attachment</span>
                     </div>
                   )}
                 </div>
               )}
-              {message.type === 'TEXT' && (
-                <p className="wrap-break-word whitespace-pre-wrap">
-                  {message.content}
-                </p>
-              )}
-              {message.type === 'IMAGE' &&
-                message.fileKey &&
-                (downloadUrls[message.fileKey] ? (
-                  <img
-                    src={downloadUrls[message.fileKey]}
-                    alt="Image"
-                    className="block max-h-80 max-w-60 rounded-lg object-cover"
-                    loading="lazy"
-                    width={320}
-                    height={240}
-                  />
-                ) : (
-                  <div className="flex h-40 w-60 items-center justify-center rounded-lg bg-black/5">
-                    <ImageIcon className="h-8 w-8 text-gray-400" />
-                  </div>
-                ))}
-              {message.type === 'FILE' &&
-                message.fileKey &&
-                downloadUrls[message.fileKey] && (
-                  <a
-                    href={downloadUrls[message.fileKey]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      'flex max-w-60 items-center gap-3 rounded-lg px-3 py-2',
-                      isMine
-                        ? 'bg-white/10 hover:bg-white/15'
-                        : 'bg-white hover:bg-gray-50',
-                    )}
-                  >
-                    <Paperclip className="h-5 w-5 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {message.fileName}
-                      </p>
-                      {message.fileSize && (
-                        <p
-                          className={cn(
-                            'text-xs',
-                            isMine ? 'text-white/60' : 'text-gray-400',
-                          )}
-                        >
-                          {formatFileSize(message.fileSize)}
-                        </p>
-                      )}
-                    </div>
-                  </a>
-                )}
-              <div
+              <BubbleContent
                 className={cn(
-                  'mt-1 flex items-center gap-1',
-                  isMine ? 'justify-end' : 'justify-start',
+                  'max-w-125 px-2 py-2',
+                  message.type === 'IMAGE' || message.type === 'FILE'
+                    ? 'p-0'
+                    : isMine
+                      ? 'rounded-br-md bg-green-600 text-white'
+                      : 'rounded-bl-md bg-gray-100 text-gray-900',
                 )}
               >
-                <span
-                  className={cn(
-                    'text-[10px]',
-                    isMine ? 'text-white/70' : 'text-gray-400',
+                {message.type === 'TEXT' && (
+                  <p className="wrap-break-word whitespace-pre-wrap">
+                    {message.content}
+                  </p>
+                )}
+                {message.type === 'IMAGE' &&
+                  message.fileKey &&
+                  (downloadUrls[message.fileKey] ? (
+                    <img
+                      src={downloadUrls[message.fileKey]}
+                      alt="Image"
+                      className="block max-h-80 max-w-60 rounded-lg object-cover"
+                      loading="lazy"
+                      width={320}
+                      height={240}
+                    />
+                  ) : (
+                    <div className="flex h-40 w-60 items-center justify-center rounded-lg bg-black/5">
+                      <ImageIcon className="h-8 w-8 text-gray-400" />
+                    </div>
+                  ))}
+                {message.type === 'FILE' &&
+                  message.fileKey &&
+                  downloadUrls[message.fileKey] && (
+                    <a
+                      href={downloadUrls[message.fileKey]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        'flex max-w-125 items-center gap-3 rounded-xl px-3 py-2.5',
+                        'border border-gray-200 bg-gray-200',
+                        'transition-colors hover:bg-gray-300',
+                      )}
+                    >
+                      <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15'>
+                        <Paperclip className='h-5 w-5 text-gray-500' />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className='truncate text-sm font-medium text-gray-800'>
+                          {message.fileName}
+                        </p>
+                        {message.fileSize && (
+                          <p className='mt-0.5 text-xs text-gray-700'>
+                            {formatFileSize(message.fileSize)}
+                          </p>
+                        )}
+                      </div>
+                    </a>
                   )}
-                >
-                  {time}
-                </span>
-              </div>
-            </BubbleContent>
-          </Bubble>
-          {isMine && isLastOwnMessage && messageStatus && (
-            <div
-              className="mt-0.5 mr-1 flex items-center gap-1 text-[11px] leading-none select-none"
-              aria-live="polite"
-              role="status"
-            >
+              </BubbleContent>
               <span
                 className={cn(
-                  messageStatus.status === 'failed'
-                    ? 'text-red-500'
-                    : 'text-gray-400',
+                  'absolute top-1/2 -translate-y-1/2',
+                  'text-[12px] whitespace-nowrap text-gray-700',
+                  'opacity-0 transition-opacity duration-150',
+                  'group-hover/bubble:opacity-100',
+                  isMine ? 'right-full mr-7' : 'left-full ml-7',
                 )}
               >
-                {STATUS_LABEL[messageStatus.status]}
-                {messageStatus.time && ` at ${messageStatus.time}`}
+                {time}
               </span>
-
-              {messageStatus.isEdited && (
-                <span className="text-gray-400 italic">Edited</span>
+            </Bubble>
+          </BubbleGroup>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  'flex h-7 w-7 shrink-0 items-center justify-center',
+                  'rounded-full text-gray-400',
+                  'opacity-0 transition-opacity',
+                  'group-hover:opacity-100',
+                  'hover:bg-gray-100 hover:text-black',
+                  isMine ? 'order-first' : 'order-last',
+                )}
+                aria-label="Message actions"
+              >
+                <MoreVertical className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => onReplyRequest(message.messageId)}
+              >
+                <Reply className="mr-2 h-4 w-4" />
+                Reply
+              </DropdownMenuItem>
+              {isMine && message.type === 'TEXT' && onEditRequest && (
+                <DropdownMenuItem
+                  onClick={() => onEditRequest(message.messageId)}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
               )}
-            </div>
-          )}
-        </BubbleGroup>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
+              {isMine && onDeleteRequest && (
+                <DropdownMenuItem
+                  className="text-red-500 focus:text-red-500"
+                  onClick={() => onDeleteRequest(message.messageId)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        {isMine && isLastOwnMessage && messageStatus && (
+          <div
+            className="mt-0.5 mr-1 flex items-center gap-1 text-[11px] leading-none select-none"
+            aria-live="polite"
+            role="status"
+          >
+            <span
               className={cn(
-                'flex h-7 w-7 shrink-0 items-center justify-center',
-                'rounded-full text-gray-400',
-                'opacity-0 transition-opacity',
-                'group-hover:opacity-100',
-                'hover:bg-gray-100 hover:text-gray-600',
-                isMine ? 'order-first' : 'order-last',
+                messageStatus.status === 'failed'
+                  ? 'text-red-500'
+                  : 'text-gray-400',
               )}
-              aria-label="Message actions"
             >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onReplyRequest(message.messageId)}>
-              <Reply className="mr-2 h-4 w-4" />
-              Reply
-            </DropdownMenuItem>
-            {isMine && message.type === 'TEXT' && onEditRequest && (
-              <DropdownMenuItem
-                onClick={() => onEditRequest(message.messageId)}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
+              {STATUS_LABEL[messageStatus.status]}
+              {messageStatus.time && ` at ${messageStatus.time}`}
+            </span>
+            {messageStatus.isEdited && (
+              <span className="text-gray-400 italic">Edited</span>
             )}
-            {isMine && onDeleteRequest && (
-              <DropdownMenuItem
-                className="text-red-500 focus:text-red-500"
-                onClick={() => onDeleteRequest(message.messageId)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -39,6 +39,10 @@ export const CHAT_EVENTS = {
   // Client emits this event to mark a message as read.
   MESSAGE_READ: 'message:read',
 
+  // Server emits → Sending client receives
+  // Server confirms that the message has been successfully marked as read.
+  MESSAGE_READ_ACK: 'message:read:ack',
+
   // Server emits → Other clients in conversation receive
   // Server notifies other clients that the message was read.
   MESSAGE_SEEN: 'message:seen',

@@ -8,9 +8,9 @@ import {
   MessageAttachment,
   type MessageAttachmentItem,
 } from '@/features/chat/components/MessageAttachment.tsx';
-import type { MessageType } from '@/shared/types/message';
 import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { UPLOAD_PURPOSES } from '@/shared/types/upload';
+import type { MessageInputSendData } from '@/features/chat/hooks/message/useSendMessage';
 
 export type MessageInputMode =
   | {
@@ -24,17 +24,6 @@ export type MessageInputMode =
       type: 'edit';
       message: MessageData;
     };
-
-export type MessageInputSendData = {
-  content?: string;
-  type: MessageType;
-  attachment?: {
-    fileKey: string;
-    fileName?: string;
-    mimeType?: string;
-    fileSize?: number;
-  };
-};
 
 export type MessageInputProps = {
   mode: MessageInputMode;
@@ -207,6 +196,7 @@ export function MessageInput({
       onSend({
         content,
         type: 'TEXT',
+        replyToMessageId: isReplying ? mode.message.messageId : undefined,
       });
     }
 
@@ -218,6 +208,7 @@ export function MessageInput({
       onSend({
         content: '',
         type: attachment.mimeType?.startsWith('image/') ? 'IMAGE' : 'FILE',
+        replyToMessageId: isReplying ? mode.message.messageId : undefined,
         attachment: {
           fileKey: attachment.attachmentKey,
           fileName: attachment.originalName,
@@ -229,6 +220,9 @@ export function MessageInput({
 
     setText('');
     setAttachments([]);
+    if (isReplying) {
+      onCancelMode();
+    }
     onStopTyping();
     inputRef.current?.focus();
   };
@@ -365,16 +359,16 @@ export function MessageInput({
               )}
             />
           </div>
+          <Button
+            type="button"
+            size="icon"
+            disabled={disabled || (!text.trim() && attachments.length === 0)}
+            onClick={handleSend}
+            className="shrink-0 rounded-full border border-green-300 bg-white text-green-700 hover:bg-green-100"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-        <Button
-          type="button"
-          size="icon"
-          disabled={disabled || (!text.trim() && attachments.length === 0)}
-          onClick={handleSend}
-          className="bg-blue-primary hover:bg-blue-secondary shrink-0 rounded-full text-white"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );

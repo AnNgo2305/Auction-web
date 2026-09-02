@@ -195,10 +195,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           .emit(CHAT_EVENTS.MESSAGE_NEW, {
             message,
           });
-
-        this.server
-          .to(WS_ROOMS.CONVERSATION(payload.conversationId))
-          .emit(CHAT_EVENTS.CONVERSATION_UPDATED);
       } else {
         this.eventEmitter.emit(
           INTERNAL_EVENTS.MESSAGE_SENT,
@@ -210,6 +206,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           ),
         );
       }
+
+      this.server
+        .to(WS_ROOMS.CONVERSATION(payload.conversationId))
+        .emit(CHAT_EVENTS.CONVERSATION_UPDATED);
     } catch (error) {
       if (idempotencyAcquired) {
         await this.messageIdempotencyService.remove(
@@ -242,11 +242,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const currentUserId = data.userId;
 
     try {
-      const { readAt } = await this.messageService.readMessage(
+      const { readAt, unreadCount } = await this.messageService.readMessage(
         currentUserId,
         payload.conversationId,
         payload.messageId,
       );
+
+      client.emit(CHAT_EVENTS.MESSAGE_READ_ACK, {
+        conversationId: payload.conversationId,
+        messageId: payload.messageId,
+        readAt: readAt.toISOString(),
+        unreadCount,
+      });
 
       client
         .to(WS_ROOMS.CONVERSATION(payload.conversationId))

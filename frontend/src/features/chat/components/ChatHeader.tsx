@@ -1,6 +1,5 @@
 import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
-import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 import { formatPresence } from '@/features/chat/utils/format-presence.ts';
 import { cn } from '@/shared/lib/utils.ts';
 import {
@@ -13,6 +12,7 @@ import { Button } from '@/shared/ui/button';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { profilePaths } from '@/features/profile/constants/profile.routes';
+import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 
 type OtherUser = {
   userId: string;
@@ -59,6 +59,7 @@ export function ChatHeader({
       <div className="flex min-w-0 items-center gap-3">
         <Button
           type="button"
+          variant="ghost"
           onClick={handleOpenProfile}
           className="hover:bg-muted/50 flex min-w-0 items-center gap-3 rounded-md text-left transition-colors"
         >
@@ -107,7 +108,7 @@ export function ChatHeader({
             <MoreHorizontal className="h-5 w-5" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuItem
             className="text-red-500 focus:text-red-500"
             onClick={onDeleteConversation}

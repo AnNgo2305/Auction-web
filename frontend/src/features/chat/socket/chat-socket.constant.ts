@@ -13,6 +13,7 @@ export const CHAT_EVENTS = {
   CONVERSATION_UPDATED: 'conversation:updated',
   MESSAGE_UPDATED: 'message:updated',
   MESSAGE_DELETED: 'message:deleted',
+  MESSAGE_READ_ACK: 'message:read:ack',
 
   EXCEPTION: 'exception',
 } as const;

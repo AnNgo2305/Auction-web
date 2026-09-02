@@ -56,7 +56,9 @@ export class GetMyProductsQueryDto {
   createdAtTo?: Date;
 
   @IsOptional()
-  @IsUUID('7', { message: 'Cursor must be a valid UUID.' })
+  @IsUUID('7', {
+    message: 'Cursor must be a valid UUID.',
+  })
   cursor?: string;
 
   @IsOptional()

@@ -29,6 +29,8 @@ import { useReadMessage } from '@/features/chat/hooks/message/useReadMessage';
 import { useChatTyping } from '@/features/chat/hooks/useChatTyping';
 import { createPresignedDownloadUrl } from '@/shared/api/upload.ts';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { chatPaths } from '@/features/chat/constants/chat.routes.ts';
 
 type ChatPanelConversation = {
   conversationId: string;
@@ -37,6 +39,7 @@ type ChatPanelConversation = {
     username: string;
     profileImageUrl: string | null;
   };
+  isDeleted: boolean;
 };
 
 type ChatPanelProps = {
@@ -62,6 +65,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
   const fetchedFileKeysRef = useRef(new Set<string>());
   const { currentUser } = useUser();
+  const navigate = useNavigate();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetMessages(conversation.conversationId);
@@ -69,6 +73,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
   const deleteConversation = useDeleteConversation(() => {
     setActiveConversation(null);
     setIsDeleteConversationDialogOpen(false);
+    void navigate(chatPaths.root())
   });
 
   const deleteMessage = useDeleteMessage(chatSocketRef);
@@ -131,6 +136,9 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     };
   }, [fileKeys]);
 
+  const typingUserId = typingUsers.get(conversation.conversationId);
+  const isPeerTyping = typingUserId === conversation.otherUser.userId;
+
   const handleDeleteConversationRequest = () => {
     setIsDeleteConversationDialogOpen(true);
   };
@@ -169,6 +177,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
   const handleSendMessage = (payload: {
     content?: string;
     type: 'TEXT' | 'IMAGE' | 'FILE';
+    replyToMessageId?: string;
     attachment?: {
       fileKey: string;
       fileName?: string;
@@ -176,12 +185,9 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
       fileSize?: number;
     };
   }) => {
-    sendMessage(conversation.conversationId, payload.content ?? '', {
-      type: payload.type,
-      fileKey: payload.attachment?.fileKey,
-      fileName: payload.attachment?.fileName,
-      mimeType: payload.attachment?.mimeType,
-      fileSize: payload.attachment?.fileSize,
+    sendMessage({
+      conversationId: conversation.conversationId,
+      ...payload,
     });
 
     handleStopTyping();
@@ -206,7 +212,6 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     }
 
     const lastUnreadMessage = [...messages]
-      .reverse()
       .find(
         (message) =>
           message.sender.userId !== currentUser.userId && !message.isRead,
@@ -251,46 +256,60 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
         lastSeen={lastSeen}
         onDeleteConversation={handleDeleteConversationRequest}
       />
-      <MessageList
-        messages={messages}
-        currentUserId={currentUser?.userId ?? ''}
-        peerLastReadAt={peerLastReadAt}
-        isPeerOnline={isOnline}
-        downloadUrls={downloadUrls}
-        hasMore={hasNextPage}
-        isLoadingMore={isFetchingNextPage}
-        onLoadMore={() => {
-          void fetchNextPage();
-        }}
-        onEditRequest={(messageId: string) => {
-          const message = messages.find(
-            (message) => message.messageId === messageId,
-          );
-          if (!message) {
-            return;
-          }
-          setMessageInputMode({
-            type: 'edit',
-            message,
-          });
-        }}
-        onDeleteRequest={(messageId: string) => {
-          handleDeleteMessageRequest(messageId);
-        }}
-        onReplyRequest={(messageId: string) => {
-          const message = messages.find(
-            (message) => message.messageId === messageId,
-          );
-          if (!message) {
-            return;
-          }
-          setMessageInputMode({
-            type: 'reply',
-            message,
-          });
-        }}
-      />
-      {typingUsers && typingUsers.size > 0 && <TypingIndicator />}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <MessageList
+          messages={messages}
+          currentUserId={currentUser?.userId ?? ''}
+          peerLastReadAt={peerLastReadAt}
+          isPeerOnline={isOnline}
+          downloadUrls={downloadUrls}
+          hasMore={hasNextPage}
+          isLoadingMore={isFetchingNextPage}
+          onLoadMore={() => {
+            void fetchNextPage();
+          }}
+          onEditRequest={(messageId: string) => {
+            const message = messages.find(
+              (message) => message.messageId === messageId,
+            );
+            if (!message) {
+              return;
+            }
+            setMessageInputMode({
+              type: 'edit',
+              message,
+            });
+          }}
+          onDeleteRequest={(messageId: string) => {
+            handleDeleteMessageRequest(messageId);
+          }}
+          onReplyRequest={(messageId: string) => {
+            const message = messages.find(
+              (message) => message.messageId === messageId,
+            );
+            if (!message) {
+              return;
+            }
+            setMessageInputMode({
+              type: 'reply',
+              message,
+            });
+          }}
+        />
+        {conversation.isDeleted && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
+            <div className="rounded-full border bg-white px-4 py-2 text-sm text-gray-500 shadow-md">
+              {`This conversation was deleted by ${conversation.otherUser.username}.`}
+            </div>
+          </div>
+        )}
+      </div>
+      {isPeerTyping && (
+        <TypingIndicator
+          username={conversation.otherUser.username}
+          profileImageUrl={conversation.otherUser.profileImageUrl}
+        />
+      )}
       <MessageInput
         mode={messageInputMode}
         onSend={handleSendMessage}
@@ -300,7 +319,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
         onCancelMode={() => {
           setMessageInputMode({ type: 'idle' });
         }}
-        disabled={!isSocketConnected}
+        disabled={!isSocketConnected || conversation.isDeleted}
       />
       <AlertDialog
         open={isDeleteConversationDialogOpen}

@@ -5,8 +5,9 @@ import type { MessageDeletedEvent } from '@/features/chat/socket/types/event/mes
 import type { MessageUpdatedEvent } from '@/features/chat/socket/types/event/message-updated.event.ts';
 import type { MessageNewEvent } from '@/features/chat/socket/types/event/message-new.event.ts';
 import type { TypingEvent } from '@/features/chat/socket/types/event/typing.event.ts';
-import type { MessageReadEvent } from '@/features/chat/socket/types/event/message-read.event.ts';
+import type { MessageSeenEvent } from '@/features/chat/socket/types/event/message-seen.event.ts';
 import type { MessageEvent } from '@/features/chat/socket/types/event/message.event.ts';
+import type { MessageReadAckEvent } from '@/features/chat/socket/types/event/message-read-ack.event.ts';
 import {
   type MessageErrorEvent,
   MessageErrorType,
@@ -264,8 +265,61 @@ export function useChatSocket() {
     );
 
     socket.on(
+      CHAT_EVENTS.MESSAGE_READ_ACK,
+      ({ conversationId, messageId, unreadCount }: MessageReadAckEvent) => {
+        queryClient.setQueryData<MessagesCache>(
+          messageKeys.list(conversationId),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  messages: page.data.messages.map((message) =>
+                    message.messageId === messageId
+                      ? {
+                          ...message,
+                          isRead: true,
+                        }
+                      : message,
+                  ),
+                },
+              })),
+            };
+          },
+        );
+
+        queryClient.setQueryData<ConversationsCache>(
+          conversationKeys.list(),
+          (currentCache) => {
+            if (!currentCache) return currentCache;
+            return {
+              ...currentCache,
+              pages: currentCache.pages.map((page) => ({
+                ...page,
+                data: {
+                  ...page.data,
+                  conversations: page.data.conversations.map((conversation) =>
+                    conversation.conversationId === conversationId
+                      ? {
+                          ...conversation,
+                          unreadCount,
+                        }
+                      : conversation,
+                  ),
+                },
+              })),
+            };
+          },
+        );
+      },
+    );
+
+    socket.on(
       CHAT_EVENTS.MESSAGE_SEEN,
-      ({ conversationId, readby, readAt }: MessageReadEvent) => {
+      ({ conversationId, readby, readAt }: MessageSeenEvent) => {
         updatePeerReadAt(conversationId, readby, readAt);
       },
     );
@@ -376,19 +430,19 @@ export function useChatSocket() {
     });
 
     socket.on(CHAT_EVENTS.EXCEPTION, async ({ errorCode }) => {
-      if (errorCode !== 'ACCESS_TOKEN_EXPIRED') {
-        socket.disconnect();
-        socketRef.current = null;
-        emitLogoutEvent();
+      if (errorCode === 'ACCESS_TOKEN_EXPIRED') {
+        try {
+          await refreshAccessToken();
+          socket.connect();
+        } catch {
+          emitLogoutEvent();
+        }
+
         return;
       }
 
-      try {
-        await refreshAccessToken();
-        socket.connect();
-      } catch {
-        emitLogoutEvent();
-      }
+      socket.disconnect();
+      socketRef.current = null;
     });
 
     return () => {

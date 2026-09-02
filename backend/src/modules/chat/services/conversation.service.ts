@@ -19,13 +19,14 @@ import { ConversationResponseDto } from '@modules/chat/dtos/conversation/get-cre
 import { GetConversationsResponseDto } from '@modules/chat/dtos/conversation/get-user-conversations.response.dto';
 import { SearchConversationsResponseDto } from '@modules/chat/dtos/conversation/search-conversations.response.dto';
 import { Prisma } from '@generated/prisma/client';
+import { FileService } from '@common/services/file.service';
 
 @Injectable()
 export class ConversationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
-
+    private readonly fileService: FileService,
     @Inject(REDIS_CLIENT)
     private readonly redis: Redis,
   ) {}
@@ -78,10 +79,39 @@ export class ConversationService {
     });
 
     if (existingConversation) {
+      const isInitiator =
+        existingConversation.initiator.userId === currentUserId;
+
+      const isDeleted = isInitiator
+        ? existingConversation.deletedByInitiatorAt !== null
+        : existingConversation.deletedByRecipientAt !== null;
+
+      if (isDeleted) {
+        const restoredConversation = await this.prisma.conversation.update({
+          where: {
+            conversationId: existingConversation.conversationId,
+          },
+          data: isInitiator
+            ? {
+                deletedByInitiatorAt: null,
+              }
+            : {
+                deletedByRecipientAt: null,
+              },
+          select: CONVERSATION_SELECT,
+        });
+
+        this.logger.log(
+          `[CHAT] conversation restored: ${restoredConversation.conversationId}`,
+        );
+
+        return this.mapConversation(restoredConversation, currentUserId);
+      }
+
       this.logger.log(
         `[CHAT] existing conversation found: ${existingConversation.conversationId}`,
       );
-      return this.mapConversation(existingConversation);
+      return this.mapConversation(existingConversation, currentUserId);
     }
 
     const lockKey = this.getConversationLockKey(currentUserId, recipientId);
@@ -107,7 +137,7 @@ export class ConversationService {
           select: CONVERSATION_SELECT,
         });
         if (retryConversation) {
-          return this.mapConversation(retryConversation);
+          return this.mapConversation(retryConversation, currentUserId);
         }
       }
       throw new ConflictException(ERROR_CONVERSATION_CREATION_TIMEOUT);
@@ -125,7 +155,7 @@ export class ConversationService {
         `[CHAT] conversation created: ${conversation.conversationId}`,
       );
 
-      return this.mapConversation(conversation);
+      return this.mapConversation(conversation, currentUserId);
     } finally {
       await this.redis.del(lockKey);
     }
@@ -208,7 +238,7 @@ export class ConversationService {
     const sliced = hasMore ? conversations.slice(0, limit) : conversations;
 
     return {
-      users: sliced.map((conversation) => {
+      conversations: sliced.map((conversation) => {
         const otherUser =
           conversation.initiatorId === currentUserId
             ? conversation.recipient
@@ -217,7 +247,9 @@ export class ConversationService {
           conversationId: conversation.conversationId,
           username: otherUser.username,
           userId: otherUser.userId,
-          profileImageUrl: otherUser.profile?.profileImageUrl ?? null,
+          profileImageUrl: this.getPublicProfileImageUrl(
+            otherUser.profile?.profileImageUrl,
+          ),
         };
       }),
       nextCursor: hasMore ? sliced[sliced.length - 1].conversationId : null,
@@ -374,7 +406,9 @@ export class ConversationService {
           otherUser: {
             userId: otherUser.userId,
             username: otherUser.username,
-            profileImageUrl: otherUser.profile?.profileImageUrl ?? null,
+            profileImageUrl: this.getPublicProfileImageUrl(
+              otherUser.profile?.profileImageUrl,
+            ),
           },
 
           lastMessage: conversation.lastMessage,
@@ -412,28 +446,62 @@ export class ConversationService {
         conversationId: true,
         initiatorId: true,
         recipientId: true,
+        deletedByInitiatorAt: true,
+        deletedByRecipientAt: true,
       },
     });
 
     if (!conversation) {
       this.logger.warn(`[CHAT] conversation not found: ${conversationId}`);
-
       throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
     }
 
     const isInitiator = conversation.initiatorId === currentUserId;
+    const isAlreadyDeleted = isInitiator
+      ? conversation.deletedByInitiatorAt !== null
+      : conversation.deletedByRecipientAt !== null;
+    if (isAlreadyDeleted) {
+      this.logger.warn(
+        `[CHAT] conversation already deleted by user: ${currentUserId}`,
+      );
+
+      throw new ConflictException(ERROR_CONVERSATION_NOT_FOUND);
+    }
+
+    const isDeletedByOtherUser = isInitiator
+      ? conversation.deletedByRecipientAt !== null
+      : conversation.deletedByInitiatorAt !== null;
+
+    if (isDeletedByOtherUser) {
+      await this.prisma.conversation.delete({
+        where: {
+          conversationId,
+        },
+      });
+
+      this.logger.log(
+        `[CHAT] conversation hard deleted after both users deleted: ${conversationId}`,
+      );
+
+      return;
+    }
 
     await this.prisma.conversation.update({
       where: {
         conversationId,
       },
-      data: {
-        deletedByInitiatorAt: isInitiator ? new Date() : undefined,
-        deletedByRecipientAt: !isInitiator ? new Date() : undefined,
-      },
+      data: isInitiator
+        ? {
+            deletedByInitiatorAt: new Date(),
+          }
+        : {
+            deletedByRecipientAt: new Date(),
+          },
     });
 
-    this.logger.log(`[CHAT] conversation deleted by user: ${currentUserId}`);
+    this.logger.log(
+      `[CHAT] conversation soft deleted by user: ${currentUserId}`,
+    );
   }
 
   async getUserConversationIds(userId: string): Promise<string[]> {
@@ -472,11 +540,9 @@ export class ConversationService {
         OR: [
           {
             initiatorId: currentUserId,
-            deletedByInitiatorAt: null,
           },
           {
             recipientId: currentUserId,
-            deletedByRecipientAt: null,
           },
         ],
       },
@@ -489,7 +555,17 @@ export class ConversationService {
       throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
     }
 
-    return this.mapConversation(conversation);
+    const isInitiator = conversation.initiator.userId === currentUserId;
+
+    const isCurrentUserDeleted = isInitiator
+      ? conversation.deletedByInitiatorAt !== null
+      : conversation.deletedByRecipientAt !== null;
+
+    if (isCurrentUserDeleted) {
+      throw new NotFoundException(ERROR_CONVERSATION_NOT_FOUND);
+    }
+
+    return this.mapConversation(conversation, currentUserId);
   }
 
   private async acquireLock(key: string): Promise<boolean> {
@@ -513,20 +589,29 @@ export class ConversationService {
     conversation: Prisma.ConversationGetPayload<{
       select: typeof CONVERSATION_SELECT;
     }>,
+    currentUserId: string,
   ): ConversationResponseDto {
+    const isInitiator = conversation.initiator.userId === currentUserId;
+
+    const isDeleted = isInitiator
+      ? conversation.deletedByRecipientAt !== null
+      : conversation.deletedByInitiatorAt !== null;
+
     return {
       conversationId: conversation.conversationId,
       initiator: {
         userId: conversation.initiator.userId,
         username: conversation.initiator.username,
-        profileImageUrl:
-          conversation.initiator.profile?.profileImageUrl ?? null,
+        profileImageUrl: this.getPublicProfileImageUrl(
+          conversation.initiator.profile?.profileImageUrl,
+        ),
       },
       recipient: {
         userId: conversation.recipient.userId,
         username: conversation.recipient.username,
-        profileImageUrl:
-          conversation.recipient.profile?.profileImageUrl ?? null,
+        profileImageUrl: this.getPublicProfileImageUrl(
+          conversation.recipient.profile?.profileImageUrl,
+        ),
       },
       lastMessage: conversation.lastMessage
         ? {
@@ -537,6 +622,17 @@ export class ConversationService {
             createdAt: conversation.lastMessage.createdAt,
           }
         : null,
+      isDeleted,
     };
+  }
+
+  private getPublicProfileImageUrl(
+    profileImageUrl: string | null | undefined,
+  ): string | null {
+    if (!profileImageUrl) {
+      return null;
+    }
+
+    return this.fileService.getPublicUrl(profileImageUrl);
   }
 }

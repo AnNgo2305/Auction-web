@@ -3,7 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { conversationKeys } from '@/features/chat/constants/conversation-query-key.ts';
 import { chatApi } from '@/features/chat/api/chat.api.ts';
 
-const DEBOUNCE_MS = 250;
+const DEBOUNCE_MS = 1000;
 const DEFAULT_LIMIT = 10;
 
 function useDebouncedValue<T>(value: T, delay = DEBOUNCE_MS): T {

@@ -6,6 +6,6 @@ export class SearchedConversations {
 }
 
 export class SearchConversationsResponseDto {
-  users!: SearchedConversations[];
+  conversations!: SearchedConversations[];
   nextCursor!: string | null;
 }

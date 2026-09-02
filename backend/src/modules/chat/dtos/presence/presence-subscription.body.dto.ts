@@ -4,6 +4,9 @@ export class PresenceSubscriptionDto {
   @IsArray()
   @ArrayNotEmpty()
   @ArrayMaxSize(100)
-  @IsUUID('7', { each: true })
+  @IsUUID(undefined, {
+    each: true,
+    message: 'Each user ID must be a valid UUID',
+  })
   userIds: string[];
 }

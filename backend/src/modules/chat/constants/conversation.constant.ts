@@ -24,6 +24,8 @@ export const ERROR_CONVERSATION_NOT_FOUND = {
 
 export const CONVERSATION_SELECT = {
   conversationId: true,
+  deletedByInitiatorAt: true,
+  deletedByRecipientAt: true,
   initiator: {
     select: {
       userId: true,

@@ -2,6 +2,7 @@ import type { MessageType } from '@generated/prisma/enums';
 
 export class ConversationResponseDto {
   conversationId!: string;
+  isDeleted!: boolean;
 
   initiator!: {
     userId: string;

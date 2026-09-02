@@ -23,6 +23,8 @@ export class ConversationData {
     senderId: string;
     createdAt: string;
   } | null;
+
+  isDeleted!: boolean;
 }
 
 export type ConversationResponse = ApiResponse<ConversationData>;
