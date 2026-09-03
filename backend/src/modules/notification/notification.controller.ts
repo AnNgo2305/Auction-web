@@ -80,11 +80,14 @@ export class NotificationController {
     @Param('notificationId') notificationId: string,
   ): Promise<ResponsePayload> {
     const currentUserId = req.user?.userId;
-    await this.notificationService.markAsRead(currentUserId!, notificationId);
+    const notification = await this.notificationService.markAsRead(
+      currentUserId!,
+      notificationId,
+    );
 
     return {
       message: 'Read notification done',
-      data: {},
+      data: notification,
     };
   }
 
@@ -98,11 +101,15 @@ export class NotificationController {
   })
   async markAllAsRead(@Req() req: Request): Promise<ResponsePayload> {
     const currentUserId = req.user?.userId;
-    await this.notificationService.markAllAsRead(currentUserId!);
+    const unreadCount = await this.notificationService.markAllAsRead(
+      currentUserId!,
+    );
 
     return {
       message: 'Mark all notifications as read successfully',
-      data: {},
+      data: {
+        count: unreadCount,
+      },
     };
   }
 }

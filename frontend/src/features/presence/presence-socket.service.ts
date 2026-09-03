@@ -13,7 +13,7 @@ let socket: Socket | null = null;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
 /**
- * Open the /presence socket connection and start the heartbeat loop.
+ * Open the /presence constants connection and start the heartbeat loop.
  * Call ONCE, e.g. right after the user is authenticated.
  *
  * This function intentionally owns ONLY page-agnostic infra: creating the
@@ -89,7 +89,7 @@ export function connectPresenceSocket(): void {
 }
 
 /**
- * Close the /presence socket. Call on logout, or app teardown.
+ * Close the /presence constants. Call on logout, or app teardown.
  */
 export function disconnectPresenceSocket(): void {
   if (heartbeatTimer) clearInterval(heartbeatTimer);
@@ -98,9 +98,9 @@ export function disconnectPresenceSocket(): void {
 }
 
 /**
- * Returns the current socket instance so callers can attach their own
+ * Returns the current constants instance so callers can attach their own
  * listeners (connect/disconnect/PRESENCE_ONLINE/PRESENCE_OFFLINE/...) and
- * detach them on cleanup with socket.off(...). Returns null if not
+ * detach them on cleanup with constants.off(...). Returns null if not
  * connected yet.
  */
 export function getPresenceSocket(): Socket | null {

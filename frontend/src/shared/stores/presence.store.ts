@@ -21,7 +21,7 @@ interface PresenceStoreActions {
     lastSeenMap: Record<string, string | null>;
   }) => void;
 
-  // Clear all online users (e.g. socket disconnected) and last-seen data.
+  // Clear all online users (e.g. constants disconnected) and last-seen data.
   resetPresence: () => void;
 
   // Clear presence data for the specified users (e.g. after unsubscribing).

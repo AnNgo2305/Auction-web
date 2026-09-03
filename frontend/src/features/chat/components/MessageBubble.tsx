@@ -26,6 +26,7 @@ import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 import { useChatStore } from '@/shared/stores/chat.store';
 import { useEffect } from 'react';
 import { useUser } from '@/shared/contexts/UserContext.tsx';
+import { MESSAGE_TYPE } from '@/shared/types/message.ts';
 
 export type MessageBubbleProps = {
   message: MessageData;
@@ -134,18 +135,18 @@ export function MessageBubble({
                       </span>
                     </span>
                   </div>
-                  {message.replyToMessage.type === 'TEXT' && (
+                  {message.replyToMessage.type === MESSAGE_TYPE.TEXT && (
                     <p className="truncate text-gray-700">
                       {message.replyToMessage.content ?? ''}
                     </p>
                   )}
-                  {message.replyToMessage.type === 'IMAGE' && (
+                  {message.replyToMessage.type === MESSAGE_TYPE.IMAGE && (
                     <div className="flex items-center gap-2 text-gray-600">
                       <ImageIcon className="h-4 w-4 shrink-0" />
                       <span>Image</span>
                     </div>
                   )}
-                  {message.replyToMessage.type === 'FILE' && (
+                  {message.replyToMessage.type === MESSAGE_TYPE.FILE && (
                     <div className="flex items-center gap-2 text-gray-600">
                       <Paperclip className="h-4 w-4 shrink-0" />
                       <span>Attachment</span>
@@ -156,19 +157,19 @@ export function MessageBubble({
               <BubbleContent
                 className={cn(
                   'max-w-125 px-2 py-2',
-                  message.type === 'IMAGE' || message.type === 'FILE'
+                  message.type === MESSAGE_TYPE.IMAGE || message.type === MESSAGE_TYPE.FILE
                     ? 'p-0'
                     : isMine
                       ? 'rounded-br-md bg-green-600 text-white'
                       : 'rounded-bl-md bg-gray-100 text-gray-900',
                 )}
               >
-                {message.type === 'TEXT' && (
+                {message.type === MESSAGE_TYPE.TEXT && (
                   <p className="wrap-break-word whitespace-pre-wrap">
                     {message.content}
                   </p>
                 )}
-                {message.type === 'IMAGE' &&
+                {message.type === MESSAGE_TYPE.IMAGE &&
                   message.fileKey &&
                   (downloadUrls[message.fileKey] ? (
                     <img
@@ -184,7 +185,7 @@ export function MessageBubble({
                       <ImageIcon className="h-8 w-8 text-gray-400" />
                     </div>
                   ))}
-                {message.type === 'FILE' &&
+                {message.type === MESSAGE_TYPE.FILE &&
                   message.fileKey &&
                   downloadUrls[message.fileKey] && (
                     <a
@@ -251,7 +252,7 @@ export function MessageBubble({
                 <Reply className="mr-2 h-4 w-4" />
                 Reply
               </DropdownMenuItem>
-              {isMine && message.type === 'TEXT' && onEditRequest && (
+              {isMine && message.type === MESSAGE_TYPE.TEXT && onEditRequest && (
                 <DropdownMenuItem
                   onClick={() => onEditRequest(message.messageId)}
                 >

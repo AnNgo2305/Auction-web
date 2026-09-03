@@ -10,7 +10,7 @@ interface ChatStoreState {
   // Set the peer's latest read timestamp for a conversation.
   peerReadAt: Map<string, string | null>;
 
-  // Chat socket status.
+  // Chat constants status.
   isSocketConnected: boolean;
 }
 
@@ -43,7 +43,7 @@ interface ChatStoreActions {
   // Clear peer read receipts for every conversation at once.
   clearAllPeerReadAt: () => void;
 
-  // Set chat socket status.
+  // Set chat constants status.
   setSocketConnected: (connected: boolean) => void;
 }
 

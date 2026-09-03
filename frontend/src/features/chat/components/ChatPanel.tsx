@@ -31,6 +31,7 @@ import { createPresignedDownloadUrl } from '@/shared/api/upload.ts';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { chatPaths } from '@/features/chat/constants/chat.routes.ts';
+import type { MessageType } from '@/shared/types/message.ts';
 
 type ChatPanelConversation = {
   conversationId: string;
@@ -176,7 +177,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
 
   const handleSendMessage = (payload: {
     content?: string;
-    type: 'TEXT' | 'IMAGE' | 'FILE';
+    type: MessageType;
     replyToMessageId?: string;
     attachment?: {
       fileKey: string;

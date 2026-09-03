@@ -11,6 +11,7 @@ import {
 import { uploadToS3 } from '@/shared/utils/upload-files-s3';
 import { UPLOAD_PURPOSES } from '@/shared/types/upload';
 import type { MessageInputSendData } from '@/features/chat/hooks/message/useSendMessage';
+import { MESSAGE_TYPE } from '@/shared/types/message.ts';
 
 export type MessageInputMode =
   | {
@@ -195,7 +196,7 @@ export function MessageInput({
     if (content) {
       onSend({
         content,
-        type: 'TEXT',
+        type: MESSAGE_TYPE.TEXT,
         replyToMessageId: isReplying ? mode.message.messageId : undefined,
       });
     }
@@ -207,7 +208,7 @@ export function MessageInput({
 
       onSend({
         content: '',
-        type: attachment.mimeType?.startsWith('image/') ? 'IMAGE' : 'FILE',
+        type: attachment.mimeType?.startsWith('image/') ? MESSAGE_TYPE.IMAGE : MESSAGE_TYPE.FILE,
         replyToMessageId: isReplying ? mode.message.messageId : undefined,
         attachment: {
           fileKey: attachment.attachmentKey,
@@ -255,18 +256,18 @@ export function MessageInput({
             <p className="text-xs font-medium text-gray-600">
               Replying to {mode.message.sender.username}
             </p>
-            {mode.message.type === 'TEXT' && (
+            {mode.message.type === MESSAGE_TYPE.TEXT && (
               <p className="mt-0.5 truncate text-sm text-gray-500">
                 {mode.message.content}
               </p>
             )}
-            {mode.message.type === 'IMAGE' && (
+            {mode.message.type === MESSAGE_TYPE.IMAGE && (
               <div className="mt-0.5 flex items-center gap-2 text-sm text-gray-500">
                 <ImageIcon className="h-4 w-4 shrink-0" />
                 <span>Image</span>
               </div>
             )}
-            {mode.message.type === 'FILE' && (
+            {mode.message.type === MESSAGE_TYPE.FILE && (
               <div className="mt-0.5 flex items-center gap-2 text-sm text-gray-500">
                 <Paperclip className="h-4 w-4 shrink-0" />
                 <span className="truncate">
