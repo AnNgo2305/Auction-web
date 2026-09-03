@@ -25,6 +25,7 @@ import { PermissionModule } from '@modules/permission/permission.module';
 import { ChatModule } from '@modules/chat/chat.module';
 import { NotificationModule } from '@modules/notification/notification.module';
 import { SchedulerModule } from '@modules/scheduler/scheduler.module';
+import { PresenceModule } from '@modules/presence/presence.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SchedulerModule } from '@modules/scheduler/scheduler.module';
     ChatModule,
     NotificationModule,
     SchedulerModule,
+    PresenceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

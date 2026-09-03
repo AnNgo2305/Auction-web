@@ -3,10 +3,7 @@ import { ChatController } from '@modules/chat/chat.controller';
 import { ConversationService } from '@modules/chat/services/conversation.service';
 import { MessageService } from '@modules/chat/services/message.service';
 import { MessageIdempotencyService } from '@modules/chat/services/message-idempotency.service';
-import { PresenceService } from '@modules/chat/services/presence.service';
 import { ChatGateway } from '@modules/chat/gateways/chat.gateway';
-import { PresenceGateway } from '@modules/chat/gateways/presence.gateway';
-import { PresenceReconciler } from '@modules/chat/schedulers/presence.scheduler';
 import { CommonModule } from '@common/common.module';
 
 @Module({
@@ -16,11 +13,8 @@ import { CommonModule } from '@common/common.module';
     ConversationService,
     MessageService,
     MessageIdempotencyService,
-    PresenceService,
     ChatGateway,
-    PresenceGateway,
-    PresenceReconciler,
   ],
-  exports: [ConversationService, MessageService, PresenceService],
+  exports: [ConversationService, MessageService],
 })
 export class ChatModule {}

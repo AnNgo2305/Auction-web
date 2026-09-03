@@ -7,16 +7,16 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { PresenceService } from '@modules/chat/services/presence.service';
+import { PresenceService } from '@modules/presence/presence.service';
 import { UseFilters, UseGuards, UsePipes } from '@nestjs/common';
 import { WsExceptionFilter } from '@common/filters/ws-exception.filter';
-import { PRESENCE_EVENTS } from '@modules/chat/constants/websocket-event.constant';
+import { PRESENCE_EVENTS } from '@modules/presence/constants/websocket-event.constant';
 import { WsJwtGuard } from '@common/guards/ws-jwt.guard';
 import { Server, Socket } from 'socket.io';
 import { WebsocketAuthService } from '@common/services/websocket-auth.service';
 import { WS_ROOMS } from '@common/constants/websocket-room.constant';
 import { WsValidationPipe } from '@common/pipes/ws-validation.pipe';
-import { PresenceSubscriptionDto } from '@modules/chat/dtos/presence/presence-subscription.body.dto';
+import { PresenceSubscriptionDto } from '@modules/presence/dtos/presence-subscription.body.dto';
 
 interface SocketData {
   userId: string;

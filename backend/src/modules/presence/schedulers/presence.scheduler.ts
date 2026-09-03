@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PresenceService } from '@modules/chat/services/presence.service';
+import { PresenceService } from '@modules/presence/presence.service';
 import { LoggerService } from '@common/services/logger.service';
 import { Cron } from '@nestjs/schedule';
-import { PresenceGateway } from '@modules/chat/gateways/presence.gateway';
+import { PresenceGateway } from '@modules/presence/gateways/presence.gateway';
 
 @Injectable()
 export class PresenceReconciler {
