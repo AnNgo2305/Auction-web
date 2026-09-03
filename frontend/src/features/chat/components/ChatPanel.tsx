@@ -54,7 +54,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
     typingUsers,
     peerReadAt,
     clearTypingForConversation,
-    isSocketConnected
+    isSocketConnected,
   } = useChatStore();
   const { onlineUsers, lastSeenMap } = usePresenceStore();
   const [isDeleteConversationDialogOpen, setIsDeleteConversationDialogOpen] =
@@ -74,7 +74,7 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
   const deleteConversation = useDeleteConversation(() => {
     setActiveConversation(null);
     setIsDeleteConversationDialogOpen(false);
-    void navigate(chatPaths.root())
+    void navigate(chatPaths.root());
   });
 
   const deleteMessage = useDeleteMessage(chatSocketRef);
@@ -212,11 +212,10 @@ export function ChatPanel({ conversation, chatSocketRef }: ChatPanelProps) {
       return;
     }
 
-    const lastUnreadMessage = [...messages]
-      .find(
-        (message) =>
-          message.sender.userId !== currentUser.userId && !message.isRead,
-      );
+    const lastUnreadMessage = [...messages].find(
+      (message) =>
+        message.sender.userId !== currentUser.userId && !message.isRead,
+    );
 
     if (!lastUnreadMessage) {
       return;

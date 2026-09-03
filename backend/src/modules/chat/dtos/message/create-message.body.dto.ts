@@ -12,7 +12,7 @@ import { MessageType } from '@generated/prisma/enums';
 
 export class CreateMessageDto {
   @IsUUID(undefined, {
-    message: 'Temp ID must be a valid UUID'
+    message: 'Temp ID must be a valid UUID',
   })
   tempId!: string;
 

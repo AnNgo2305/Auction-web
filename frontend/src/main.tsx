@@ -19,6 +19,7 @@ createRoot(document.getElementById('root')!).render(
           </TooltipProvider>
         </AuthProvider>
       </UserProvider>
-    </QueryProvider>,
-  </ErrorBoundary>
+    </QueryProvider>
+    ,
+  </ErrorBoundary>,
 );

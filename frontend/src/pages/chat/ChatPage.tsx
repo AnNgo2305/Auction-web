@@ -92,7 +92,7 @@ export function ChatPage() {
                 username: otherUser.username,
                 profileImageUrl: otherUser.profileImageUrl,
               },
-              isDeleted: currentConversation.isDeleted
+              isDeleted: currentConversation.isDeleted,
             }}
             chatSocketRef={chatSocketRef}
           />

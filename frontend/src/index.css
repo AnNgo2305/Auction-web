@@ -139,3 +139,18 @@ input:-webkit-autofill:focus {
     @apply font-sans;
   }
 }
+
+@keyframes message-highlight {
+  0% {
+    box-shadow: 0 0 0 6px rgb(250 204 21 / 0.35);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgb(250 204 21 / 0);
+  }
+}
+
+.highlight-message {
+  border-radius: 10px;
+  animation: message-highlight 2s ease-out;
+}

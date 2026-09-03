@@ -118,7 +118,7 @@ export function ConversationList({
     <div className="flex h-full flex-col">
       <div className="shrink-0 border-b border-gray-200 p-4">
         <h2 className="mb-5 text-xl font-bold text-gray-900">Messages</h2>
-        <InputGroup className="focus-within:border-blue-primary focus-within:ring-blue-primary h-10 rounded-full border-gray-200 bg-gray-50 shadow-none transition-colors focus-within:ring-1 mb-3">
+        <InputGroup className="focus-within:border-blue-primary focus-within:ring-blue-primary mb-3 h-10 rounded-full border-gray-200 bg-gray-50 shadow-none transition-colors focus-within:ring-1">
           <InputGroupAddon className="pl-3">
             <Search className="h-4 w-4 text-gray-400" />
           </InputGroupAddon>

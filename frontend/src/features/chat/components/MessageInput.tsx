@@ -208,7 +208,9 @@ export function MessageInput({
 
       onSend({
         content: '',
-        type: attachment.mimeType?.startsWith('image/') ? MESSAGE_TYPE.IMAGE : MESSAGE_TYPE.FILE,
+        type: attachment.mimeType?.startsWith('image/')
+          ? MESSAGE_TYPE.IMAGE
+          : MESSAGE_TYPE.FILE,
         replyToMessageId: isReplying ? mode.message.messageId : undefined,
         attachment: {
           fileKey: attachment.attachmentKey,

@@ -27,9 +27,6 @@ export class MessageNotificationListener {
       type: NotificationType.MESSAGE,
       entityId: payload.conversationId,
       entityType: 'conversation',
-      metadata: {
-        messageId: payload.messageId,
-      },
     };
 
     await this.notificationService.addAggregationActor(notificationPayload);

@@ -7,6 +7,8 @@ export class NotificationDto {
 
   actorId: string | null;
 
+  actorCount: number;
+
   type: NotificationType;
 
   entityId: string;

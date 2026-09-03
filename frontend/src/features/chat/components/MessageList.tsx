@@ -6,7 +6,7 @@ import {
   MessageScrollerItem,
   MessageScrollerButton,
   MessageScrollerViewport,
-  MessageScrollerProvider
+  MessageScrollerProvider,
 } from '@/shared/ui/message-scroller';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
@@ -87,39 +87,38 @@ export function MessageList({
     <MessageScrollerProvider>
       <MessageScroller className="flex-1">
         <MessageScrollerViewport ref={viewportRef} onScroll={handleScroll}>
-        <MessageScrollerContent className="gap-1 px-4 py-4">
-          {isLoadingMore && (
-            <div className="flex justify-center py-2">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-            </div>
-          )}
-          {displayMessages.map((message, index) => {
-            const nextMessage = displayMessages[index + 1];
+          <MessageScrollerContent className="gap-1 px-4 py-4">
+            {isLoadingMore && (
+              <div className="flex justify-center py-2">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              </div>
+            )}
+            {displayMessages.map((message, index) => {
+              const nextMessage = displayMessages[index + 1];
 
-            const isMine = message.sender.userId === currentUserId;
-            const showAvatar =
-              !isMine &&
-              (nextMessage?.sender.userId !== message.sender.userId);
+              const isMine = message.sender.userId === currentUserId;
+              const showAvatar =
+                !isMine && nextMessage?.sender.userId !== message.sender.userId;
 
-            return (
-              <MessageScrollerItem key={message.messageId}>
-                <MessageBubble
-                  message={message}
-                  showAvatar={showAvatar}
-                  isLastOwnMessage={message.messageId === lastOwnMessageId}
-                  isMine={isMine}
-                  peerLastReadAt={peerLastReadAt}
-                  isPeerOnline={isPeerOnline}
-                  downloadUrls={downloadUrls}
-                  onEditRequest={onEditRequest}
-                  onDeleteRequest={onDeleteRequest}
-                  onReplyRequest={onReplyRequest}
-                />
-              </MessageScrollerItem>
-            );
-          })}
-        </MessageScrollerContent>
-      </MessageScrollerViewport>
+              return (
+                <MessageScrollerItem key={message.messageId}>
+                  <MessageBubble
+                    message={message}
+                    showAvatar={showAvatar}
+                    isLastOwnMessage={message.messageId === lastOwnMessageId}
+                    isMine={isMine}
+                    peerLastReadAt={peerLastReadAt}
+                    isPeerOnline={isPeerOnline}
+                    downloadUrls={downloadUrls}
+                    onEditRequest={onEditRequest}
+                    onDeleteRequest={onDeleteRequest}
+                    onReplyRequest={onReplyRequest}
+                  />
+                </MessageScrollerItem>
+              );
+            })}
+          </MessageScrollerContent>
+        </MessageScrollerViewport>
         <MessageScrollerButton direction="end" />
       </MessageScroller>
     </MessageScrollerProvider>

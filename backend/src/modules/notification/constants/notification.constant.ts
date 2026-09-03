@@ -14,7 +14,4 @@ export interface ActorSnapshot {
   username: string;
   fullName: string | null;
   profileImageUrl: string | null;
-
-  // Only used for MESSAGE notifications.
-  messageId?: string;
 }

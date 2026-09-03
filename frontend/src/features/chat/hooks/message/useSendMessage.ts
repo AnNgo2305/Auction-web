@@ -33,11 +33,11 @@ export function useSendMessage(socketRef: React.RefObject<Socket | null>) {
 
   return useCallback(
     ({
-       conversationId,
-       content = '',
-       type,
-       replyToMessageId,
-       attachment,
+      conversationId,
+      content = '',
+      type,
+      replyToMessageId,
+      attachment,
     }: SendMessageInput) => {
       const socket = socketRef.current;
       if (!socket?.connected || !isAuthenticated || !currentUser) {

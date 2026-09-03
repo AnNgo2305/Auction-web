@@ -27,18 +27,14 @@ export class NotificationService {
   ) {}
 
   async addAggregationActor(payload: NotificationPayload): Promise<void> {
-    const { recipientId, actorId, type, entityId, metadata } = payload;
+    const { recipientId, actorId, type, entityId } = payload;
 
     const key = REDIS_KEYS.NOTIFICATION.AGGREGATION(
       recipientId,
       type,
       entityId,
     );
-    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTOR_META(
-      recipientId,
-      type,
-      entityId,
-    );
+
     const metaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_META(
       recipientId,
       type,
@@ -46,24 +42,12 @@ export class NotificationService {
     );
 
     const now = Date.now();
-    const messageId =
-      metadata &&
-      typeof metadata === 'object' &&
-      !Array.isArray(metadata) &&
-      'messageId' in metadata &&
-      typeof metadata.messageId === 'string'
-        ? metadata.messageId
-        : undefined;
 
     const multi = this.redis.multi();
     multi.zadd(key, now, actorId);
-    if (messageId) {
-      multi.hset(actorMetaKey, actorId, messageId);
-    }
 
     multi.set(metaKey, now);
     multi.expire(key, REDIS_TTL.NOTIFICATION.AGGREGATION);
-    multi.expire(actorMetaKey, REDIS_TTL.NOTIFICATION.AGGREGATION_ACTOR_META);
     multi.expire(metaKey, REDIS_TTL.NOTIFICATION.AGGREGATION_META);
 
     await multi.exec();
@@ -190,6 +174,7 @@ export class NotificationService {
         isRead: true,
         createdAt: true,
         readAt: true,
+        actorCount: true,
       },
     });
 
@@ -216,11 +201,6 @@ export class NotificationService {
       type,
       entityId,
     );
-    const actorMetaKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTOR_META(
-      recipientId,
-      type,
-      entityId,
-    );
 
     // Move the current aggregation buffer to a processing key.
     const processingKey = REDIS_KEYS.NOTIFICATION.AGGREGATION_PROCESSING(
@@ -229,15 +209,8 @@ export class NotificationService {
       entityId,
     );
 
-    const processingActorMetaKey =
-      REDIS_KEYS.NOTIFICATION.AGGREGATION_ACTORS_PROCESSING(
-        recipientId,
-        type,
-        entityId,
-      );
     try {
       await this.redis.rename(aggregationKey, processingKey);
-      await this.redis.rename(actorMetaKey, processingActorMetaKey);
     } catch {
       this.logger.warn(`Aggregation buffer not found: ${aggregationKey}`);
       return null;
@@ -246,9 +219,8 @@ export class NotificationService {
     // Read all actor IDs from the processing key.
     // If there are no actors, delete the processing key and stop the aggregation process.
     const actorIds = await this.redis.zrange(processingKey, 0, -1);
-    const actorMessageIds = await this.redis.hgetall(processingActorMetaKey);
     if (actorIds.length === 0) {
-      await this.redis.del(processingKey, processingActorMetaKey);
+      await this.redis.del(processingKey);
       return null;
     }
 
@@ -275,7 +247,6 @@ export class NotificationService {
       username: user.username,
       fullName: user.profile?.fullName ?? null,
       profileImageUrl: user.profile?.profileImageUrl ?? null,
-      messageId: actorMessageIds[user.userId],
     }));
 
     // Find the existing aggregated notification
@@ -347,7 +318,7 @@ export class NotificationService {
     }
 
     // Delete the processing key and return
-    await this.redis.del(processingKey, processingActorMetaKey);
+    await this.redis.del(processingKey);
     return notification;
   }
 

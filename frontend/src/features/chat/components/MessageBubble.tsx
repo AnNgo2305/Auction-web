@@ -157,7 +157,8 @@ export function MessageBubble({
               <BubbleContent
                 className={cn(
                   'max-w-125 px-2 py-2',
-                  message.type === MESSAGE_TYPE.IMAGE || message.type === MESSAGE_TYPE.FILE
+                  message.type === MESSAGE_TYPE.IMAGE ||
+                    message.type === MESSAGE_TYPE.FILE
                     ? 'p-0'
                     : isMine
                       ? 'rounded-br-md bg-green-600 text-white'
@@ -198,15 +199,15 @@ export function MessageBubble({
                         'transition-colors hover:bg-gray-300',
                       )}
                     >
-                      <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15'>
-                        <Paperclip className='h-5 w-5 text-gray-500' />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                        <Paperclip className="h-5 w-5 text-gray-500" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className='truncate text-sm font-medium text-gray-800'>
+                        <p className="truncate text-sm font-medium text-gray-800">
                           {message.fileName}
                         </p>
                         {message.fileSize && (
-                          <p className='mt-0.5 text-xs text-gray-700'>
+                          <p className="mt-0.5 text-xs text-gray-700">
                             {formatFileSize(message.fileSize)}
                           </p>
                         )}
@@ -252,14 +253,16 @@ export function MessageBubble({
                 <Reply className="mr-2 h-4 w-4" />
                 Reply
               </DropdownMenuItem>
-              {isMine && message.type === MESSAGE_TYPE.TEXT && onEditRequest && (
-                <DropdownMenuItem
-                  onClick={() => onEditRequest(message.messageId)}
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
-              )}
+              {isMine &&
+                message.type === MESSAGE_TYPE.TEXT &&
+                onEditRequest && (
+                  <DropdownMenuItem
+                    onClick={() => onEditRequest(message.messageId)}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
               {isMine && onDeleteRequest && (
                 <DropdownMenuItem
                   className="text-red-500 focus:text-red-500"

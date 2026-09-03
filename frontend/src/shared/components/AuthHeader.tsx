@@ -1,12 +1,11 @@
 import {
-  Bell,
   ChevronDown,
   LogOut,
   Settings,
   User,
   History,
   Heart,
-  MessageCircle,
+  Gavel,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/images/bid-market.png';
@@ -21,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
+import { Button } from '@/shared/ui/button';
 import { useUser } from '@/shared/contexts/UserContext';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/contexts/AuthContext';
@@ -31,6 +31,7 @@ import { ROLES } from '@/shared/types/user.ts';
 import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes.ts';
 import { productPaths } from '@/features/product/constants/product.routes';
 import { chatPaths } from '@/features/chat/constants/chat.routes';
+import { NotificationBell } from '@/features/notification/components/NotificationBell.tsx';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -114,15 +115,23 @@ export default function AuthHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <button className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
-            <MessageCircle className="h-5 w-5" />
-          </button>
-          <button className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="relative h-10 w-10 rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20 hover:text-white"
+          >
             <Heart className="h-5 w-5" />
-          </button>
-          <button className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
-            <Bell className="h-5 w-5" />
-          </button>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="relative h-10 w-10 rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20 hover:text-white"
+          >
+            <Gavel className="h-5 w-5" />
+          </Button>
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-white/10">

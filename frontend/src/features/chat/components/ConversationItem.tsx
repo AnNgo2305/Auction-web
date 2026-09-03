@@ -117,7 +117,9 @@ export function ConversationItem({
         <div className="relative shrink-0">
           <Avatar className="h-12 w-12">
             <AvatarImage src={avatarUrl} alt={displayName} />
-            <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
             <AvatarBadge
               className={cn(
                 'border-background right-0 bottom-0',
@@ -153,7 +155,9 @@ export function ConversationItem({
             </span>
             {conversation.unreadCount > 0 && (
               <span className="bg-primary text-primary-foreground flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
-                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                {conversation.unreadCount > 99
+                  ? '99+'
+                  : conversation.unreadCount}
               </span>
             )}
           </div>

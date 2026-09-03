@@ -1,5 +1,16 @@
 import type { NotificationType } from '@/shared/types/notification';
 
+export type NotificationActor = {
+  userId: string;
+  username: string;
+  fullName: string | null;
+  profileImageUrl: string | null;
+};
+
+export type NotificationMetadata = {
+  actors: NotificationActor[];
+};
+
 export type NotificationDto = {
   notificationId: string;
 
@@ -7,13 +18,15 @@ export type NotificationDto = {
 
   actorId: string | null;
 
+  actorCount: number;
+
   type: NotificationType;
 
   entityId: string;
 
   entityType: string;
 
-  metadata: unknown;
+  metadata: NotificationMetadata | null;
 
   isRead: boolean;
 

@@ -102,7 +102,9 @@ export function PendingRequestsManagementPage() {
           <CardContent>
             <div className="flex items-baseline gap-2">
               <p className="text-4xl font-bold">{pendingRequests.length}</p>
-              <span className="text-muted-foreground text-sm">loaded pending requests</span>
+              <span className="text-muted-foreground text-sm">
+                loaded pending requests
+              </span>
             </div>
             <p className="text-muted-foreground mt-2 text-sm">
               Waiting for your decision

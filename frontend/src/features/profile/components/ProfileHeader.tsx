@@ -41,7 +41,7 @@ type ProfileHeaderProps = {
   relationshipStatus: RelationshipStatus | undefined;
   isInitialProfileLoading: boolean;
   lastSeen: string | null;
-}
+};
 
 const ROLE_LABEL: Record<Role, string> = {
   [ROLES.SELLER]: 'Seller',

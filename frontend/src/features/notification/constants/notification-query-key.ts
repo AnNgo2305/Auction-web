@@ -3,6 +3,5 @@ export const notificationKeys = {
 
   list: () => [...notificationKeys.all, 'list'] as const,
 
-  unreadCount: () =>
-    [...notificationKeys.all, 'unread-count'] as const,
+  unreadCount: () => [...notificationKeys.all, 'unread-count'] as const,
 };

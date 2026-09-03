@@ -42,49 +42,39 @@ export function useNotificationSocket() {
     socket.on('connect', () => {
       void refetchUnreadCount();
     });
-    
+
     socket.on(
       NOTIFICATION_EVENTS.NEW_NOTIFICATION,
       ({ notification }: NotificationNewEvent) => {
         queryClient.setQueryData<{
           notifications: NotificationDto[];
-        }>(
-          notificationKeys.list(),
-          (currentData) => {
-            if (!currentData) {
-              return {
-                notifications: [notification],
-              };
-            }
-
-            const exists = currentData.notifications.some(
-              (item) =>
-                item.notificationId === notification.notificationId,
-            );
-
-            if (exists) {
-              return currentData;
-            }
-
+        }>(notificationKeys.list(), (currentData) => {
+          if (!currentData) {
             return {
-              ...currentData,
-              notifications: [
-                notification,
-                ...currentData.notifications,
-              ],
+              notifications: [notification],
             };
-          },
-        );
+          }
+
+          const exists = currentData.notifications.some(
+            (item) => item.notificationId === notification.notificationId,
+          );
+
+          if (exists) {
+            return currentData;
+          }
+
+          return {
+            ...currentData,
+            notifications: [notification, ...currentData.notifications],
+          };
+        });
       },
     );
 
     socket.on(
       NOTIFICATION_EVENTS.UNREAD_COUNT,
       ({ unreadCount }: NotificationUnreadCountEvent) => {
-        queryClient.setQueryData(
-          notificationKeys.unreadCount(),
-          unreadCount,
-        );
+        queryClient.setQueryData(notificationKeys.unreadCount(), unreadCount);
       },
     );
 
@@ -92,10 +82,7 @@ export function useNotificationSocket() {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [
-    isAuthenticated,
-    queryClient
-  ]);
+  }, [isAuthenticated, queryClient, refetchUnreadCount]);
 
   return socketRef;
 }
