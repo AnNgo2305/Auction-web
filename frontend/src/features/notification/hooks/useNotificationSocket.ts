@@ -4,12 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/shared/contexts/UserContext';
 import { NOTIFICATION_EVENTS } from '@/features/notification/constants/notification-socket.constant';
 import { notificationKeys } from '@/features/notification/constants/notification-query-key';
-import type { NotificationDto } from '@/features/notification/types/notification.dto';
 import { useGetUnreadNotificationCount } from '@/features/notification/hooks/useGetUnreadCount.ts';
-
-type NotificationNewEvent = {
-  notification: NotificationDto;
-};
 
 type NotificationUnreadCountEvent = {
   unreadCount: number;
@@ -44,31 +39,11 @@ export function useNotificationSocket() {
     });
 
     socket.on(
-      NOTIFICATION_EVENTS.NEW_NOTIFICATION,
-      ({ notification }: NotificationNewEvent) => {
-        queryClient.setQueryData<{
-          notifications: NotificationDto[];
-        }>(notificationKeys.list(), (currentData) => {
-          if (!currentData) {
-            return {
-              notifications: [notification],
-            };
-          }
-
-          const exists = currentData.notifications.some(
-            (item) => item.notificationId === notification.notificationId,
-          );
-
-          if (exists) {
-            return currentData;
-          }
-
-          return {
-            ...currentData,
-            notifications: [notification, ...currentData.notifications],
-          };
+      NOTIFICATION_EVENTS.NEW_NOTIFICATION, () => {
+        void queryClient.invalidateQueries({
+          queryKey: notificationKeys.list(),
         });
-      },
+      }
     );
 
     socket.on(

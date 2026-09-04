@@ -12,10 +12,17 @@ export class MailService {
   ) {}
 
   async sendMail(to: string, otpCode: string, type: MailType): Promise<void> {
-    await this.mailQueue.add(MAIL_QUEUE.JOBS.SEND_MAIL, {
-      to,
-      otpCode,
-      type,
-    });
+    await this.mailQueue.add(
+      MAIL_QUEUE.JOBS.SEND_MAIL,
+      {
+        to,
+        otpCode,
+        type,
+      },
+      {
+        removeOnComplete: true,
+        removeOnFail: 100,
+      },
+    );
   }
 }

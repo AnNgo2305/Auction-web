@@ -13,6 +13,7 @@ import { PrismaService } from '@common/services/prisma.service';
 import { LoggerService } from '@common/services/logger.service';
 import { NotificationDto } from '@modules/notification/dtos/notification.dto';
 import { Prisma } from '@generated/prisma/client';
+import { FileService } from '@common/services/file.service';
 import { GetNotificationsResponseDto } from '@modules/notification/dtos/get-notifications.response.dto';
 import { NotificationsGateway } from '@modules/notification/notification.gateway';
 
@@ -24,6 +25,7 @@ export class NotificationService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly notificationGateway: NotificationsGateway,
+    private readonly fileService: FileService,
   ) {}
 
   async addAggregationActor(payload: NotificationPayload): Promise<void> {
@@ -246,7 +248,9 @@ export class NotificationService {
       userId: user.userId,
       username: user.username,
       fullName: user.profile?.fullName ?? null,
-      profileImageUrl: user.profile?.profileImageUrl ?? null,
+      profileImageUrl: user.profile?.profileImageUrl
+        ? this.fileService.getPublicUrl(user.profile.profileImageUrl)
+        : null,
     }));
 
     // Find the existing aggregated notification

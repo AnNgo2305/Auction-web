@@ -65,12 +65,10 @@ export class NotificationsGateway
     );
   }
 
-  emitNotification(recipientId: string, notification: NotificationDto): void {
+  emitNotification(recipientId: string): void {
     this.server
       .to(WS_ROOMS.USER(recipientId))
-      .emit(NOTIFICATION_EVENTS.NEW_NOTIFICATION, {
-        notification,
-      });
+      .emit(NOTIFICATION_EVENTS.NEW_NOTIFICATION);
   }
 
   emitUnreadCount(recipientId: string, unreadCount: number): void {

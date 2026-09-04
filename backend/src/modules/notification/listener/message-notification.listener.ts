@@ -36,7 +36,9 @@ export class MessageNotificationListener {
       notificationPayload,
       {
         delay: MESSAGE_AGGREGATION_DELAY_MS,
-        jobId: `message:${notificationPayload.recipientId}:${notificationPayload.type}:${notificationPayload.entityId}`,
+        jobId: `message_${notificationPayload.recipientId}_${notificationPayload.type}_${notificationPayload.entityId}`,
+        removeOnComplete: true,
+        removeOnFail: 100,
       },
     );
   }

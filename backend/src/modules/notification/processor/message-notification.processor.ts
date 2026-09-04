@@ -48,10 +48,7 @@ export class MessageNotificationProcessor extends WorkerHost {
       notification.recipientId,
     );
 
-    this.notificationsGateway.emitNotification(
-      notification.recipientId,
-      notification,
-    );
+    this.notificationsGateway.emitNotification(notification.recipientId);
 
     this.notificationsGateway.emitUnreadCount(
       notification.recipientId,
