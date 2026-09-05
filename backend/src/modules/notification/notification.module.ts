@@ -6,6 +6,8 @@ import { MessageNotificationListener } from './listener/message-notification.lis
 import { MessageNotificationProcessor } from './processor/message-notification.processor';
 import { CommonModule } from '@common/common.module';
 import { DeleteOldNotificationsScheduler } from '@modules/notification/scheduler/delete-old-notifications.scheduler';
+import { FollowNotificationListener } from '@modules/notification/listener/follow-notification.listener';
+import { FollowNotificationProcessor } from '@modules/notification/processor/follow-notification.processor';
 
 @Module({
   imports: [CommonModule],
@@ -15,6 +17,8 @@ import { DeleteOldNotificationsScheduler } from '@modules/notification/scheduler
     NotificationsGateway,
     MessageNotificationListener,
     MessageNotificationProcessor,
+    FollowNotificationListener,
+    FollowNotificationProcessor,
     DeleteOldNotificationsScheduler,
   ],
 

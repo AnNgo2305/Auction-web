@@ -78,6 +78,39 @@ export class NotificationService {
       return null;
     }
 
+    const actor = payload.actorId
+      ? await this.prisma.user.findUnique({
+          where: {
+            userId: payload.actorId,
+          },
+          select: {
+            userId: true,
+            username: true,
+            profile: {
+              select: {
+                fullName: true,
+                profileImageUrl: true,
+              },
+            },
+          },
+        })
+      : null;
+
+    const metadata = actor
+      ? {
+          actors: [
+            {
+              userId: actor.userId,
+              fullName: actor.profile?.fullName ?? null,
+              username: actor.username,
+              profileImageUrl: actor.profile?.profileImageUrl
+                ? this.fileService.getPublicUrl(actor.profile.profileImageUrl)
+                : null,
+            },
+          ],
+        }
+      : undefined;
+
     const notification = await this.prisma.notification.create({
       data: {
         recipientId: payload.recipientId,
@@ -85,9 +118,11 @@ export class NotificationService {
         type: payload.type,
         entityId: payload.entityId,
         entityType: payload.entityType,
-        metadata: payload.metadata,
+        metadata,
       },
     });
+
+    await this.incrementUnreadCount(notification.recipientId);
 
     this.logger.log(`Notification created: ${notification.notificationId}`);
 

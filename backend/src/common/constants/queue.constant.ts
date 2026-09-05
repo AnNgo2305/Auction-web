@@ -11,3 +11,11 @@ export const MAIL_QUEUE = {
     SEND_MAIL: 'send-mail',
   },
 } as const;
+
+export const FOLLOW_NOTIFICATION_QUEUE = {
+  NAME: 'notification-follow',
+  JOBS: {
+    FOLLOW_REQUESTED: 'follow-requested',
+    FOLLOW_ACCEPTED: 'follow-accepted',
+  },
+} as const;

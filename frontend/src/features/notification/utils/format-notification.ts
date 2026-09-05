@@ -4,7 +4,7 @@ import type {
 } from '@/features/notification/types/notification.dto';
 import { NOTIFICATION_TYPE } from '@/shared/types/notification';
 import type { LucideIcon } from 'lucide-react';
-import { MessageCircle, Bell } from 'lucide-react';
+import { MessageCircle, Bell, UserPlus, UserCheck } from 'lucide-react';
 
 interface NotificationMeta {
   message: string;
@@ -17,6 +17,18 @@ const NOTIFICATION_META: Record<string, NotificationMeta> = {
     message: 'You have received a new message',
     Icon: MessageCircle,
     iconBg: 'bg-blue-500',
+  },
+
+  [NOTIFICATION_TYPE.FOLLOW_REQUEST]: {
+    message: 'sent you a follow request',
+    Icon: UserPlus,
+    iconBg: 'bg-green-500',
+  },
+
+  [NOTIFICATION_TYPE.FOLLOW_ACCEPTED]: {
+    message: 'accepted your follow request',
+    Icon: UserCheck,
+    iconBg: 'bg-green-500',
   },
 };
 

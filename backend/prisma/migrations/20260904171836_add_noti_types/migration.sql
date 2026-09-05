@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `notifications` MODIFY `type` ENUM('MESSAGE', 'FOLLOW_REQUEST', 'FOLLOW_ACCEPTED') NOT NULL;

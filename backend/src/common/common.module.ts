@@ -33,6 +33,7 @@ import { RedisThrottlerStorageModule } from '@common/throttler/redis-throttler-s
 import rateLimitConfig from '@common/config/rate-limit.config';
 import { RedisThrottlerStorageService } from '@common/throttler/redis-throttler-storage.service';
 import {
+  FOLLOW_NOTIFICATION_QUEUE,
   MAIL_QUEUE,
   MESSAGE_NOTIFICATION_QUEUE,
 } from '@common/constants/queue.constant';
@@ -150,6 +151,7 @@ const service = [
     BullModule.registerQueue(
       { name: MAIL_QUEUE.NAME },
       { name: MESSAGE_NOTIFICATION_QUEUE.NAME },
+      { name: FOLLOW_NOTIFICATION_QUEUE.NAME },
     ),
   ],
   providers: [

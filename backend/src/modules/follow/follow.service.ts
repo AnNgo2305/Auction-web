@@ -36,12 +36,17 @@ import { BlockedUsersResponseDto } from '@modules/follow/dtos/get-blocked-users.
 import { ReceivedFollowRequestsCursorResponseDto } from '@modules/follow/dtos/get-received-follow-requests.response.dto';
 import { SentFollowRequestsResponseDto } from '@modules/follow/dtos/get-sent-follow-requests.response.dto';
 import type { RelationshipStatusResult } from '@modules/follow/dtos/user-follow.response.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { INTERNAL_EVENTS } from '@common/constants/event.constant';
+import { FollowRequestEvent } from '@modules/follow/events/follow-request.event';
+import { FollowAcceptEvent } from '@modules/follow/events/follow-accept.event';
 
 @Injectable()
 export class FollowService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async follow(bidderId: string, sellerId: string): Promise<void> {
@@ -105,6 +110,12 @@ export class FollowService {
             },
             data: { status: FollowStatus.PENDING },
           });
+
+          this.eventEmitter.emit(
+            INTERNAL_EVENTS.FOLLOW_REQUESTED,
+            new FollowRequestEvent(bidderId, sellerId),
+          );
+
           this.logger.log(
             `[FOLLOW] request re-sent successfully: ${bidderId} -> ${sellerId}`,
           );
@@ -124,6 +135,11 @@ export class FollowService {
           status: FollowStatus.PENDING,
         },
       });
+
+      this.eventEmitter.emit(
+        INTERNAL_EVENTS.FOLLOW_REQUESTED,
+        new FollowRequestEvent(bidderId, sellerId),
+      );
     } catch (error: unknown) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -243,6 +259,11 @@ export class FollowService {
         status: FollowStatus.ACTIVE,
       },
     });
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.FOLLOW_ACCEPTED,
+      new FollowAcceptEvent(bidderId, sellerId),
+    );
 
     this.logger.log(`[ACCEPT] seller=${sellerId} accepted user=${bidderId}`);
   }

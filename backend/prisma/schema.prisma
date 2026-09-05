@@ -509,6 +509,8 @@ model Message {
 
 enum NotificationType {
   MESSAGE
+  FOLLOW_REQUEST
+  FOLLOW_ACCEPTED
 }
 
 model Notification {
