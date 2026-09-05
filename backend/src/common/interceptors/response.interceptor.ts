@@ -33,7 +33,7 @@ export class ResponseInterceptor<T extends ResponsePayload>
         this.logger.debug(
           `[${method}] ${url} - Responded in ${Date.now() - now}ms`,
         );
-        // this.logger.logJson('Response', formatted, 'debug');
+        this.logger.logJson('Response', formatted, 'debug');
         return formatted;
       }),
       catchError((error: unknown) => {
