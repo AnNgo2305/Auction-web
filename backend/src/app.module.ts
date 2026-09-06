@@ -26,6 +26,7 @@ import { ChatModule } from '@modules/chat/chat.module';
 import { NotificationModule } from '@modules/notification/notification.module';
 import { SchedulerModule } from '@modules/scheduler/scheduler.module';
 import { PresenceModule } from '@modules/presence/presence.module';
+import { AuctionModule } from '@modules/auction/auction.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { PresenceModule } from '@modules/presence/presence.module';
     NotificationModule,
     SchedulerModule,
     PresenceModule,
+    AuctionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

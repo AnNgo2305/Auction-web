@@ -3,10 +3,19 @@ import { CommonModule } from '@common/common.module';
 import { ProfilePermissionService } from '@modules/permission/profile-permission.service';
 import { ProductPermissionService } from '@modules/permission/product-permission.service';
 import { FollowModule } from '@modules/follow/follow.module';
+import { AuctionPermissionService } from '@modules/permission/auction-permission.service';
 
 @Module({
   imports: [CommonModule, FollowModule],
-  providers: [ProfilePermissionService, ProductPermissionService],
-  exports: [ProfilePermissionService, ProductPermissionService],
+  providers: [
+    ProfilePermissionService,
+    ProductPermissionService,
+    AuctionPermissionService,
+  ],
+  exports: [
+    ProfilePermissionService,
+    ProductPermissionService,
+    AuctionPermissionService,
+  ],
 })
 export class PermissionModule {}

@@ -16,12 +16,10 @@ import {
   ERROR_AUCTION_PRODUCT_STATUS_INVALID,
   ERROR_AUCTION_START_TIME_INVALID,
   ERROR_AUCTION_PRODUCT_QUANTITY_INVALID,
-  ERROR_AUCTION_ACCESS_DENIED,
-  ERROR_AUCTION_CANNOT_CANCEL,
   ERROR_AUCTION_NOT_FOUND,
   ERROR_AUCTION_NOT_READY,
   ERROR_AUCTION_ALREADY_ENDED,
-  ERROR_AUCTION_INVALID_STATUS,
+  ERROR_AUCTION_NOT_OPEN,
 } from '@modules/auction/auction.constant';
 import { AuctionStatus, ProductStatus } from '@generated/prisma/enums';
 import { GetAuctionByIdResponseDto } from '@modules/auction/dtos/get-auction-by-id.response.dto';
@@ -30,6 +28,11 @@ import { PaginationResult } from '@common/types/pagination.interface';
 import { SearchAuctionsQueryDto } from '@modules/auction/dtos/search-auctions.query.dto';
 import { SearchAuctionsResponseDto } from '@modules/auction/dtos/search-auctions.response.dto';
 import { FileService } from '@common/services/file.service';
+import { UpdateAuctionDto } from '@modules/auction/dtos/update-auction.body.dto';
+import { AuctionPermissionService } from '@modules/permission/auction-permission.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { AUCTION_QUEUE } from '@common/constants/queue.constant';
 
 @Injectable()
 export class AuctionService {
@@ -37,7 +40,55 @@ export class AuctionService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly fileService: FileService,
+    private readonly auctionPermissionService: AuctionPermissionService,
+
+    @InjectQueue(AUCTION_QUEUE.NAME)
+    private readonly auctionQueue: Queue,
   ) {}
+
+  async emitOpenAuction(
+    auctionId: string,
+    startTime: Date,
+  ): Promise<void> {
+    const delay = Math.max(0, startTime.getTime() - Date.now());
+
+    await this.auctionQueue.add(
+      AUCTION_QUEUE.JOBS.OPEN_AUCTION,
+      {
+        auctionId,
+      },
+      {
+        delay,
+        jobId: `auction-open:${auctionId}`,
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+
+    this.logger.log(`[AUCTION] Open job emitted for auction ${auctionId}`);
+  }
+
+  async emitCloseAuction(
+    auctionId: string,
+    endTime: Date,
+  ): Promise<void> {
+    const delay = Math.max(0, endTime.getTime() - Date.now());
+
+    await this.auctionQueue.add(
+      AUCTION_QUEUE.JOBS.CLOSE_AUCTION,
+      {
+        auctionId,
+      },
+      {
+        delay,
+        jobId: `auction-close:${auctionId}:${endTime.getTime()}`,
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+
+    this.logger.log(`[AUCTION] Close job emitted for auction ${auctionId}`);
+  }
 
   async createAuction(sellerId: string, dto: CreateAuctionDto): Promise<void> {
     this.logger.log(`[AUCTION] Creating auction for seller ${sellerId}`);
@@ -207,9 +258,137 @@ export class AuctionService {
     this.logger.log(
       `[AUCTION] Created auction ${auction.auctionId} by seller ${sellerId}`,
     );
+
+    await this.emitOpenAuction(auction.auctionId, auction.startTime);
+    await this.emitCloseAuction(auction.auctionId, auction.endTime);
   }
 
-  async getAuctionById(auctionId: string): Promise<GetAuctionByIdResponseDto> {
+  async getMyAuctions(
+    sellerId: string,
+    query: SearchAuctionsQueryDto,
+  ): Promise<PaginationResult<SearchAuctionsResponseDto>> {
+    this.logger.log(`[AUCTION] Getting auctions for seller ${sellerId}`);
+
+    const {
+      keyword,
+      status,
+      minPrice,
+      maxPrice,
+      startTimeFrom,
+      startTimeTo,
+      cursor,
+      limit,
+      sortBy,
+      sortOrder,
+    } = query;
+
+    const where: Prisma.AuctionWhereInput = {
+      sellerId,
+      ...(keyword && {
+        OR: [
+          {
+            title: { contains: keyword },
+          },
+          {
+            auctionProducts: {
+              some: {
+                product: {
+                  name: { contains: keyword },
+                },
+              },
+            },
+          },
+        ],
+      }),
+      ...(status && { status }),
+      ...((minPrice !== undefined || maxPrice !== undefined) && {
+        currentPrice: {
+          ...(minPrice !== undefined && { gte: minPrice }),
+          ...(maxPrice !== undefined && { lte: maxPrice }),
+        },
+      }),
+
+      ...((startTimeFrom || startTimeTo) && {
+        startTime: {
+          ...(startTimeFrom && { gte: startTimeFrom }),
+          ...(startTimeTo && { lte: startTimeTo }),
+        },
+      }),
+    };
+
+    const auctions = await this.prisma.auction.findMany({
+      where,
+      select: {
+        auctionId: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        startingPrice: true,
+        currentPrice: true,
+        bidCount: true,
+        status: true,
+        createdAt: true,
+        auctionProducts: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+          take: 1,
+          select: {
+            product: {
+              select: {
+                images: {
+                  where: { isPrimary: true },
+                  take: 1,
+                  select: {
+                    imageKey: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      orderBy: { [sortBy]: sortOrder },
+      cursor: cursor ? { auctionId: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      take: limit + 1,
+    });
+
+    const hasNextPage = auctions.length > limit;
+    const items = hasNextPage ? auctions.slice(0, limit) : auctions;
+
+    return {
+      data: items.map((auction) => ({
+        auctionId: auction.auctionId,
+        title: auction.title,
+        startTime: auction.startTime,
+        endTime: auction.endTime,
+        startingPrice: auction.startingPrice.toNumber(),
+        currentPrice: auction.currentPrice.toNumber(),
+        bidCount: Number(auction.bidCount),
+        status: auction.status,
+        thumbnail: auction.auctionProducts[0]?.product.images[0]?.imageKey
+          ? this.fileService.getPublicUrl(
+              auction.auctionProducts[0].product.images[0].imageKey,
+            )
+          : null,
+        createdAt: auction.createdAt,
+      })),
+
+      meta: {
+        limit,
+        itemCount: items.length,
+        hasNextPage,
+        nextCursor: hasNextPage ? items[items.length - 1].auctionId : undefined,
+      },
+    };
+  }
+
+  async getAuctionById(
+    auctionId: string,
+    currentUserId?: string,
+  ): Promise<GetAuctionByIdResponseDto> {
     this.logger.log(`[AUCTION] Getting public auction ${auctionId}`);
 
     const auction = await this.prisma.auction.findFirst({
@@ -262,6 +441,8 @@ export class AuctionService {
       this.logger.warn(`[AUCTION] Public auction ${auctionId} not found`);
       throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
     }
+
+    this.auctionPermissionService.canViewAuction(auction, currentUserId);
 
     return {
       auctionId: auction.auctionId,
@@ -441,23 +622,7 @@ export class AuctionService {
       }
 
       const auction = auctions[0];
-
-      if (auction.sellerId !== sellerId) {
-        this.logger.warn(
-          `[AUCTION] Seller ${sellerId} attempted to cancel auction ${auctionId} they do not own`,
-        );
-        throw new ForbiddenException(ERROR_AUCTION_ACCESS_DENIED);
-      }
-
-      if (
-        auction.status !== AuctionStatus.PENDING &&
-        auction.status !== AuctionStatus.READY
-      ) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} cannot be cancelled from status ${auction.status}`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_CANNOT_CANCEL);
-      }
+      this.auctionPermissionService.canCancelAuction(auction, sellerId);
 
       const auctionProducts = await tx.auctionProduct.findMany({
         where: { auctionId },
@@ -561,21 +726,21 @@ export class AuctionService {
     });
   }
 
-  async endAuction(auctionId: string): Promise<void> {
-    this.logger.log(`[AUCTION] Ending auction ${auctionId}`);
+  async endAuction(sellerId: string, auctionId: string): Promise<void> {
+    this.logger.log(`[AUCTION] Seller ${sellerId} ending auction ${auctionId}`);
 
     await this.prisma.$transaction(async (tx) => {
       const auctions = await tx.$queryRaw<
         Array<{
           auctionId: string;
+          sellerId: string;
           status: AuctionStatus;
-          endTime: Date;
         }>
       >`
       SELECT
         auction_id AS auctionId,
-        status,
-        end_time AS endTime
+        seller_id AS sellerId,
+        status
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -587,58 +752,22 @@ export class AuctionService {
       }
 
       const auction = auctions[0];
-      const now = new Date();
-
-      if (
-        auction.status !== AuctionStatus.OPEN &&
-        auction.status !== AuctionStatus.EXTENDED
-      ) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} cannot be ended from status ${auction.status}`,
-        );
-
-        throw new BadRequestException(ERROR_AUCTION_INVALID_STATUS);
-      }
-
-      if (now < auction.endTime) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} has not reached its end time`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_ALREADY_ENDED);
-      }
-
-      const auctionProducts = await tx.auctionProduct.findMany({
-        where: { auctionId },
-        select: {
-          productId: true,
-          quantity: true,
-        },
-      });
-
-      const productIds = auctionProducts.map((product) => product.productId);
-      if (productIds.length > 0) {
-        await tx.$queryRaw`
-        SELECT product_id
-        FROM products
-        WHERE product_id IN (${productIds.join(',')})
-        FOR UPDATE
-      `;
-
-        for (const auctionProduct of auctionProducts) {
-          await tx.product.update({
-            where: { productId: auctionProduct.productId },
-            data: { status: ProductStatus.READY },
-          });
-        }
-      }
+      this.auctionPermissionService.canEndAuction(auction, sellerId);
 
       await tx.auction.update({
         where: { auctionId },
-        data: { status: AuctionStatus.COMPLETED },
+        data: {
+          status: AuctionStatus.CLOSED,
+        },
       });
 
-      this.logger.log(`[AUCTION] Auction ${auctionId} ended successfully`);
+      this.logger.log(
+        `[AUCTION] Auction ${auctionId} ended manually by seller ${sellerId}`,
+      );
     });
+
+    // Perform the same settlement flow used by automatic closing.
+    // TODO: Close auction
 
     this.logger.log(`[AUCTION] Successfully ended auction ${auctionId}`);
   }
@@ -671,19 +800,7 @@ export class AuctionService {
       }
 
       const auction = auctions[0];
-      if (auction.sellerId !== sellerId) {
-        this.logger.warn(
-          `[AUCTION] Seller ${sellerId} attempted to reopen auction ${auctionId} they do not own`,
-        );
-        throw new ForbiddenException(ERROR_AUCTION_ACCESS_DENIED);
-      }
-
-      if (auction.status !== AuctionStatus.CANCELED) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} cannot be reopened from status ${auction.status}`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_INVALID_STATUS);
-      }
+      this.auctionPermissionService.canResubmitAuction(auction, sellerId);
 
       const auctionProducts = await tx.auctionProduct.findMany({
         where: { auctionId },
@@ -760,5 +877,253 @@ export class AuctionService {
     });
 
     this.logger.log(`[AUCTION] Successfully reopened auction ${auctionId}`);
+  }
+
+  // TODO: Implement closeAuction() later.
+  // Handle final settlement: determine winner, finalize status, and process auction products
+
+  async extendAuction(auctionId: string): Promise<void> {
+    this.logger.log(`[AUCTION] Extending auction ${auctionId}`);
+
+    await this.prisma.$transaction(async (tx) => {
+      const auctions = await tx.$queryRaw<
+        Array<{
+          auctionId: string;
+          status: AuctionStatus;
+          endTime: Date;
+        }>
+      >`
+      SELECT
+        auction_id AS auctionId,
+        status,
+        end_time AS endTime
+      FROM auctions
+      WHERE auction_id = ${auctionId}
+      FOR UPDATE
+    `;
+
+      if (auctions.length === 0) {
+        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      const auction = auctions[0];
+
+      if (
+        auction.status !== AuctionStatus.OPEN &&
+        auction.status !== AuctionStatus.EXTENDED
+      ) {
+        this.logger.warn(
+          `[AUCTION] Auction ${auctionId} cannot be extended from status ${auction.status}`,
+        );
+        throw new BadRequestException(ERROR_AUCTION_NOT_OPEN);
+      }
+
+      const now = new Date();
+      if (now >= auction.endTime) {
+        this.logger.warn(`[AUCTION] Auction ${auctionId} has already ended`);
+        throw new BadRequestException(ERROR_AUCTION_ALREADY_ENDED);
+      }
+
+      const remainingTime = auction.endTime.getTime() - now.getTime();
+      const extensionWindow = 2 * 60 * 1000;
+      const extensionDuration = 2 * 60 * 1000;
+
+      if (remainingTime > extensionWindow) {
+        this.logger.debug(
+          `[AUCTION] Auction ${auctionId} does not need extension`,
+        );
+        return;
+      }
+
+      const newEndTime = new Date(
+        auction.endTime.getTime() + extensionDuration,
+      );
+
+      await tx.auction.update({
+        where: { auctionId },
+        data: {
+          endTime: newEndTime,
+          status: AuctionStatus.EXTENDED,
+        },
+      });
+
+      this.logger.log(
+        `[AUCTION] Auction ${auctionId} extended until ${newEndTime.toISOString()}`,
+      );
+    });
+
+    this.logger.log(
+      `[AUCTION] Successfully processed extension for auction ${auctionId}`,
+    );
+  }
+
+  async updateAuction(
+    userId: string,
+    auctionId: string,
+    dto: UpdateAuctionDto,
+  ): Promise<void> {
+    const {
+      title,
+      startTime,
+      endTime,
+      startingPrice,
+      minimumBidIncrement,
+      auctionProducts,
+    } = dto;
+
+    this.logger.log(`User ${userId} is updating auction ${auctionId}`);
+
+    await this.prisma.$transaction(async (tx) => {
+      const auction = await tx.auction.findUnique({
+        where: { auctionId },
+        select: {
+          auctionId: true,
+          sellerId: true,
+          title: true,
+          status: true,
+          startTime: true,
+          endTime: true,
+          auctionProducts: {
+            select: {
+              productId: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      if (!auction) {
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      this.auctionPermissionService.canUpdateAuction(auction, userId);
+
+      const now = new Date();
+      const newStartTime = startTime ? new Date(startTime) : auction.startTime;
+      const newEndTime = endTime ? new Date(endTime) : auction.endTime;
+
+      if (newStartTime <= now) {
+        throw new BadRequestException(ERROR_AUCTION_START_TIME_INVALID);
+      }
+
+      if (newEndTime <= newStartTime) {
+        throw new BadRequestException(ERROR_AUCTION_END_TIME_INVALID);
+      }
+
+      if (auctionProducts !== undefined) {
+        const newProductIds = auctionProducts.map(
+          (product) => product.productId,
+        );
+
+        if (new Set(newProductIds).size !== newProductIds.length) {
+          throw new BadRequestException(ERROR_AUCTION_DUPLICATE_PRODUCTS);
+        }
+
+        const oldProductIds = auction.auctionProducts.map(
+          (product) => product.productId,
+        );
+
+        const affectedProductIds = [
+          ...new Set([...oldProductIds, ...newProductIds]),
+        ];
+
+        const products = await tx.$queryRaw<
+          {
+            productId: string;
+            sellerId: string;
+            status: ProductStatus;
+            stockQuantity: number;
+          }[]
+        >`
+        SELECT
+          product_id AS productId,
+          seller_id AS sellerId,
+          status,
+          stock_quantity AS stockQuantity
+        FROM products
+        WHERE product_id IN (${Prisma.join(affectedProductIds)})
+        FOR UPDATE
+      `;
+
+        if (products.length !== affectedProductIds.length) {
+          throw new BadRequestException(ERROR_AUCTION_PRODUCTS_NOT_FOUND);
+        }
+
+        const productMap = new Map(
+          products.map((product) => [product.productId, product]),
+        );
+
+        // Restore old reservations
+        for (const oldAuctionProduct of auction.auctionProducts) {
+          await tx.product.update({
+            where: { productId: oldAuctionProduct.productId },
+            data: {
+              stockQuantity: { increment: oldAuctionProduct.quantity },
+              status: ProductStatus.READY,
+            },
+          });
+        }
+
+        // Validate and reserve new products
+        for (const auctionProduct of auctionProducts) {
+          const product = productMap.get(auctionProduct.productId)!;
+
+          if (product.sellerId !== userId) {
+            throw new ForbiddenException(ERROR_AUCTION_PRODUCT_ACCESS_DENIED);
+          }
+
+          if (product.status !== ProductStatus.READY) {
+            throw new BadRequestException(ERROR_AUCTION_PRODUCT_STATUS_INVALID);
+          }
+
+          if (auctionProduct.quantity > product.stockQuantity) {
+            throw new BadRequestException(
+              ERROR_AUCTION_PRODUCT_QUANTITY_INVALID,
+            );
+          }
+        }
+
+        // Reserve new quantities
+        for (const auctionProduct of auctionProducts) {
+          await tx.product.update({
+            where: { productId: auctionProduct.productId },
+            data: {
+              stockQuantity: { decrement: auctionProduct.quantity },
+              status: ProductStatus.AUCTIONING,
+            },
+          });
+        }
+
+        // Replace auction products
+        await tx.auctionProduct.deleteMany({
+          where: { auctionId },
+        });
+
+        await tx.auctionProduct.createMany({
+          data: auctionProducts.map((product) => ({
+            auctionId,
+            productId: product.productId,
+            quantity: product.quantity,
+          })),
+        });
+      }
+
+      await tx.auction.update({
+        where: { auctionId },
+        data: {
+          ...(title !== undefined && { title }),
+          ...(startTime !== undefined && { startTime: newStartTime }),
+          ...(endTime !== undefined && { endTime: newEndTime }),
+          ...(startingPrice !== undefined && {
+            startingPrice,
+            currentPrice: startingPrice,
+          }),
+          ...(minimumBidIncrement !== undefined && { minimumBidIncrement }),
+        },
+      });
+    });
+
+    this.logger.debug(`User ${userId} updated auction ${auctionId}`);
   }
 }

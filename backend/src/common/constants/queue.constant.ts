@@ -19,3 +19,12 @@ export const FOLLOW_NOTIFICATION_QUEUE = {
     FOLLOW_ACCEPTED: 'follow-accepted',
   },
 } as const;
+
+export const AUCTION_QUEUE = {
+  NAME: 'auction',
+  JOBS: {
+    OPEN_AUCTION: 'open-auction',
+    EXTEND_AUCTION: 'extend-auction',
+    CLOSE_AUCTION: 'close-auction',
+  },
+} as const;

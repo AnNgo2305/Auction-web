@@ -33,6 +33,7 @@ import { RedisThrottlerStorageModule } from '@common/throttler/redis-throttler-s
 import rateLimitConfig from '@common/config/rate-limit.config';
 import { RedisThrottlerStorageService } from '@common/throttler/redis-throttler-storage.service';
 import {
+  AUCTION_QUEUE,
   FOLLOW_NOTIFICATION_QUEUE,
   MAIL_QUEUE,
   MESSAGE_NOTIFICATION_QUEUE,
@@ -152,6 +153,7 @@ const service = [
       { name: MAIL_QUEUE.NAME },
       { name: MESSAGE_NOTIFICATION_QUEUE.NAME },
       { name: FOLLOW_NOTIFICATION_QUEUE.NAME },
+      { name: AUCTION_QUEUE.NAME },
     ),
   ],
   providers: [
