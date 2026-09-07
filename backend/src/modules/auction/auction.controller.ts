@@ -203,4 +203,25 @@ export class AuctionController {
       data: {},
     };
   }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.ADMIN)
+  @Patch(':id/confirm')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
+  @HttpCode(HttpStatus.OK)
+  async confirmAuction(
+    @Req() req: Request,
+    @Param('id') auctionId: string,
+  ): Promise<ResponsePayload> {
+    await this.auctionService.confirmAuction(req.user!.userId, auctionId);
+
+    return {
+      message: 'Auction confirmed successfully',
+      data: {},
+    };
+  }
 }

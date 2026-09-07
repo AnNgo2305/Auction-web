@@ -21,6 +21,7 @@ import {
   ERROR_AUCTION_NOT_READY,
   ERROR_AUCTION_ALREADY_ENDED,
   ERROR_AUCTION_NOT_OPEN,
+  ERROR_AUCTION_INVALID_STATUS,
 } from '@modules/auction/auction.constant';
 import { AuctionStatus, ProductStatus } from '@generated/prisma/enums';
 import { GetAuctionByIdResponseDto } from '@modules/auction/dtos/get-auction-by-id.response.dto';
@@ -797,7 +798,10 @@ export class AuctionService {
 
       await tx.auction.update({
         where: { auctionId },
-        data: { status: AuctionStatus.PENDING },
+        data: {
+          status: AuctionStatus.PENDING,
+          cancelReason: null,
+        },
       });
 
       this.logger.log(`[AUCTION] Auction ${auctionId} reopened successfully`);
@@ -806,13 +810,53 @@ export class AuctionService {
     this.logger.log(`[AUCTION] Successfully reopened auction ${auctionId}`);
   }
 
+  async confirmAuction(adminId: string, auctionId: string): Promise<void> {
+    this.logger.log(
+      `[AUCTION] Admin ${adminId} confirming auction ${auctionId}`,
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      const auctions = await tx.$queryRaw<
+        Array<{
+          auctionId: string;
+          status: AuctionStatus;
+        }>
+      >`
+      SELECT
+        auction_id AS auctionId,
+        status
+      FROM auctions
+      WHERE auction_id = ${auctionId}
+      FOR UPDATE
+    `;
+
+      if (auctions.length === 0) {
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      const auction = auctions[0];
+      if (auction.status !== AuctionStatus.PENDING) {
+        throw new BadRequestException(ERROR_AUCTION_INVALID_STATUS);
+      }
+
+      await tx.auction.update({
+        where: { auctionId },
+        data: { status: AuctionStatus.READY },
+      });
+    });
+
+    this.logger.log(
+      `[AUCTION] Admin ${adminId} successfully confirmed auction ${auctionId}`,
+    );
+  }
+
   // TODO: Implement completeAuction() later.
   // Handle auction completion: determine the winner and transition the auction to COMPLETED.
 
   // TODO: Implement closeAuction() later.
   // Handle final settlement: process payment completion and transition the auction to CLOSED.
 
-  // TODO: Implement reopenAuction() later.
+  // TODO: Implement reopenAuction() later (Controller API).
   // Handle payment timeout: cancel the pending payment and reopen the auction for a new bidding round.
 
   async extendAuction(auctionId: string): Promise<void> {
