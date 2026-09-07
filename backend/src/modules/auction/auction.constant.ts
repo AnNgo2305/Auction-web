@@ -23,7 +23,7 @@ export const ERROR_AUCTION_END_TIME_INVALID = {
 };
 
 export const ERROR_AUCTION_PRODUCTS_NOT_FOUND = {
-  statusCode: 400,
+  statusCode: 404,
   errorCode: 'AUCTION_PRODUCTS_NOT_FOUND',
   message: 'One or more products do not exist',
 };

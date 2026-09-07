@@ -26,5 +26,6 @@ export const AUCTION_QUEUE = {
     OPEN_AUCTION: 'open-auction',
     EXTEND_AUCTION: 'extend-auction',
     CLOSE_AUCTION: 'close-auction',
+    COMPLETE_AUCTION: 'complete-auction',
   },
 } as const;

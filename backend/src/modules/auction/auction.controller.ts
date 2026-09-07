@@ -22,6 +22,7 @@ import { AuctionService } from '@modules/auction/services/auction.service';
 import { CreateAuctionDto } from '@modules/auction/dtos/create-auction.body.dto';
 import { UpdateAuctionDto } from '@modules/auction/dtos/update-auction.body.dto';
 import { SearchAuctionsQueryDto } from '@modules/auction/dtos/search-auctions.query.dto';
+import { CancelAuctionDto } from '@modules/auction/dtos/cancel-auction.body.dto';
 
 @Controller('auctions')
 export class AuctionController {
@@ -147,8 +148,13 @@ export class AuctionController {
   async cancelAuction(
     @Req() req: Request,
     @Param('id') auctionId: string,
+    @Body() dto: CancelAuctionDto,
   ): Promise<ResponsePayload> {
-    await this.auctionService.cancelAuction(req.user!.userId, auctionId);
+    await this.auctionService.cancelAuction(
+      req.user!.userId,
+      auctionId,
+      dto.cancelReason,
+    );
 
     return {
       message: 'Auction cancelled successfully',

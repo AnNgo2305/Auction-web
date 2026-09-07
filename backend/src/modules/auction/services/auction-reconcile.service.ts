@@ -58,7 +58,7 @@ export class AuctionReconcileService {
           auction.status === AuctionStatus.OPEN ||
           auction.status === AuctionStatus.EXTENDED
         ) {
-          await this.auctionService.emitCloseAuction(
+          await this.auctionService.emitCompleteAuction(
             auction.auctionId,
             auction.endTime,
           );

@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { LoggerService } from '@common/services/logger.service';
@@ -46,10 +47,7 @@ export class AuctionService {
     private readonly auctionQueue: Queue,
   ) {}
 
-  async emitOpenAuction(
-    auctionId: string,
-    startTime: Date,
-  ): Promise<void> {
+  async emitOpenAuction(auctionId: string, startTime: Date): Promise<void> {
     const delay = Math.max(0, startTime.getTime() - Date.now());
 
     await this.auctionQueue.add(
@@ -59,7 +57,7 @@ export class AuctionService {
       },
       {
         delay,
-        jobId: `auction-open:${auctionId}`,
+        jobId: `auction-open_${auctionId}`,
         removeOnComplete: true,
         removeOnFail: false,
       },
@@ -68,20 +66,17 @@ export class AuctionService {
     this.logger.log(`[AUCTION] Open job emitted for auction ${auctionId}`);
   }
 
-  async emitCloseAuction(
-    auctionId: string,
-    endTime: Date,
-  ): Promise<void> {
+  async emitCompleteAuction(auctionId: string, endTime: Date): Promise<void> {
     const delay = Math.max(0, endTime.getTime() - Date.now());
 
     await this.auctionQueue.add(
-      AUCTION_QUEUE.JOBS.CLOSE_AUCTION,
+      AUCTION_QUEUE.JOBS.COMPLETE_AUCTION,
       {
         auctionId,
       },
       {
         delay,
-        jobId: `auction-close:${auctionId}:${endTime.getTime()}`,
+        jobId: `auction-complete_${auctionId}_${endTime.getTime()}`,
         removeOnComplete: true,
         removeOnFail: false,
       },
@@ -121,34 +116,10 @@ export class AuctionService {
     }
 
     const auction = await this.prisma.$transaction(async (tx) => {
-      const products = await tx.$queryRaw<
-        Array<{
-          productId: string;
-          sellerId: string;
-          status: ProductStatus;
-          quantity: number;
-        }>
-      >`
-      SELECT
-        product_id AS productId,
-        seller_id AS sellerId,
-        status,
-        quantity
-      FROM products
-      WHERE product_id IN (${productIds.join(',')})
-      FOR UPDATE
-    `;
-
+      const products = await this.getAndValidateAuctionProducts(tx, productIds);
       this.logger.log(
         `[AUCTION] Locked ${products.length} products for seller ${sellerId}`,
       );
-
-      if (products.length !== productIds.length) {
-        this.logger.warn(
-          `[AUCTION] Some products were not found for seller ${sellerId}`,
-        );
-        throw new NotFoundException(ERROR_AUCTION_PRODUCTS_NOT_FOUND);
-      }
 
       const hasUnauthorizedProduct = products.some(
         (product) => product.sellerId !== sellerId,
@@ -160,42 +131,6 @@ export class AuctionService {
         throw new ForbiddenException(ERROR_AUCTION_PRODUCT_ACCESS_DENIED);
       }
 
-      const hasInvalidProductStatus = products.some(
-        (product) => product.status !== ProductStatus.READY,
-      );
-      if (hasInvalidProductStatus) {
-        this.logger.warn(
-          `[AUCTION] Some products are not ready for auction for seller ${sellerId}`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_PRODUCT_STATUS_INVALID);
-      }
-
-      const existingAuctionProducts = await tx.auctionProduct.findMany({
-        where: {
-          productId: { in: productIds },
-          auction: {
-            status: {
-              in: [
-                AuctionStatus.PENDING,
-                AuctionStatus.READY,
-                AuctionStatus.OPEN,
-                AuctionStatus.EXTENDED,
-              ],
-            },
-          },
-        },
-        select: { productId: true },
-      });
-
-      if (existingAuctionProducts.length > 0) {
-        this.logger.warn(
-          `[AUCTION] Products already in active auctions for seller ${sellerId}`,
-        );
-        throw new BadRequestException(
-          ERROR_AUCTION_PRODUCTS_ALREADY_IN_AUCTION,
-        );
-      }
-
       const productMap = new Map(
         products.map((product) => [product.productId, product]),
       );
@@ -203,7 +138,7 @@ export class AuctionService {
       const hasInsufficientStock = dto.auctionProducts.some(
         (auctionProduct) => {
           const product = productMap.get(auctionProduct.productId);
-          return product && auctionProduct.quantity > product.quantity;
+          return product && auctionProduct.quantity > product.stockQuantity;
         },
       );
 
@@ -211,7 +146,6 @@ export class AuctionService {
         this.logger.warn(
           `[AUCTION] Insufficient product stock for seller ${sellerId}`,
         );
-
         throw new BadRequestException(ERROR_AUCTION_PRODUCT_QUANTITY_INVALID);
       }
 
@@ -260,7 +194,7 @@ export class AuctionService {
     );
 
     await this.emitOpenAuction(auction.auctionId, auction.startTime);
-    await this.emitCloseAuction(auction.auctionId, auction.endTime);
+    await this.emitCompleteAuction(auction.auctionId, auction.endTime);
   }
 
   async getMyAuctions(
@@ -394,15 +328,6 @@ export class AuctionService {
     const auction = await this.prisma.auction.findFirst({
       where: {
         auctionId,
-        status: {
-          in: [
-            AuctionStatus.READY,
-            AuctionStatus.OPEN,
-            AuctionStatus.EXTENDED,
-            AuctionStatus.CLOSED,
-            AuctionStatus.COMPLETED,
-          ],
-        },
       },
       select: {
         auctionId: true,
@@ -594,7 +519,11 @@ export class AuctionService {
     };
   }
 
-  async cancelAuction(sellerId: string, auctionId: string): Promise<void> {
+  async cancelAuction(
+    sellerId: string,
+    auctionId: string,
+    cancelReason: string,
+  ): Promise<void> {
     this.logger.log(
       `[AUCTION] Cancelling auction ${auctionId} by seller ${sellerId}`,
     );
@@ -657,7 +586,10 @@ export class AuctionService {
 
       await tx.auction.update({
         where: { auctionId },
-        data: { status: AuctionStatus.CANCELED },
+        data: {
+          status: AuctionStatus.CANCELED,
+          cancelReason,
+        },
       });
 
       this.logger.log(
@@ -757,7 +689,7 @@ export class AuctionService {
       await tx.auction.update({
         where: { auctionId },
         data: {
-          status: AuctionStatus.CLOSED,
+          status: AuctionStatus.COMPLETED,
         },
       });
 
@@ -766,8 +698,9 @@ export class AuctionService {
       );
     });
 
-    // Perform the same settlement flow used by automatic closing.
-    // TODO: Close auction
+    // TODO: completeAuction().
+    // completeAuction() will contain the shared auction completion logic
+    // and will be reused by both manual ending and the BullMQ processor.
 
     this.logger.log(`[AUCTION] Successfully ended auction ${auctionId}`);
   }
@@ -783,12 +716,16 @@ export class AuctionService {
           auctionId: string;
           sellerId: string;
           status: AuctionStatus;
+          startTime: Date;
+          endTime: Date;
         }>
       >`
       SELECT
         auction_id AS auctionId,
         seller_id AS sellerId,
-        status
+        status,
+        start_time AS startTime,
+        end_time AS endTime
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -800,6 +737,16 @@ export class AuctionService {
       }
 
       const auction = auctions[0];
+      const now = new Date();
+
+      if (auction.startTime <= now) {
+        throw new BadRequestException(ERROR_AUCTION_START_TIME_INVALID);
+      }
+
+      if (auction.endTime <= auction.startTime) {
+        throw new BadRequestException(ERROR_AUCTION_END_TIME_INVALID);
+      }
+
       this.auctionPermissionService.canResubmitAuction(auction, sellerId);
 
       const auctionProducts = await tx.auctionProduct.findMany({
@@ -813,46 +760,26 @@ export class AuctionService {
       const productIds = auctionProducts.map((product) => product.productId);
 
       if (productIds.length > 0) {
-        const products = await tx.$queryRaw<
-          Array<{
-            productId: string;
-            sellerId: string;
-            status: ProductStatus;
-            stockQuantity: number;
-          }>
-        >`
-        SELECT
-          product_id AS productId,
-          seller_id AS sellerId,
-          status,
-          stock_quantity AS stockQuantity
-        FROM products
-        WHERE product_id IN (${productIds.join(',')})
-        FOR UPDATE
-      `;
+        const products = await this.getAndValidateAuctionProducts(
+          tx,
+          productIds,
+          auctionId,
+        );
 
-        for (const auctionProduct of auctionProducts) {
-          const product = products.find(
-            (item) => item.productId === auctionProduct.productId,
+        const productMap = new Map(
+          products.map((product) => [product.productId, product]),
+        );
+
+        const hasInsufficientStock = auctionProducts.some((auctionProduct) => {
+          const product = productMap.get(auctionProduct.productId);
+          return product && auctionProduct.quantity > product.stockQuantity;
+        });
+
+        if (hasInsufficientStock) {
+          this.logger.warn(
+            `[AUCTION] Insufficient product stock for resubmission of auction ${auctionId}`,
           );
-
-          if (!product) {
-            throw new BadRequestException(ERROR_AUCTION_PRODUCTS_NOT_FOUND);
-          }
-
-          if (product.sellerId !== sellerId) {
-            throw new ForbiddenException(ERROR_AUCTION_PRODUCT_ACCESS_DENIED);
-          }
-
-          if (product.status !== ProductStatus.READY) {
-            throw new BadRequestException(ERROR_AUCTION_PRODUCT_STATUS_INVALID);
-          }
-
-          if (auctionProduct.quantity > product.stockQuantity) {
-            throw new BadRequestException(
-              ERROR_AUCTION_PRODUCT_QUANTITY_INVALID,
-            );
-          }
+          throw new BadRequestException(ERROR_AUCTION_PRODUCT_QUANTITY_INVALID);
         }
 
         for (const auctionProduct of auctionProducts) {
@@ -879,8 +806,14 @@ export class AuctionService {
     this.logger.log(`[AUCTION] Successfully reopened auction ${auctionId}`);
   }
 
+  // TODO: Implement completeAuction() later.
+  // Handle auction completion: determine the winner and transition the auction to COMPLETED.
+
   // TODO: Implement closeAuction() later.
-  // Handle final settlement: determine winner, finalize status, and process auction products
+  // Handle final settlement: process payment completion and transition the auction to CLOSED.
+
+  // TODO: Implement reopenAuction() later.
+  // Handle payment timeout: cancel the pending payment and reopen the auction for a new bidding round.
 
   async extendAuction(auctionId: string): Promise<void> {
     this.logger.log(`[AUCTION] Extending auction ${auctionId}`);
@@ -1028,74 +961,98 @@ export class AuctionService {
           ...new Set([...oldProductIds, ...newProductIds]),
         ];
 
+        // Lock old and new products.
         const products = await tx.$queryRaw<
-          {
+          Array<{
             productId: string;
             sellerId: string;
             status: ProductStatus;
             stockQuantity: number;
-          }[]
+          }>
         >`
-        SELECT
-          product_id AS productId,
-          seller_id AS sellerId,
-          status,
-          stock_quantity AS stockQuantity
-        FROM products
-        WHERE product_id IN (${Prisma.join(affectedProductIds)})
-        FOR UPDATE
-      `;
-
-        if (products.length !== affectedProductIds.length) {
-          throw new BadRequestException(ERROR_AUCTION_PRODUCTS_NOT_FOUND);
-        }
+          SELECT
+            product_id AS productId,
+            seller_id AS sellerId,
+            status,
+            stock_quantity AS stockQuantity
+          FROM products
+          WHERE product_id IN (${Prisma.join(affectedProductIds)})
+          FOR UPDATE
+        `;
 
         const productMap = new Map(
           products.map((product) => [product.productId, product]),
         );
 
-        // Restore old reservations
+        // Restore old product reservations first.
         for (const oldAuctionProduct of auction.auctionProducts) {
+          const product = productMap.get(oldAuctionProduct.productId)!;
+          product.stockQuantity += oldAuctionProduct.quantity;
+          product.status = ProductStatus.READY;
+
           await tx.product.update({
             where: { productId: oldAuctionProduct.productId },
             data: {
-              stockQuantity: { increment: oldAuctionProduct.quantity },
+              stockQuantity: {
+                increment: oldAuctionProduct.quantity,
+              },
               status: ProductStatus.READY,
             },
           });
         }
 
-        // Validate and reserve new products
-        for (const auctionProduct of auctionProducts) {
-          const product = productMap.get(auctionProduct.productId)!;
+        // Validate only new products after old products are restored.
+        const newProducts = await this.getAndValidateAuctionProducts(
+          tx,
+          newProductIds,
+          auctionId,
+        );
 
-          if (product.sellerId !== userId) {
-            throw new ForbiddenException(ERROR_AUCTION_PRODUCT_ACCESS_DENIED);
-          }
-
-          if (product.status !== ProductStatus.READY) {
-            throw new BadRequestException(ERROR_AUCTION_PRODUCT_STATUS_INVALID);
-          }
-
-          if (auctionProduct.quantity > product.stockQuantity) {
-            throw new BadRequestException(
-              ERROR_AUCTION_PRODUCT_QUANTITY_INVALID,
-            );
-          }
+        const hasUnauthorizedProduct = newProducts.some(
+          (product) => product.sellerId !== userId,
+        );
+        if (hasUnauthorizedProduct) {
+          this.logger.warn(
+            `[AUCTION] Seller ${userId} attempted to auction products they do not own`,
+          );
+          throw new ForbiddenException(ERROR_AUCTION_PRODUCT_ACCESS_DENIED);
         }
 
-        // Reserve new quantities
+        const newProductMap = new Map(
+          newProducts.map((product) => [product.productId, product]),
+        );
+
+        const hasInsufficientStock = auctionProducts.some((auctionProduct) => {
+          const product = newProductMap.get(auctionProduct.productId);
+          return product && auctionProduct.quantity > product.stockQuantity;
+        });
+
+        if (hasInsufficientStock) {
+          this.logger.warn(
+            `[AUCTION] Insufficient product stock for seller ${userId}`,
+          );
+          throw new BadRequestException(ERROR_AUCTION_PRODUCT_QUANTITY_INVALID);
+        }
+
+        // Reserve new product quantities.
         for (const auctionProduct of auctionProducts) {
+          const product = productMap.get(auctionProduct.productId)!;
+          product.stockQuantity -= auctionProduct.quantity;
+          product.status = ProductStatus.AUCTIONING;
+
           await tx.product.update({
-            where: { productId: auctionProduct.productId },
+            where: {
+              productId: auctionProduct.productId,
+            },
             data: {
-              stockQuantity: { decrement: auctionProduct.quantity },
+              stockQuantity: {
+                decrement: auctionProduct.quantity,
+              },
               status: ProductStatus.AUCTIONING,
             },
           });
         }
 
-        // Replace auction products
         await tx.auctionProduct.deleteMany({
           where: { auctionId },
         });
@@ -1125,5 +1082,76 @@ export class AuctionService {
     });
 
     this.logger.debug(`User ${userId} updated auction ${auctionId}`);
+  }
+
+  private async getAndValidateAuctionProducts(
+    tx: Prisma.TransactionClient,
+    productIds: string[],
+    currentAuctionId?: string,
+  ): Promise<
+    Array<{
+      productId: string;
+      sellerId: string;
+      status: ProductStatus;
+      stockQuantity: number;
+    }>
+  > {
+    const products = await tx.$queryRaw<
+      Array<{
+        productId: string;
+        sellerId: string;
+        status: ProductStatus;
+        stockQuantity: number;
+      }>
+    >`
+    SELECT
+      product_id AS productId,
+      seller_id AS sellerId,
+      status,
+      stock_quantity AS stockQuantity
+    FROM products
+    WHERE product_id IN (${Prisma.join(productIds)})
+    FOR UPDATE
+  `;
+
+    if (products.length !== productIds.length) {
+      throw new BadRequestException(ERROR_AUCTION_PRODUCTS_NOT_FOUND);
+    }
+
+    const hasInvalidProductStatus = products.some(
+      (product) =>
+        product.status !== ProductStatus.READY &&
+        product.status !== ProductStatus.AUCTIONING,
+    );
+
+    if (hasInvalidProductStatus) {
+      throw new BadRequestException(ERROR_AUCTION_PRODUCT_STATUS_INVALID);
+    }
+
+    const existingAuctionProducts = await tx.auctionProduct.findMany({
+      where: {
+        productId: { in: productIds },
+        ...(currentAuctionId && {
+          auctionId: { not: currentAuctionId },
+        }),
+        auction: {
+          status: {
+            in: [
+              AuctionStatus.PENDING,
+              AuctionStatus.READY,
+              AuctionStatus.OPEN,
+              AuctionStatus.EXTENDED,
+            ],
+          },
+        },
+      },
+      select: { productId: true },
+    });
+
+    if (existingAuctionProducts.length > 0) {
+      throw new ConflictException(ERROR_AUCTION_PRODUCTS_ALREADY_IN_AUCTION);
+    }
+
+    return products;
   }
 }

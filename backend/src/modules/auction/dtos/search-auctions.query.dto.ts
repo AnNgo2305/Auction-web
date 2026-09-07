@@ -63,7 +63,7 @@ export class SearchAuctionsQueryDto {
   @IsInt({ message: 'Limit must be an integer' })
   @Min(1, { message: 'Limit must be greater than or equal to 1' })
   @Max(100, { message: 'Limit must not exceed 100' })
-  limit: number = 20;
+  limit: number = 10;
 
   @IsOptional()
   @IsEnum(SortBy, {
