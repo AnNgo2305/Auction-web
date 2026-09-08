@@ -27,6 +27,7 @@ import { NotificationModule } from '@modules/notification/notification.module';
 import { SchedulerModule } from '@modules/scheduler/scheduler.module';
 import { PresenceModule } from '@modules/presence/presence.module';
 import { AuctionModule } from '@modules/auction/auction.module';
+import { WatchlistModule } from '@modules/watchlist/watchlist.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AuctionModule } from '@modules/auction/auction.module';
     SchedulerModule,
     PresenceModule,
     AuctionModule,
+    WatchlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
