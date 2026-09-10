@@ -1,0 +1,12 @@
+export enum AUCTION_STATUSES {
+  PENDING = 'PENDING',
+  READY = 'READY',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  CANCELED = 'CANCELED',
+  COMPLETED = 'COMPLETED',
+  EXTENDED = 'EXTENDED',
+}
+
+export type AuctionStatus =
+  (typeof AUCTION_STATUSES)[keyof typeof AUCTION_STATUSES];
