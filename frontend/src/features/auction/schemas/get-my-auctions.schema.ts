@@ -1,15 +1,12 @@
 import { z } from 'zod';
-import {
-  AuctionSortBy,
-  AuctionSortOrder,
-} from '@/shared/types/auction';
-import { PUBLIC_AUCTION_STATUSES } from '@/shared/types/auction-status.ts';
+import { AuctionSortBy, AuctionSortOrder } from '@/shared/types/auction';
+import { AUCTION_STATUSES } from '@/shared/types/auction-status';
 
-export const searchAuctionsSchema = z.object({
+export const getMyAuctionsSchema = z.object({
   keyword: z.string().optional(),
 
   status: z
-    .enum(PUBLIC_AUCTION_STATUSES, {
+    .enum(AUCTION_STATUSES, {
       error: 'Invalid auction status.',
     })
     .optional(),
@@ -68,4 +65,4 @@ export const searchAuctionsSchema = z.object({
     .default(AuctionSortOrder.DESC),
 });
 
-export type SearchAuctionsQuery = z.infer<typeof searchAuctionsSchema>;
+export type GetMyAuctionsQuery = z.infer<typeof getMyAuctionsSchema>;

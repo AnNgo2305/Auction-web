@@ -12,6 +12,7 @@ import type { CancelAuctionResponse } from '@/features/auction/types/cancel-auct
 import type { ResubmitAuctionResponse } from '@/features/auction/types/resubmit-auction.response';
 import type { EndAuctionResponse } from '@/features/auction/types/end-auction.response';
 import type { ConfirmAuctionResponse } from '@/features/auction/types/confirm-auction.response';
+import type { GetMyAuctionsQuery } from '@/features/auction/schemas/get-my-auctions.schema.ts';
 
 const AUCTION_API_PREFIX = '/auctions';
 
@@ -35,7 +36,7 @@ export const auctionApi = {
   },
 
   getMyAuctions: async (
-    query: SearchAuctionsQuery,
+    query: GetMyAuctionsQuery,
   ): Promise<GetMyAuctionsResponse> => {
     const res = await api.get<GetMyAuctionsResponse>(
       `${AUCTION_API_PREFIX}/me`,
