@@ -7,17 +7,16 @@ import type { ResubmitAuctionResponse } from '@/features/auction/types/resubmit-
 import type { ApiResponseError } from '@/shared/types/error';
 
 export function useResubmitAuction(
-  auctionId: string,
   onSuccessCallback?: () => void,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<ResubmitAuctionResponse, ApiResponseError, void>({
-    mutationFn: async (): Promise<ResubmitAuctionResponse> => {
+  return useMutation<ResubmitAuctionResponse, ApiResponseError, string>({
+    mutationFn: async (auctionId: string): Promise<ResubmitAuctionResponse> => {
       return await auctionApi.resubmitAuction(auctionId);
     },
 
-    onSuccess: async (response) => {
+    onSuccess: async (response, auctionId) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: auctionKeys.myLists(),

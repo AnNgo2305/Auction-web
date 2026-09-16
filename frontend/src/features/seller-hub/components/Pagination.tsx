@@ -6,9 +6,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/select';
+} from '@/shared/ui/select.tsx';
 
-type MyProductsPaginationProps = {
+type PaginationProps = {
   page: number;
   loadedPageCount: number;
   hasNextPage: boolean;
@@ -20,7 +20,7 @@ type MyProductsPaginationProps = {
   onLimitChange: (limit: number) => void;
 };
 
-export function MyProductsPagination({
+export function Pagination({
   page,
   loadedPageCount,
   hasNextPage,
@@ -30,7 +30,7 @@ export function MyProductsPagination({
   onNextPage,
   limit,
   onLimitChange,
-}: MyProductsPaginationProps) {
+}: PaginationProps) {
   const displayPageCount = hasNextPage ? loadedPageCount + 1 : loadedPageCount;
 
   return (

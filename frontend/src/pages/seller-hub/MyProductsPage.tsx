@@ -11,7 +11,7 @@ import { MyProductsFilterForm } from '@/features/seller-hub/components/my-produc
 import { MyProductsAppliedFilterTags } from '@/features/seller-hub/components/my-products/MyProductsAppliedFilterTags';
 import { MyProductsBulkActions } from '@/features/seller-hub/components/my-products/MyProductsBulkActions';
 import { MyProductsDataTable } from '@/features/seller-hub/components/my-products/MyProductsDataTable';
-import { MyProductsPagination } from '@/features/seller-hub/components/my-products/MyProductsPagination';
+import { Pagination } from '@/features/seller-hub/components/Pagination.tsx';
 import { useGetMyProducts } from '@/features/seller-hub/hooks/product/useGetMyProducts';
 import { useGetMyProductCategories } from '@/features/seller-hub/hooks/product-category/useGetMyproductCategory';
 import { useUpdateProductsStatus } from '@/features/seller-hub/hooks/product/useUpdateProductsStatus.ts';
@@ -224,7 +224,7 @@ export function MyProductsPage() {
         onRestore={handleRestoreProduct}
       />
       {products.length > 0 && (
-        <MyProductsPagination
+        <Pagination
           page={page}
           limit={limit}
           loadedPageCount={data?.pages.length ?? 1}

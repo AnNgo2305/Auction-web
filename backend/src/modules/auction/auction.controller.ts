@@ -205,7 +205,7 @@ export class AuctionController {
   }
 
   @Auth(AuthType.ACCESS_TOKEN)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SELLER)
   @Patch(':id/confirm')
   @Throttle({
     short: { ttl: 1_000, limit: 3 },

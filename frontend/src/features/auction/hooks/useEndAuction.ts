@@ -7,17 +7,18 @@ import type { EndAuctionResponse } from '@/features/auction/types/end-auction.re
 import type { ApiResponseError } from '@/shared/types/error';
 
 export function useEndAuction(
-  auctionId: string,
   onSuccessCallback?: () => void,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<EndAuctionResponse, ApiResponseError, void>({
-    mutationFn: async (): Promise<EndAuctionResponse> => {
+  return useMutation<EndAuctionResponse, ApiResponseError, string>({
+    mutationFn: async (
+      auctionId: string,
+    ): Promise<EndAuctionResponse> => {
       return await auctionApi.endAuction(auctionId);
     },
 
-    onSuccess: async (response) => {
+    onSuccess: async (response, auctionId) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: auctionKeys.myLists(),

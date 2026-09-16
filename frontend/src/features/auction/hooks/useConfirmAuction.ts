@@ -7,17 +7,16 @@ import type { ConfirmAuctionResponse } from '@/features/auction/types/confirm-au
 import type { ApiResponseError } from '@/shared/types/error';
 
 export function useConfirmAuction(
-  auctionId: string,
   onSuccessCallback?: () => void,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<ConfirmAuctionResponse, ApiResponseError, void>({
-    mutationFn: async (): Promise<ConfirmAuctionResponse> => {
+  return useMutation<ConfirmAuctionResponse, ApiResponseError, string>({
+    mutationFn: async (auctionId: string): Promise<ConfirmAuctionResponse> => {
       return await auctionApi.confirmAuction(auctionId);
     },
 
-    onSuccess: async (response) => {
+    onSuccess: async (response, auctionId) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: auctionKeys.myLists(),

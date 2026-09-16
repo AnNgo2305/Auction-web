@@ -7,8 +7,12 @@ import type { CancelAuctionBody } from '@/features/auction/schemas/cancel-auctio
 import type { CancelAuctionResponse } from '@/features/auction/types/cancel-auction.response';
 import type { ApiResponseError } from '@/shared/types/error';
 
+type CancelAuctionVariables = {
+  auctionId: string;
+  body: CancelAuctionBody;
+};
+
 export function useCancelAuction(
-  auctionId: string,
   onSuccessCallback?: () => void,
 ) {
   const queryClient = useQueryClient();
@@ -16,15 +20,13 @@ export function useCancelAuction(
   return useMutation<
     CancelAuctionResponse,
     ApiResponseError,
-    CancelAuctionBody
+    CancelAuctionVariables
   >({
-    mutationFn: async (
-      body: CancelAuctionBody,
-    ): Promise<CancelAuctionResponse> => {
+    mutationFn: async ({ auctionId, body }): Promise<CancelAuctionResponse> => {
       return await auctionApi.cancelAuction(auctionId, body);
     },
 
-    onSuccess: async (response) => {
+    onSuccess: async (response, { auctionId }) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: auctionKeys.myLists(),

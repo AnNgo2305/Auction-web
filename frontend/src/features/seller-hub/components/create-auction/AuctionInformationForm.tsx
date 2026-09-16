@@ -30,6 +30,8 @@ import {
 import type { CreateAuctionBody } from '@/features/auction/schemas/create-auction.schema';
 import { CalendarClock, DollarSign, Gavel } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuctionStore } from '@/shared/stores/auction.store';
+import type { ChangeEvent } from 'react';
 
 type AuctionInformationFormProps = {
   register: UseFormRegister<CreateAuctionBody>;
@@ -42,22 +44,29 @@ export function AuctionInformationForm({
   control,
   errors,
 }: AuctionInformationFormProps) {
+  const { updateBasicInformation } = useAuctionStore();
+
   const handleDateChange = (
     date: Date | undefined,
     currentValue: string,
     onChange: (value: string) => void,
+    fieldName: 'startTime' | 'endTime',
   ) => {
     if (!date) return;
 
     const current = currentValue ? new Date(currentValue) : new Date();
     date.setHours(current.getHours(), current.getMinutes(), 0, 0);
-    onChange(date.toISOString());
+
+    const value = date.toISOString();
+    onChange(value);
+    updateBasicInformation({ [fieldName]: value });
   };
 
   const handleTimeChange = (
     time: string,
     currentValue: string,
     onChange: (value: string) => void,
+    fieldName: 'startTime' | 'endTime',
   ) => {
     if (!currentValue) return;
 
@@ -66,7 +75,10 @@ export function AuctionInformationForm({
     if (hours) {
       date.setHours(hours, minutes, 0, 0);
     }
-    onChange(date.toISOString());
+
+    const value = date.toISOString();
+    onChange(value);
+    updateBasicInformation({ [fieldName]: value });
   };
 
   return (
@@ -94,7 +106,13 @@ export function AuctionInformationForm({
                 id="title"
                 placeholder="e.g. Sony WH-1000XM5 Auction"
                 className="h-11"
-                {...register('title')}
+                {...register('title', {
+                  onChange: (event: ChangeEvent<HTMLInputElement>) => {
+                    updateBasicInformation({
+                      title: event.target.value,
+                    });
+                  },
+                })}
               />
             </InputGroup>
             <FieldDescription className="text-muted-foreground text-xs">
@@ -142,15 +160,29 @@ export function AuctionInformationForm({
                             mode="single"
                             selected={selectedDate}
                             onSelect={(date) =>
-                              handleDateChange(date, field.value, field.onChange)
+                              handleDateChange(
+                                date,
+                                field.value,
+                                field.onChange,
+                                'startTime',
+                              )
                             }
                           />
                           <div className="border-t p-3">
                             <Input
                               type="time"
-                              value={selectedDate ? format(selectedDate, 'HH:mm') : ''}
+                              value={
+                                selectedDate
+                                  ? format(selectedDate, 'HH:mm')
+                                  : ''
+                              }
                               onChange={(event) =>
-                                handleTimeChange(event.target.value, field.value, field.onChange)
+                                handleTimeChange(
+                                  event.target.value,
+                                  field.value,
+                                  field.onChange,
+                                  'startTime',
+                                )
                               }
                             />
                           </div>
@@ -193,7 +225,9 @@ export function AuctionInformationForm({
                             className="h-11 w-full justify-start text-left font-normal"
                           >
                             <CalendarClock className="mr-2 h-4 w-4" />
-                            {selectedDate ? format(selectedDate, 'PPP p') : 'Select end time'}
+                            {selectedDate
+                              ? format(selectedDate, 'PPP p')
+                              : 'Select end time'}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -201,15 +235,29 @@ export function AuctionInformationForm({
                             mode="single"
                             selected={selectedDate}
                             onSelect={(date) =>
-                              handleDateChange(date, field.value, field.onChange)
+                              handleDateChange(
+                                date,
+                                field.value,
+                                field.onChange,
+                                'endTime',
+                              )
                             }
                           />
                           <div className="border-t p-3">
                             <Input
                               type="time"
-                              value={selectedDate ? format(selectedDate, 'HH:mm') : ''}
+                              value={
+                                selectedDate
+                                  ? format(selectedDate, 'HH:mm')
+                                  : ''
+                              }
                               onChange={(event) =>
-                                handleTimeChange(event.target.value, field.value, field.onChange)
+                                handleTimeChange(
+                                  event.target.value,
+                                  field.value,
+                                  field.onChange,
+                                  'endTime',
+                                )
                               }
                             />
                           </div>
@@ -251,6 +299,15 @@ export function AuctionInformationForm({
                   {...register('startingPrice', {
                     setValueAs: (value) =>
                       value === '' ? undefined : Number(value),
+
+                    onChange: (event: ChangeEvent<HTMLInputElement>) => {
+                      updateBasicInformation({
+                        startingPrice:
+                          event.target.value === ''
+                            ? undefined
+                            : Number(event.target.value),
+                      });
+                    },
                   })}
                 />
               </InputGroup>
@@ -284,6 +341,15 @@ export function AuctionInformationForm({
                   {...register('minimumBidIncrement', {
                     setValueAs: (value) =>
                       value === '' ? undefined : Number(value),
+
+                    onChange: (event: ChangeEvent<HTMLInputElement>) => {
+                      updateBasicInformation({
+                        minimumBidIncrement:
+                          event.target.value === ''
+                            ? undefined
+                            : Number(event.target.value),
+                      });
+                    },
                   })}
                 />
               </InputGroup>
