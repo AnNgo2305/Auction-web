@@ -60,7 +60,7 @@ export function ProductsAppliedFilterTags({
         )}
         {publicCategory && (
           <Badge className="border-violet-200 bg-violet-50 text-violet-700">
-            Category:{' '}
+            Category:
             {publicCategory
               .toLowerCase()
               .replace(/_/g, ' ')
@@ -69,7 +69,7 @@ export function ProductsAppliedFilterTags({
         )}
         {sortBy !== 'createdAt' && (
           <Badge className="border-orange-200 bg-orange-50 text-orange-700">
-            Sort:{' '}
+            Sort:
             {
               publicProductSortFieldOptions.find(
                 (item) => item.value === sortBy,
@@ -79,7 +79,7 @@ export function ProductsAppliedFilterTags({
         )}
         {sortOrder !== 'desc' && (
           <Badge className="border-slate-200 bg-slate-100 text-slate-700">
-            Order:{' '}
+            Order:
             {
               publicProductSortOrderOptions.find(
                 (item) => item.value === sortOrder,

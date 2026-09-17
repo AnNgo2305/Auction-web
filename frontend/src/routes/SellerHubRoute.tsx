@@ -6,6 +6,8 @@ import { MyProductCategoriesPage } from '@/pages/seller-hub/MyProductCategoriesP
 import { CreateProductPage } from '@/pages/seller-hub/CreateProductPage';
 import { MyProductsPage } from '@/pages/seller-hub/MyProductsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { MyAuctionsPage } from '@/pages/seller-hub/MyAuctionsPage';
+import { CreateAuctionPage } from '@/pages/seller-hub/CreateAuctionPage';
 import { ROLES } from '@/shared/types/user';
 
 export default function SellerHubRoutes() {
@@ -24,6 +26,14 @@ export default function SellerHubRoutes() {
           <Route
             path={`${SELLER_HUB_ROUTES.PRODUCTS}/${SELLER_HUB_ROUTES.CREATE_PRODUCT}`}
             element={<CreateProductPage />}
+          />
+          <Route
+            path={SELLER_HUB_ROUTES.AUCTIONS}
+            element={<MyAuctionsPage />}
+          />
+          <Route
+            path={`${SELLER_HUB_ROUTES.AUCTIONS}/${SELLER_HUB_ROUTES.CREATE_AUCTION}`}
+            element={<CreateAuctionPage />}
           />
         </Route>
       </Route>

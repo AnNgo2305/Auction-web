@@ -4,6 +4,7 @@ import logo from '@/assets/images/bid-market.png';
 import { authPaths } from '@/features/auth/constants/auth.routes';
 import { aboutPaths } from '@/features/about/constants/about.routes';
 import { productPaths } from '@/features/product/constants/product.routes.ts';
+import { auctionPaths } from '@/features/auction/constants/auction.routes.ts';
 
 export default function PublicHeader() {
   const location = useLocation();
@@ -50,6 +51,17 @@ export default function PublicHeader() {
               )}
             >
               Products
+            </Link>
+            <Link
+              to={auctionPaths.list()}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                location.pathname.startsWith(auctionPaths.list())
+                  ? 'text-white'
+                  : 'text-white/80 hover:text-white',
+              )}
+            >
+              Auctions
             </Link>
           </nav>
         </div>

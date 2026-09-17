@@ -1,4 +1,4 @@
-import { Menu, Package, Tags, X } from 'lucide-react';
+import { Gavel, Menu, Package, Tags, X } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes';
 import { cn } from '@/shared/lib/utils';
@@ -63,6 +63,15 @@ export function SellerHubLayoutContent() {
                 <NavLink to={sellerHubPaths.productCategories()}>
                   <Tags />
                   <span>Categories</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Auctions">
+                <NavLink to={sellerHubPaths.auctions()}>
+                  <Gavel />
+                  <span>Auctions</span>
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

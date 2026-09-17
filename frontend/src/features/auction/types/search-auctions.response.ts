@@ -1,6 +1,8 @@
 import type { ApiResponse } from '@/shared/types/response';
 import type { PaginationData } from '@/shared/types/pagination.ts';
-import type { AuctionStatus } from '@/shared/types/auction-status';
+import type {
+  PublicAuctionStatus,
+} from '@/shared/types/auction-status';
 
 export class SearchAuctionsData {
   auctionId!: string;
@@ -17,7 +19,7 @@ export class SearchAuctionsData {
 
   bidCount!: number;
 
-  status!: AuctionStatus;
+  status!: PublicAuctionStatus;
 
   thumbnail!: string | null;
 

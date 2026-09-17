@@ -15,6 +15,10 @@ import { useEndAuction } from '@/features/auction/hooks/useEndAuction.ts';
 import { useGetMyAuctions } from '@/features/auction/hooks/useGetMyAuctions.ts';
 import { useResubmitAuction } from '@/features/auction/hooks/useResubmitAuction.ts';
 import type { CancelAuctionBody } from '@/features/auction/schemas/cancel-auction.schema';
+import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import { Button } from '@/shared/ui/button';
+import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.routes';
 
 type AuctionFilters = {
   keyword: string;
@@ -108,9 +112,17 @@ export function MyAuctionsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Auctions</h1>
-        <p className="text-muted-foreground text-sm">Manage your auctions.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Auctions</h1>
+          <p className="text-muted-foreground text-sm">Manage your auctions.</p>
+        </div>
+        <Button asChild>
+          <Link to={sellerHubPaths.createAuction()}>
+            <Plus className="size-4" />
+            Create Auction
+          </Link>
+        </Button>
       </div>
 
       <MyAuctionsFilterForm

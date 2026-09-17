@@ -192,7 +192,7 @@ export function MyProductCategoriesTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete category?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{' '}
+              Are you sure you want to delete
               {deleteCategoryId
                 ? 'this category'
                 : `${selectedIds.length} categories`}

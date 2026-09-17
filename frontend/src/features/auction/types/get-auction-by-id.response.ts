@@ -9,6 +9,8 @@ export class AuctionProductData {
   quantity!: number;
 
   thumbnailUrl!: string | null;
+
+  stockQuantity!: number;
 }
 
 export class GetAuctionByIdData {

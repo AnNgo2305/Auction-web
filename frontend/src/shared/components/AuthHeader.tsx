@@ -32,6 +32,7 @@ import { sellerHubPaths } from '@/features/seller-hub/constants/seller-hub.route
 import { productPaths } from '@/features/product/constants/product.routes';
 import { chatPaths } from '@/features/chat/constants/chat.routes';
 import { NotificationBell } from '@/features/notification/components/NotificationBell.tsx';
+import { auctionPaths } from '@/features/auction/constants/auction.routes.ts';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -111,6 +112,17 @@ export default function AuthHeader() {
               )}
             >
               Chat
+            </Link>
+            <Link
+              to={auctionPaths.list()}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                location.pathname.startsWith(auctionPaths.list())
+                  ? 'text-white'
+                  : 'text-white/80 hover:text-white',
+              )}
+            >
+              Auctions
             </Link>
           </nav>
         </div>

@@ -5,6 +5,7 @@ export class AuctionProductResponseDto {
   name!: string;
   quantity!: number;
   thumbnailUrl!: string | null;
+  stockQuantity!: number;
 }
 
 export class GetAuctionByIdResponseDto {

@@ -284,9 +284,9 @@ export function MyProductsDataTable({
             >
               {isActionLoading && <Loader2 className="size-4 animate-spin" />}
               {dialogContent?.confirmText}
-            </AlertDialogAction>{' '}
-          </AlertDialogFooter>{' '}
-        </AlertDialogContent>{' '}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );

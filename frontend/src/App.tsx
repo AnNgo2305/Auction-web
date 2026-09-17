@@ -6,6 +6,7 @@ import SettingRoutes from '@/routes/SettingRoute';
 import SellerHubRoutes from '@/routes/SellerHubRoute';
 import ProductRoutes from '@/routes/ProductRoute';
 import ChatRoutes from '@/routes/ChatRoute';
+import AuctionRoutes from '@/routes/AuctionRoute';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/setting/*" element={<SettingRoutes />} />
         <Route path="/sellerhub/*" element={<SellerHubRoutes />} />
         <Route path="products/*" element={<ProductRoutes />} />
+        <Route path="/auctions/*" element={<AuctionRoutes />} />
         <Route path="/chat/*" element={<ChatRoutes />} />
         <Route path="/403" element={<ForbiddenPage />} />
         <Route path="*" element={<NotFoundPage />} />

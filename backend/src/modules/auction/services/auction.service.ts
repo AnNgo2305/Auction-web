@@ -351,6 +351,7 @@ export class AuctionService {
               select: {
                 productId: true,
                 name: true,
+                stockQuantity: true,
                 images: {
                   where: { isPrimary: true },
                   take: 1,
@@ -387,6 +388,7 @@ export class AuctionService {
         productId: auctionProduct.product.productId,
         name: auctionProduct.product.name,
         quantity: auctionProduct.quantity,
+        stockQuantity: auctionProduct.product.stockQuantity,
         thumbnailUrl: auctionProduct.product.images[0]?.imageKey
           ? this.fileService.getPublicUrl(
               auctionProduct.product.images[0].imageKey,
