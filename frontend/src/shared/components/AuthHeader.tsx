@@ -4,7 +4,6 @@ import {
   Settings,
   User,
   History,
-  Heart,
   Gavel,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -33,6 +32,7 @@ import { productPaths } from '@/features/product/constants/product.routes';
 import { chatPaths } from '@/features/chat/constants/chat.routes';
 import { NotificationBell } from '@/features/notification/components/NotificationBell.tsx';
 import { auctionPaths } from '@/features/auction/constants/auction.routes.ts';
+import { WatchlistButton } from '@/features/watchlist/components/WatchlistButton.tsx';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -127,14 +127,7 @@ export default function AuthHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="relative h-10 w-10 rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20 hover:text-white"
-          >
-            <Heart className="h-5 w-5" />
-          </Button>
+          <WatchlistButton />
           <Button
             type="button"
             variant="ghost"

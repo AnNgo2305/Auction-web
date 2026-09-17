@@ -5,11 +5,15 @@ import { Button } from '@/shared/ui/button.tsx';
 import { AuctionDetailForm } from '@/features/auction/components/auction-detail/AuctionDetailForm.tsx';
 import { useGetAuctionById } from '@/features/auction/hooks/useGetAuctionByID.ts';
 import { Skeleton } from '@/shared/ui/skeleton.tsx';
+import { Bookmark } from 'lucide-react';
+import { useAddToWatchlist } from '@/features/watchlist/hooks/useAddToWatchlist.ts';
 
 export function AuctionDetailPage() {
   const { auctionId } = useParams<{ auctionId: string }>();
   const [isEditing, setIsEditing] = useState(false);
   const { currentUser } = useUser();
+  const { mutate: addToWatchlist, isPending: isAddingToWatchlist } =
+    useAddToWatchlist();
 
   const { data: auction, isLoading, isError, refetch } = useGetAuctionById(
     auctionId ?? '',
@@ -98,11 +102,25 @@ export function AuctionDetailPage() {
             Auction details and products.
           </p>
         </div>
-        {isOwner && !isEditing && (
-          <Button type="button" onClick={() => setIsEditing(true)}>
-            Edit Auction
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!isOwner && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isAddingToWatchlist}
+              onClick={() => addToWatchlist(auction.auctionId)}
+            >
+              <Bookmark className="size-4" />
+              {isAddingToWatchlist ? 'Adding...' : 'Add to Watchlist'}
+            </Button>
+          )}
+
+          {isOwner && !isEditing && (
+            <Button type="button" onClick={() => setIsEditing(true)}>
+              Edit Auction
+            </Button>
+          )}
+        </div>
       </div>
       <AuctionDetailForm
         auction={auction}
