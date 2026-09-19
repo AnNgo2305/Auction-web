@@ -1,5 +1,6 @@
 import { Badge } from '@/shared/ui/badge';
 import type { GetAuctionByIdData } from '@/features/auction/types/get-auction-by-id.response';
+import { format } from 'date-fns';
 
 type AuctionDetailSummaryProps = {
   auction: GetAuctionByIdData;
@@ -8,8 +9,8 @@ type AuctionDetailSummaryProps = {
 export function AuctionDetailSummary({
   auction,
 }: AuctionDetailSummaryProps) {
-  const createdAt = new Date(auction.createdAt).toLocaleString();
-  const updatedAt = new Date(auction.updatedAt).toLocaleString();
+  const createdAt = format(new Date(auction.createdAt), 'dd/MM/yyyy HH:mm');
+  const updatedAt = format(new Date(auction.updatedAt), 'dd/MM/yyyy HH:mm');
 
   return (
     <div className="rounded-lg border p-6">

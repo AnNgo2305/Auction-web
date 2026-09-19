@@ -35,7 +35,7 @@ export function AuctionsPagination({
   const displayPageCount = hasNextPage ? loadedPageCount + 1 : loadedPageCount;
 
   return (
-    <div className="flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-10 flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-muted-foreground text-sm">
         Page {page} of {displayPageCount}
       </div>

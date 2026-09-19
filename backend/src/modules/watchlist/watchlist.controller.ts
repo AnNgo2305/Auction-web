@@ -85,7 +85,7 @@ export class WatchlistController {
     const watchlists = await this.watchlistService.getMyWatchlist(
       req.user!.userId,
       cursor,
-      limit,
+      limit ? Number(limit) : 10,
     );
 
     return {

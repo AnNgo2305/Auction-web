@@ -85,9 +85,6 @@ export function AuctionDetailProducts({
                   <p className="truncate text-sm font-medium">
                     {product?.name ?? 'Product'}
                   </p>
-                  <p className="text-muted-foreground truncate text-xs">
-                    Product ID: {field.productId}
-                  </p>
                 </div>
                 <div className="w-28">
                   {isEditing ? (

@@ -28,8 +28,8 @@ const defaultFilters: AuctionFilterValues = {
   minPrice: undefined,
   maxPrice: undefined,
   dateRange: undefined,
-  sortBy: AuctionSortBy.CREATED_AT,
-  sortOrder: AuctionSortOrder.DESC,
+  sortBy: undefined,
+  sortOrder: undefined,
 };
 
 export function AuctionGalleryPage() {
@@ -134,14 +134,7 @@ export function AuctionGalleryPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Auctions</h1>
-        <p className="text-muted-foreground text-sm">
-          Browse and discover active auctions.
-        </p>
-      </div>
-
+    <div className="mx-auto w-full max-w-7xl space-y-6 pt-6">
       <AuctionsFilterForm
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -150,7 +143,7 @@ export function AuctionGalleryPage() {
       />
 
       <AuctionsAppliedFilterTags
-        filters={appliedFilters}
+        filters={filters}
         onRemoveFilter={handleRemoveFilter}
         onClearFilters={handleClearFilters}
       />

@@ -19,6 +19,7 @@ export class GetAuctionByIdResponseDto {
   currentPrice!: number;
   bidCount!: number;
   status!: string;
+  isInWatchlist!: boolean;
 
   @Type(() => AuctionProductResponseDto)
   auctionProducts!: AuctionProductResponseDto[];

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Bookmark, MoreHorizontal } from 'lucide-react';
+import { BookmarkX, MoreHorizontal } from 'lucide-react';
+import { Badge } from '@/shared/ui/badge.tsx';
 import { Card, CardContent } from '@/shared/ui/card.tsx';
 import { Button } from '@/shared/ui/button.tsx';
 import {
@@ -16,31 +17,47 @@ type WatchlistItemProps = {
   watchlist: WatchlistItemResponse;
 };
 
+const statusVariant = {
+  PENDING: 'secondary',
+  READY: 'outline',
+  OPEN: 'default',
+  EXTENDED: 'default',
+  COMPLETED: 'secondary',
+  CLOSED: 'secondary',
+  CANCELED: 'destructive',
+} as const;
+
 export function WatchlistItem({ watchlist }: WatchlistItemProps) {
   const { mutate: removeFromWatchlist, isPending } = useRemoveFromWatchlist();
 
   return (
     <Card>
-      <CardContent className="flex items-center gap-4 p-4">
-        <div className="bg-muted flex size-12 shrink-0 items-center justify-center rounded-md">
-          <Bookmark className="text-muted-foreground size-5" />
-        </div>
-
+      <CardContent className="flex items-center gap-4 px-4">
         <Link
           to={auctionPaths.detail(watchlist.auctionId)}
           className="min-w-0 flex-1"
         >
           <h3 className="truncate font-semibold">{watchlist.title}</h3>
-
-          <div className="text-muted-foreground mt-1 flex items-center gap-3 text-sm">
-            <span>{watchlist.status}</span>
-
-            <span>{watchlist.currentPrice.toLocaleString()} ₫</span>
-
-            <span>Ends {new Date(watchlist.endTime).toLocaleDateString()}</span>
+          <div className="mt-2 space-y-1.5 text-sm">
+            <div>
+              <Badge variant={statusVariant[watchlist.status] ?? 'outline'}>
+                {watchlist.status}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">
+              Current price:{' '}
+              <span className="text-foreground font-medium">
+                {watchlist.currentPrice.toLocaleString()} ₫
+              </span>
+            </p>
+            <p className="text-muted-foreground">
+              Ends:{' '}
+              <span className="text-foreground">
+                {new Date(watchlist.endTime).toLocaleDateString()}
+              </span>
+            </p>
           </div>
         </Link>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -53,14 +70,14 @@ export function WatchlistItem({ watchlist }: WatchlistItemProps) {
               <span className="sr-only">Open menu</span>
             </Button>
           </DropdownMenuTrigger>
-
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               variant="destructive"
               disabled={isPending}
-              onClick={() => removeFromWatchlist(watchlist.watchlistId)}
+              onClick={() => removeFromWatchlist(watchlist.auctionId)}
             >
-              Remove from watchlist
+              <BookmarkX />
+              Remove
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

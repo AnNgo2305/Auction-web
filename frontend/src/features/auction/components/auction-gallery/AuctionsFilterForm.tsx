@@ -62,8 +62,8 @@ export function AuctionsFilterForm({
   onClearFilters,
 }: AuctionFilterFormProps) {
   return (
-    <div className="space-y-4">
-      <InputGroup className="bg-background h-11 w-full max-w-10/12 rounded-lg border shadow-sm">
+    <div className="w-full space-y-4">
+      <InputGroup className="bg-background h-11 w-full rounded-lg border shadow-sm">
         <InputGroupAddon>
           <Search className="text-muted-foreground size-4" />
         </InputGroupAddon>
@@ -83,7 +83,7 @@ export function AuctionsFilterForm({
             onFilterChange('status', value as PublicAuctionStatus)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-40">
+          <SelectTrigger className="bg-background h-10 w-48">
             <CircleCheck className="text-muted-foreground size-4" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -115,7 +115,7 @@ export function AuctionsFilterForm({
             );
           }}
           placeholder="Min price"
-          className="bg-background h-10 w-36"
+          className="bg-background h-10 w-44"
         />
 
         <Input
@@ -131,7 +131,7 @@ export function AuctionsFilterForm({
             );
           }}
           placeholder="Max price"
-          className="bg-background h-10 w-36"
+          className="bg-background h-10 w-44"
         />
         <Popover>
           <PopoverTrigger asChild>
@@ -181,7 +181,7 @@ export function AuctionsFilterForm({
             onFilterChange('sortBy', value as AuctionSortBy)
           }
         >
-          <SelectTrigger className="bg-background h-10 w-44">
+          <SelectTrigger className="bg-background h-10 w-52">
             <ArrowUpDown className="text-muted-foreground size-4" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>

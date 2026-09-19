@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@/shared/ui/card.tsx';
 import { Skeleton } from '@/shared/ui/skeleton.tsx';
 import { useGetMyWatchlist } from '@/features/watchlist/hooks/useGetMyWatchlist.ts';
 import { WatchlistItem } from './WatchlistItem';
@@ -43,21 +42,22 @@ export function WatchlistDropdown() {
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {Array.from({ length: 10 }).map((_, index) => (
-          <Card key={index}>
-            <CardContent className="flex items-center gap-4 p-4">
-              <Skeleton className="size-12 shrink-0 rounded-md" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-5 w-2/3" />
-                <div className="flex gap-3">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-28" />
-                </div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-4 p-4">
+            <Skeleton className="size-12 shrink-0 rounded-md" />
+
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-5 w-2/3" />
+
+              <div className="flex gap-3">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-28" />
               </div>
-              <Skeleton className="size-8 shrink-0 rounded-md" />
-            </CardContent>
-          </Card>
+            </div>
+
+            <Skeleton className="size-8 shrink-0 rounded-md" />
+          </div>
         ))}
       </div>
     );
@@ -72,7 +72,7 @@ export function WatchlistDropdown() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1">
       {watchlists.map((watchlist) => (
         <WatchlistItem key={watchlist.watchlistId} watchlist={watchlist} />
       ))}

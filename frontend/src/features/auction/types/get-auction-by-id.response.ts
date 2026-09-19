@@ -30,6 +30,8 @@ export class GetAuctionByIdData {
 
   currentPrice!: number;
 
+  isInWatchlist!: boolean;
+
   bidCount!: number;
 
   status!: AuctionStatus;

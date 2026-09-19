@@ -15,6 +15,7 @@ import type {
   AuctionProductData,
   GetAuctionByIdData,
 } from '@/features/auction/types/get-auction-by-id.response';
+import { format } from 'date-fns';
 
 type AuctionDetailFormProps = {
   auction: GetAuctionByIdData;
@@ -39,8 +40,8 @@ export function AuctionDetailForm({
     resolver: zodResolver(updateAuctionSchema),
     defaultValues: {
       title: auction.title,
-      startTime: auction.startTime,
-      endTime: auction.endTime,
+      startTime: format(new Date(auction.startTime), "yyyy-MM-dd'T'HH:mm"),
+      endTime: format(new Date(auction.endTime), "yyyy-MM-dd'T'HH:mm"),
       startingPrice: auction.startingPrice,
       minimumBidIncrement: auction.minimumBidIncrement,
       auctionProducts: auction.auctionProducts.map((product) => ({

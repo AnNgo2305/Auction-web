@@ -370,6 +370,17 @@ export class AuctionService {
     }
 
     this.auctionPermissionService.canViewAuction(auction, currentUserId);
+    const isInWatchlist = currentUserId
+      ? !!(await this.prisma.watchlist.findFirst({
+          where: {
+            auctionId,
+            userId: currentUserId,
+          },
+          select: {
+            watchlistId: true,
+          },
+        }))
+      : false;
 
     return {
       auctionId: auction.auctionId,
@@ -382,6 +393,7 @@ export class AuctionService {
       currentPrice: auction.currentPrice.toNumber(),
       bidCount: Number(auction.bidCount),
       status: auction.status,
+      isInWatchlist,
       createdAt: auction.createdAt,
       updatedAt: auction.updatedAt,
       auctionProducts: auction.auctionProducts.map((auctionProduct) => ({
