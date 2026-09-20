@@ -11,13 +11,17 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Button } from '@/shared/ui/button';
 import { InputGroup, InputGroupInput } from '@/shared/ui/input-group';
 import { Package } from 'lucide-react';
-import { useFieldArray, useWatch, type Control } from 'react-hook-form';
+import {
+  type UseFieldArrayAppend,
+} from 'react-hook-form';
 import type { CreateAuctionBody } from '@/features/auction/schemas/create-auction.schema';
 import { useGetMyProducts } from '@/features/seller-hub/hooks/product/useGetMyProducts';
 import {
   ProductSortBy,
   SortOrder,
+  PRODUCT_STATUSES,
 } from '@/shared/types/product';
+import type { ProductOption } from '@/features/seller-hub/components/create-auction/AuctionProductsForm';
 
 type SelectedProduct = {
   productId: string;
@@ -27,22 +31,34 @@ type SelectedProduct = {
 type SelectProductsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  control: Control<CreateAuctionBody>;
+  auctionProducts: CreateAuctionBody['auctionProducts'];
+  append: UseFieldArrayAppend<CreateAuctionBody, 'auctionProducts'>;
+  onProductsLoaded: (products: ProductOption[]) => void;
 };
 
 export function SelectProductsDialog({
   open,
   onOpenChange,
-  control,
+  auctionProducts,
+  append,
+  onProductsLoaded,
 }: SelectProductsDialogProps) {
-  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
+    [],
+  );
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useGetMyProducts({
-      sortBy: ProductSortBy.CREATED_AT,
-      sortOrder: SortOrder.DESC,
-      limit: 10
-    });
+    useGetMyProducts(
+      {
+        sortBy: ProductSortBy.CREATED_AT,
+        status: PRODUCT_STATUSES.READY,
+        sortOrder: SortOrder.DESC,
+        limit: 10,
+      },
+      {
+        enabled: open,
+      },
+    );
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -52,7 +68,12 @@ export function SelectProductsDialog({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry && entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (
+          entry &&
+          entry.isIntersecting &&
+          hasNextPage &&
+          !isFetchingNextPage
+        ) {
           void fetchNextPage();
         }
       },
@@ -67,16 +88,6 @@ export function SelectProductsDialog({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const products = data?.pages.flatMap((page) => page.data.data) ?? [];
-
-  const auctionProducts = useWatch({
-    control,
-    name: 'auctionProducts',
-  });
-
-  const { append } = useFieldArray({
-    control,
-    name: 'auctionProducts',
-  });
 
   const addedProductIds = new Set(
     auctionProducts.map((product) => product.productId),
@@ -123,7 +134,30 @@ export function SelectProductsDialog({
     if (selectedProducts.length === 0) {
       return;
     }
+
     append(selectedProducts);
+
+    const loadedProducts: ProductOption[] = products
+      .map((product) => {
+        const selectedProduct = selectedProducts.find(
+          (selected) => selected.productId === product.productId,
+        );
+
+        if (!selectedProduct) {
+          return null;
+        }
+
+        return {
+          productId: product.productId,
+          name: product.name,
+          thumbnailUrl: product.thumbnail,
+          stockQuantity: product.stockQuantity,
+        };
+      })
+      .filter((product): product is ProductOption => product !== null);
+
+    onProductsLoaded(loadedProducts);
+
     setSelectedProducts([]);
     onOpenChange(false);
   };
@@ -240,9 +274,7 @@ export function SelectProductsDialog({
             ref={loadMoreRef}
             className="flex min-h-10 items-center justify-center"
           >
-            {isFetchingNextPage && (
-              <Spinner />
-            )}
+            {isFetchingNextPage && <Spinner />}
           </div>
         )}
         <DialogFooter>

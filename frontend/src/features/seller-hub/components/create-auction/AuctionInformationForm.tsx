@@ -125,8 +125,7 @@ export function AuctionInformationForm({
             )}
           </Field>
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Field>
+            <Field>
                 <FieldLabel
                   htmlFor="startTime"
                   className="text-sm font-semibold tracking-wide"
@@ -200,7 +199,7 @@ export function AuctionInformationForm({
                   </FieldError>
                 )}
               </Field>
-              <Field>
+            <Field>
                 <FieldLabel
                   htmlFor="endTime"
                   className="text-sm font-semibold tracking-wide"
@@ -275,7 +274,6 @@ export function AuctionInformationForm({
                   </FieldError>
                 )}
               </Field>
-            </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             <Field>

@@ -5,6 +5,8 @@ import { useAddToWatchlist } from '@/features/watchlist/hooks/useAddToWatchlist'
 import type { GetAuctionByIdData } from '@/features/auction/types/get-auction-by-id.response';
 import { useRemoveFromWatchlist } from '@/features/watchlist/hooks/useRemoveFromWatchlist.ts';
 import { useUser } from '@/shared/contexts/UserContext.tsx'
+import { format } from 'date-fns';
+import { AUCTION_STATUSES } from '@/shared/types/auction-status.ts';
 
 type AuctionDetailHeaderProps = {
   auction: GetAuctionByIdData;
@@ -25,7 +27,10 @@ export function AuctionDetailHeader({
 
   const isWatchlistPending = isAddingToWatchlist || isRemovingFromWatchlist;
 
-  const createdAt = new Date(auction.createdAt).toLocaleString();
+  const createdAt = format(
+    new Date(auction.createdAt),
+    'dd/MM/yyyy HH:mm',
+  );
 
   const handleWatchlistToggle = () => {
     if (auction.isInWatchlist) {
@@ -41,6 +46,11 @@ export function AuctionDetailHeader({
   const isOwner = isAuthenticated
     ? currentUser?.userId === auction.sellerId
     : false;
+
+  const canEdit =
+    isAuthenticated &&
+    currentUser?.userId === auction.sellerId &&
+    [AUCTION_STATUSES.PENDING, AUCTION_STATUSES.READY].includes(auction.status);
 
   return (
     <div className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">

@@ -14,11 +14,16 @@ import {
 } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { InputGroup, InputGroupInput } from '@/shared/ui/input-group';
-import { useFieldArray, type Control, type FieldErrors } from 'react-hook-form';
+import {
+  type FieldArrayWithId,
+  type FieldErrors,
+  type UseFieldArrayRemove,
+  type UseFieldArrayUpdate,
+} from 'react-hook-form';
 import { Package, Plus, Trash2 } from 'lucide-react';
 import type { CreateAuctionBody } from '@/features/auction/schemas/create-auction.schema';
 
-type ProductOption = {
+export type ProductOption = {
   productId: string;
   name: string;
   thumbnailUrl: string | null;
@@ -26,23 +31,22 @@ type ProductOption = {
 };
 
 type AuctionProductsFormProps = {
-  control: Control<CreateAuctionBody>;
   errors: FieldErrors<CreateAuctionBody>;
   products: ProductOption[];
   onOpenSelectProductsDialog: () => void;
+  fields: FieldArrayWithId<CreateAuctionBody, 'auctionProducts'>[];
+  remove: UseFieldArrayRemove;
+  update: UseFieldArrayUpdate<CreateAuctionBody, 'auctionProducts'>;
 };
 
 export function AuctionProductsForm({
-  control,
   errors,
   products,
   onOpenSelectProductsDialog,
+  fields,
+  remove,
+  update,
 }: AuctionProductsFormProps) {
-  const { fields, remove, update } = useFieldArray({
-    control,
-    name: 'auctionProducts',
-  });
-
   return (
     <Card>
       <CardHeader>

@@ -5,7 +5,14 @@ import type { GetMyProductsQuery } from '@/features/seller-hub/schemas/product/g
 import { type GetMyProductsResponse } from '@/features/seller-hub/types/product/get-my-products.response';
 import { ApiError } from '@/shared/api/api-error';
 
-export function useGetMyProducts(query: GetMyProductsQuery) {
+type UseGetMyProductsOptions = {
+  enabled?: boolean;
+};
+
+export function useGetMyProducts(
+  query: GetMyProductsQuery,
+  options?: UseGetMyProductsOptions,
+) {
   return useInfiniteQuery<
     GetMyProductsResponse,
     ApiError,
@@ -16,6 +23,7 @@ export function useGetMyProducts(query: GetMyProductsQuery) {
     queryKey: productKeys.myList(query),
     initialPageParam: undefined as string | undefined,
     staleTime: 1000 * 30,
+    enabled: options?.enabled ?? true,
     queryFn: async ({ pageParam }): Promise<GetMyProductsResponse> => {
       return await productApi.getMyProducts({
         ...query,

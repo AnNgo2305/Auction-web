@@ -89,7 +89,7 @@ export function AuctionDetailPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 mt-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6 mt-6 mb-12">
       <AuctionDetailHeader
         auction={auction}
         isEditing={isEditing}

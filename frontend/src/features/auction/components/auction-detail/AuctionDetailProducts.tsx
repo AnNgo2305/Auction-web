@@ -1,29 +1,35 @@
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import type {
+  FieldArrayWithId,
+  UseFieldArrayRemove,
+  UseFieldArrayUpdate,
+} from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { Package, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { InputGroup, InputGroupInput } from '@/shared/ui/input-group';
 import type { UpdateAuctionBody } from '@/features/auction/schemas/update-auction.schema';
 import type { AuctionProductData } from '@/features/auction/types/get-auction-by-id.response';
+
 type AuctionDetailProductsProps = {
+  fields: FieldArrayWithId<UpdateAuctionBody, 'auctionProducts'>[];
+  remove: UseFieldArrayRemove;
+  update: UseFieldArrayUpdate<UpdateAuctionBody, 'auctionProducts'>;
   products: AuctionProductData[];
   isEditing: boolean;
   onOpenSelectProductsDialog: () => void;
 };
 
 export function AuctionDetailProducts({
+  fields,
+  remove,
+  update,
   products,
   isEditing,
   onOpenSelectProductsDialog,
 }: AuctionDetailProductsProps) {
   const {
-    control,
     formState: { errors },
   } = useFormContext<UpdateAuctionBody>();
-
-  const { fields, remove, update } = useFieldArray({
-    control,
-    name: 'auctionProducts',
-  });
 
   return (
     <div className="rounded-lg border p-6">
@@ -65,6 +71,10 @@ export function AuctionDetailProducts({
             );
             const quantityError = errors.auctionProducts?.[index]?.quantity;
 
+            const maxQuantity = product
+              ? product.stockQuantity + (product.quantity ?? 0)
+              : undefined;
+
             return (
               <div
                 key={field.id}
@@ -92,11 +102,7 @@ export function AuctionDetailProducts({
                       <InputGroupInput
                         type="number"
                         min={1}
-                        max={
-                          product
-                            ? product.stockQuantity + (field.quantity ?? 0)
-                            : undefined
-                        }
+                        max={maxQuantity}
                         step={1}
                         value={field.quantity}
                         onChange={(event) => {

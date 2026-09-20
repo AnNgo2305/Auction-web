@@ -29,16 +29,18 @@ export const updateAuctionSchema = z.object({
     .max(255, 'Auction title must not exceed 255 characters')
     .optional(),
 
-  startTime: z.iso
-    .datetime({
-      error: 'Start time must be a valid ISO datetime string',
+  startTime: z
+    .string({
+      error: 'Start time is required',
     })
+    .min(1, 'Start time is required')
     .optional(),
 
-  endTime: z.iso
-    .datetime({
-      error: 'End time must be a valid ISO datetime string',
+  endTime: z
+    .string({
+      error: 'End time is required',
     })
+    .min(1, 'End time is required')
     .optional(),
 
   startingPrice: z

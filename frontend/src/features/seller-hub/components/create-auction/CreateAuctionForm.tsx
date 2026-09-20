@@ -8,14 +8,17 @@ import {
 } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Gavel } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createAuctionSchema,
   type CreateAuctionBody,
 } from '@/features/auction/schemas/create-auction.schema';
 import { AuctionInformationForm } from '@/features/seller-hub/components/create-auction/AuctionInformationForm';
-import { AuctionProductsForm } from '@/features/seller-hub/components/create-auction/AuctionProductsForm';
+import {
+  AuctionProductsForm,
+  type ProductOption,
+} from '@/features/seller-hub/components/create-auction/AuctionProductsForm';
 import { SelectProductsDialog } from '@/features/seller-hub/components/create-auction/SelectProductsDialog';
 import { useCreateAuction } from '@/features/auction/hooks/useCreateAuction';
 import { Spinner } from '@/shared/ui/spinner';
@@ -24,6 +27,7 @@ import { useAuctionStore } from '@/shared/stores/auction.store';
 export function CreateAuctionForm() {
   const [openSelectProducts, setOpenSelectProducts] = useState(false);
   const { auction, resetAuction } = useAuctionStore();
+  const [products, setProducts] = useState<ProductOption[]>([]);
 
   const form = useForm<CreateAuctionBody>({
     resolver: zodResolver(createAuctionSchema),
@@ -41,6 +45,30 @@ export function CreateAuctionForm() {
     reset,
     formState: { errors, isValid },
   } = form;
+
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: 'auctionProducts',
+  });
+
+  const auctionProducts = useWatch({
+    control,
+    name: 'auctionProducts',
+  });
+
+  const handleProductsLoaded = (newProducts: ProductOption[]) => {
+    setProducts((current) => {
+      const productMap = new Map(
+        current.map((product) => [product.productId, product]),
+      );
+
+      newProducts.forEach((product) => {
+        productMap.set(product.productId, product);
+      });
+
+      return Array.from(productMap.values());
+    });
+  };
 
   const createAuctionMutation = useCreateAuction(() => {
     reset({
@@ -87,9 +115,11 @@ export function CreateAuctionForm() {
             errors={errors}
           />
           <AuctionProductsForm
-            control={control}
             errors={errors}
-            products={[]}
+            fields={fields}
+            remove={remove}
+            update={update}
+            products={products}
             onOpenSelectProductsDialog={() => setOpenSelectProducts(true)}
           />
           <div className="flex justify-end">
@@ -111,7 +141,9 @@ export function CreateAuctionForm() {
         <SelectProductsDialog
           open={openSelectProducts}
           onOpenChange={setOpenSelectProducts}
-          control={control}
+          auctionProducts={auctionProducts}
+          append={append}
+          onProductsLoaded={handleProductsLoaded}
         />
       </CardContent>
     </Card>

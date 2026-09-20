@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FormProvider, useForm } from 'react-hook-form';
+import {
+  FormProvider,
+  useForm,
+  useFieldArray,
+  useWatch,
+} from 'react-hook-form';
 import { Button } from '@/shared/ui/button';
 import { AuctionDetailInfo } from '@/features/auction/components/auction-detail/AuctionDetailInfo';
 import { AuctionDetailProducts } from '@/features/auction/components/auction-detail/AuctionDetailProducts';
@@ -51,14 +56,34 @@ export function AuctionDetailForm({
     },
   });
 
-  const { handleSubmit } = form;
+  const {
+    handleSubmit,
+    formState: { isValid, isDirty },
+    control,
+  } = form;
+
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: 'auctionProducts',
+  });
+
+  const auctionProducts = useWatch({ control, name: 'auctionProducts' });
+
   const { mutate: updateAuction, isPending } = useUpdateAuction(
     auction.auctionId,
     onSuccess,
   );
 
   const onSubmit = (data: UpdateAuctionBody) => {
-    updateAuction(data);
+    if (!data.startTime || !data.endTime) {
+      return;
+    }
+
+    updateAuction({
+      ...data,
+      startTime: new Date(data.startTime).toISOString(),
+      endTime: new Date(data.endTime).toISOString(),
+    });
   };
 
   const handleProductsLoaded = (loadedProducts: AuctionProductData[]) => {
@@ -77,9 +102,8 @@ export function AuctionDetailForm({
   const handleCancel = () => {
     form.reset({
       title: auction.title,
-      startTime: auction.startTime,
-      endTime: auction.endTime,
-      startingPrice: auction.startingPrice,
+      startTime: format(new Date(auction.startTime), "yyyy-MM-dd'T'HH:mm"),
+      endTime: format(new Date(auction.endTime), "yyyy-MM-dd'T'HH:mm"),
       minimumBidIncrement: auction.minimumBidIncrement,
       auctionProducts: auction.auctionProducts.map((product) => ({
         productId: product.productId,
@@ -108,6 +132,9 @@ export function AuctionDetailForm({
         </div>
 
         <AuctionDetailProducts
+          fields={fields}
+          remove={remove}
+          update={update}
           products={products}
           isEditing={isEditing}
           onOpenSelectProductsDialog={() => setIsSelectProductsDialogOpen(true)}
@@ -123,7 +150,7 @@ export function AuctionDetailForm({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !isValid || !isDirty}>
               {isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
@@ -132,7 +159,8 @@ export function AuctionDetailForm({
         <SelectAuctionProductsDialog
           open={isSelectProductsDialogOpen}
           onOpenChange={setIsSelectProductsDialogOpen}
-          control={form.control}
+          auctionProducts={auctionProducts}
+          append={append}
           onProductsLoaded={handleProductsLoaded}
         />
       </form>

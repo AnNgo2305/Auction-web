@@ -11,10 +11,14 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Button } from '@/shared/ui/button';
 import { InputGroup, InputGroupInput } from '@/shared/ui/input-group';
 import { Package } from 'lucide-react';
-import { useFieldArray, useWatch, type Control } from 'react-hook-form';
+import type { UseFieldArrayAppend } from 'react-hook-form';
 import type { UpdateAuctionBody } from '@/features/auction/schemas/update-auction.schema';
 import { useGetMyProducts } from '@/features/seller-hub/hooks/product/useGetMyProducts';
-import { ProductSortBy, SortOrder } from '@/shared/types/product';
+import {
+  PRODUCT_STATUSES,
+  ProductSortBy,
+  SortOrder,
+} from '@/shared/types/product';
 import type { AuctionProductData } from '@/features/auction/types/get-auction-by-id.response.ts';
 
 type SelectedProduct = {
@@ -25,14 +29,16 @@ type SelectedProduct = {
 type SelectAuctionProductsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  control: Control<UpdateAuctionBody>;
+  auctionProducts: UpdateAuctionBody['auctionProducts'];
+  append: UseFieldArrayAppend<UpdateAuctionBody, 'auctionProducts'>;
   onProductsLoaded: (products: AuctionProductData[]) => void;
 };
 
 export function SelectAuctionProductsDialog({
   open,
   onOpenChange,
-  control,
+  auctionProducts,
+  append,
   onProductsLoaded,
 }: SelectAuctionProductsDialogProps) {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
@@ -40,11 +46,17 @@ export function SelectAuctionProductsDialog({
   );
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useGetMyProducts({
-      sortBy: ProductSortBy.CREATED_AT,
-      sortOrder: SortOrder.DESC,
-      limit: 10,
-    });
+    useGetMyProducts(
+      {
+        sortBy: ProductSortBy.CREATED_AT,
+        sortOrder: SortOrder.DESC,
+        status: PRODUCT_STATUSES.READY,
+        limit: 10,
+      },
+      {
+        enabled: open,
+      },
+    );
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -68,9 +80,6 @@ export function SelectAuctionProductsDialog({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const products = data?.pages.flatMap((page) => page.data.data) ?? [];
-
-  const auctionProducts = useWatch({ control, name: 'auctionProducts' });
-  const { append } = useFieldArray({ control, name: 'auctionProducts' });
 
   const addedProductIds = new Set(
     auctionProducts?.map((product) => product.productId),
