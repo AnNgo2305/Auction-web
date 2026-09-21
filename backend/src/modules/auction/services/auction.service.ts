@@ -22,7 +22,7 @@ import {
   ERROR_AUCTION_ALREADY_ENDED,
   ERROR_AUCTION_NOT_OPEN,
   ERROR_AUCTION_INVALID_STATUS,
-} from '@modules/auction/auction.constant';
+} from '@modules/auction/constants/auction.constant';
 import { AuctionStatus, ProductStatus } from '@generated/prisma/enums';
 import { GetAuctionByIdResponseDto } from '@modules/auction/dtos/get-auction-by-id.response.dto';
 import { Prisma } from '@generated/prisma/client';
@@ -35,6 +35,10 @@ import { AuctionPermissionService } from '@modules/permission/auction-permission
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { AUCTION_QUEUE } from '@common/constants/queue.constant';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { INTERNAL_EVENTS } from '@common/constants/event.constant';
+import { AuctionEvent } from '@modules/auction/events/auction.event';
+import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
 
 @Injectable()
 export class AuctionService {
@@ -43,6 +47,8 @@ export class AuctionService {
     private readonly logger: LoggerService,
     private readonly fileService: FileService,
     private readonly auctionPermissionService: AuctionPermissionService,
+
+    private readonly eventEmitter: EventEmitter2,
 
     @InjectQueue(AUCTION_QUEUE.NAME)
     private readonly auctionQueue: Queue,
@@ -613,22 +619,29 @@ export class AuctionService {
     });
 
     this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_CANCELLED,
+      new AuctionEvent(auctionId, sellerId),
+    );
   }
 
   async openAuction(auctionId: string): Promise<void> {
     this.logger.log(`[AUCTION] Opening auction ${auctionId}`);
 
-    await this.prisma.$transaction(async (tx) => {
+    const auction = await this.prisma.$transaction(async (tx) => {
       const auctions = await tx.$queryRaw<
         Array<{
           auctionId: string;
           status: AuctionStatus;
+          sellerId: string;
           startTime: Date;
           endTime: Date;
         }>
       >`
       SELECT
         auction_id AS auctionId,
+        seller_id AS sellerId,
         status,
         start_time AS startTime,
         end_time AS endTime
@@ -670,7 +683,21 @@ export class AuctionService {
         data: { status: AuctionStatus.OPEN },
       });
       this.logger.log(`[AUCTION] Auction ${auctionId} opened successfully`);
+
+      return auction;
     });
+
+    this.logger.log(`[AUCTION] Auction ${auctionId} opened successfully`);
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_STARTED,
+      new AuctionStartedEvent(
+        auction.auctionId,
+        auction.sellerId,
+        auction.startTime,
+        auction.endTime,
+      ),
+    );
   }
 
   async endAuction(sellerId: string, auctionId: string): Promise<void> {
@@ -713,9 +740,9 @@ export class AuctionService {
       );
     });
 
-    // TODO: completeAuction().
     // completeAuction() will contain the shared auction completion logic
     // and will be reused by both manual ending and the BullMQ processor.
+    await this.completeAuction(auctionId);
 
     this.logger.log(`[AUCTION] Successfully ended auction ${auctionId}`);
   }
@@ -829,15 +856,17 @@ export class AuctionService {
       `[AUCTION] Admin ${adminId} confirming auction ${auctionId}`,
     );
 
-    await this.prisma.$transaction(async (tx) => {
+    const auction = await this.prisma.$transaction(async (tx) => {
       const auctions = await tx.$queryRaw<
         Array<{
           auctionId: string;
+          sellerId: string;
           status: AuctionStatus;
         }>
       >`
       SELECT
         auction_id AS auctionId,
+        seller_id AS sellerId,
         status
       FROM auctions
       WHERE auction_id = ${auctionId}
@@ -857,15 +886,78 @@ export class AuctionService {
         where: { auctionId },
         data: { status: AuctionStatus.READY },
       });
+
+      return auction;
     });
 
     this.logger.log(
       `[AUCTION] Admin ${adminId} successfully confirmed auction ${auctionId}`,
     );
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_CREATED,
+      new AuctionEvent(auction.auctionId, auction.sellerId),
+    );
   }
 
-  // TODO: Implement completeAuction() later.
-  // Handle auction completion: determine the winner and transition the auction to COMPLETED.
+  async completeAuction(auctionId: string): Promise<void> {
+    this.logger.log(`[AUCTION] Completing auction ${auctionId}`);
+
+    const auction = await this.prisma.$transaction(async (tx) => {
+      const auctions = await tx.$queryRaw<
+        Array<{
+          auctionId: string;
+          sellerId: string;
+          status: AuctionStatus;
+        }>
+      >`
+      SELECT
+        auction_id AS auctionId,
+        seller_id AS sellerId,
+        status
+      FROM auctions
+      WHERE auction_id = ${auctionId}
+      FOR UPDATE
+    `;
+
+      if (auctions.length === 0) {
+        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      const auction = auctions[0];
+
+      if (
+        auction.status !== AuctionStatus.OPEN &&
+        auction.status !== AuctionStatus.EXTENDED
+      ) {
+        this.logger.warn(
+          `[AUCTION] Auction ${auctionId} cannot be completed from status ${auction.status}`,
+        );
+        throw new BadRequestException(ERROR_AUCTION_NOT_OPEN);
+      }
+
+      // TODO: Determine the auction winner.
+      // TODO: Create/update winner/bid settlement information.
+      // TODO: Handle payment flow after winner is determined.
+
+      await tx.auction.update({
+        where: { auctionId },
+        data: {
+          status: AuctionStatus.COMPLETED,
+        },
+      });
+
+      return auction;
+    });
+
+    this.logger.log(`[AUCTION] Auction ${auctionId} completed successfully`);
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_ENDED,
+      new AuctionEvent(auction.auctionId, auction.sellerId),
+    );
+  }
 
   // TODO: Implement closeAuction() later.
   // Handle final settlement: process payment completion and transition the auction to CLOSED.
@@ -876,16 +968,18 @@ export class AuctionService {
   async extendAuction(auctionId: string): Promise<void> {
     this.logger.log(`[AUCTION] Extending auction ${auctionId}`);
 
-    await this.prisma.$transaction(async (tx) => {
+    const auction = await this.prisma.$transaction(async (tx) => {
       const auctions = await tx.$queryRaw<
         Array<{
           auctionId: string;
+          sellerId: string;
           status: AuctionStatus;
           endTime: Date;
         }>
       >`
       SELECT
         auction_id AS auctionId,
+        seller_id AS sellerId,
         status,
         end_time AS endTime
       FROM auctions
@@ -942,10 +1036,25 @@ export class AuctionService {
       this.logger.log(
         `[AUCTION] Auction ${auctionId} extended until ${newEndTime.toISOString()}`,
       );
+
+      return {
+        auctionId: auction.auctionId,
+        sellerId: auction.sellerId,
+        endTime: newEndTime,
+      };
     });
 
     this.logger.log(
       `[AUCTION] Successfully processed extension for auction ${auctionId}`,
+    );
+
+    if (!auction) {
+      return;
+    }
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_EXTENDED,
+      new AuctionEvent(auction.auctionId, auction.sellerId),
     );
   }
 
@@ -1140,6 +1249,11 @@ export class AuctionService {
     });
 
     this.logger.debug(`User ${userId} updated auction ${auctionId}`);
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_UPDATED,
+      new AuctionEvent(auctionId, userId),
+    );
   }
 
   private async getAndValidateAuctionProducts(

@@ -29,3 +29,17 @@ export const AUCTION_QUEUE = {
     COMPLETE_AUCTION: 'complete-auction',
   },
 } as const;
+
+export const AUCTION_NOTIFICATION_QUEUE = {
+  NAME: 'notification-auction',
+  JOBS: {
+    AUCTION_CREATED: 'auction-created',
+    AUCTION_UPDATED: 'auction-updated',
+    AUCTION_CANCELLED: 'auction-cancelled',
+    AUCTION_STARTED: 'auction-started',
+    AUCTION_EXTENDED: 'auction-extended',
+    AUCTION_COMPLETED: 'auction-completed',
+    AUCTION_REOPENED: 'auction-reopened',
+    AUCTION_CLOSED: 'auction-closed',
+  },
+} as const;

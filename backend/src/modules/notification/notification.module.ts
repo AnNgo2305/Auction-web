@@ -8,6 +8,8 @@ import { CommonModule } from '@common/common.module';
 import { DeleteOldNotificationsScheduler } from '@modules/notification/scheduler/delete-old-notifications.scheduler';
 import { FollowNotificationListener } from '@modules/notification/listener/follow-notification.listener';
 import { FollowNotificationProcessor } from '@modules/notification/processor/follow-notification.processor';
+import { AuctionNotificationListener } from '@modules/notification/listener/auction-notification.listener';
+import { AuctionNotificationProcessor } from '@modules/notification/processor/auction-notification.processor';
 
 @Module({
   imports: [CommonModule],
@@ -19,6 +21,8 @@ import { FollowNotificationProcessor } from '@modules/notification/processor/fol
     MessageNotificationProcessor,
     FollowNotificationListener,
     FollowNotificationProcessor,
+    AuctionNotificationListener,
+    AuctionNotificationProcessor,
     DeleteOldNotificationsScheduler,
   ],
 

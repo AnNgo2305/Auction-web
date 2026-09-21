@@ -6,6 +6,8 @@ import { PermissionModule } from '@modules/permission/permission.module';
 import { AuctionProcessor } from '@modules/auction/auction.processor';
 import { AuctionScheduler } from '@modules/auction/auction.scheduler';
 import { AuctionReconcileService } from '@modules/auction/services/auction-reconcile.service';
+import { AuctionGateway } from '@modules/auction/auction.gateway';
+import { AuctionWebSocketListener } from '@modules/auction/listeners/auction-websocket.listener';
 
 @Module({
   imports: [CommonModule, PermissionModule],
@@ -14,6 +16,8 @@ import { AuctionReconcileService } from '@modules/auction/services/auction-recon
     AuctionReconcileService,
     AuctionProcessor,
     AuctionScheduler,
+    AuctionGateway,
+    AuctionWebSocketListener,
   ],
   controllers: [AuctionController],
   exports: [AuctionService],

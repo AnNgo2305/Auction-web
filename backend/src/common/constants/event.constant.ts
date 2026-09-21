@@ -7,4 +7,28 @@ export const INTERNAL_EVENTS = {
 
   // Emitted when a seller accepts a follow request from a bidder.
   FOLLOW_ACCEPTED: 'follow.accepted',
+
+  // Emitted when a seller successfully creates an auction.
+  AUCTION_CREATED: 'auction.created',
+
+  // Emitted when a seller successfully updates an auction.
+  AUCTION_UPDATED: 'auction.updated',
+
+  // Emitted when a seller cancels an auction.
+  AUCTION_CANCELLED: 'auction.cancelled',
+
+  // Emitted when an auction is opened and becomes available for bidding.
+  AUCTION_STARTED: 'auction.started',
+
+  // Emitted when an auction is closed.
+  AUCTION_ENDED: 'auction.ended',
+
+  // Emitted when an auction is extended.
+  AUCTION_EXTENDED: 'auction.extended',
+
+  // Emitted when an auction is reopened for a new bidding round.
+  AUCTION_REOPENED: 'auction.reopened',
+
+  // Emitted when an auction is fully closed after settlement.
+  AUCTION_CLOSED: 'auction.closed',
 } as const;

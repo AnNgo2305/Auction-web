@@ -14,7 +14,7 @@ import {
   ERROR_AUCTION_INVALID_STATUS,
   ERROR_AUCTION_NOT_FOUND,
   ERROR_AUCTION_NOT_OPEN,
-} from '@modules/auction/auction.constant';
+} from '@modules/auction/constants/auction.constant';
 
 @Injectable()
 export class AuctionPermissionService {

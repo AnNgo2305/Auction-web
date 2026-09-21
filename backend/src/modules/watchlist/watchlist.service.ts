@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { LoggerService } from '@common/services/logger.service';
-import { ERROR_AUCTION_NOT_FOUND } from '@modules/auction/auction.constant';
+import { ERROR_AUCTION_NOT_FOUND } from '@modules/auction/constants/auction.constant';
 import { AuctionStatus, Prisma } from '@generated/prisma/client';
 import {
   ERROR_AUCTION_ALREADY_IN_WATCHLIST,

@@ -8,7 +8,6 @@ import { LoggerService } from '@common/services/logger.service';
 import { WebsocketAuthService } from '@common/services/websocket-auth.service';
 import { WS_ROOMS } from '@common/constants/websocket-room.constant';
 import { NOTIFICATION_EVENTS } from '@modules/notification/constants/websocket-event.constant';
-import { NotificationDto } from '@modules/notification/dtos/notification.dto';
 import { Server, Socket } from 'socket.io';
 
 interface SocketData {
