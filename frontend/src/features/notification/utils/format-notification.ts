@@ -4,7 +4,20 @@ import type {
 } from '@/features/notification/types/notification.dto';
 import { NOTIFICATION_TYPE } from '@/shared/types/notification';
 import type { LucideIcon } from 'lucide-react';
-import { MessageCircle, Bell, UserPlus, UserCheck } from 'lucide-react';
+import {
+  MessageCircle,
+  Bell,
+  UserPlus,
+  UserCheck,
+  Gavel,
+  Pencil,
+  XCircle,
+  PlayCircle,
+  Timer,
+  Trophy,
+  RotateCcw,
+  CheckCircle,
+} from 'lucide-react';
 
 interface NotificationMeta {
   message: string;
@@ -29,6 +42,54 @@ const NOTIFICATION_META: Record<string, NotificationMeta> = {
     message: 'accepted your follow request',
     Icon: UserCheck,
     iconBg: 'bg-green-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_CREATED]: {
+    message: 'created a new auction',
+    Icon: Gavel,
+    iconBg: 'bg-purple-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_UPDATED]: {
+    message: 'updated an auction',
+    Icon: Pencil,
+    iconBg: 'bg-blue-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_CANCELLED]: {
+    message: 'cancelled an auction',
+    Icon: XCircle,
+    iconBg: 'bg-red-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_STARTED]: {
+    message: 'auction has started',
+    Icon: PlayCircle,
+    iconBg: 'bg-green-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_EXTENDED]: {
+    message: 'auction has been extended',
+    Icon: Timer,
+    iconBg: 'bg-orange-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_COMPLETED]: {
+    message: 'auction has ended',
+    Icon: Trophy,
+    iconBg: 'bg-yellow-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_REOPENED]: {
+    message: 'reopened an auction',
+    Icon: RotateCcw,
+    iconBg: 'bg-blue-500',
+  },
+
+  [NOTIFICATION_TYPE.AUCTION_CLOSED]: {
+    message: 'auction has been closed',
+    Icon: CheckCircle,
+    iconBg: 'bg-gray-500',
   },
 };
 

@@ -75,6 +75,7 @@ export class AuctionService {
 
   async emitCompleteAuction(auctionId: string, endTime: Date): Promise<void> {
     const delay = Math.max(0, endTime.getTime() - Date.now());
+    const jobId = `auction-complete_${auctionId}`;
 
     await this.auctionQueue.add(
       AUCTION_QUEUE.JOBS.COMPLETE_AUCTION,
@@ -83,13 +84,13 @@ export class AuctionService {
       },
       {
         delay,
-        jobId: `auction-complete_${auctionId}_${endTime.getTime()}`,
+        jobId,
         removeOnComplete: true,
         removeOnFail: false,
       },
     );
 
-    this.logger.log(`[AUCTION] Close job emitted for auction ${auctionId}`);
+    this.logger.log(`[AUCTION] Complete job emitted for auction ${auctionId}`);
   }
 
   async createAuction(sellerId: string, dto: CreateAuctionDto): Promise<void> {
@@ -620,6 +621,24 @@ export class AuctionService {
 
     this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
 
+    // Remove scheduled jobs after transaction succeeds.
+    const jobIds = [
+      `auction-open_${auctionId}`,
+      `auction-complete_${auctionId}`,
+    ];
+
+    for (const jobId of jobIds) {
+      const job = await this.auctionQueue.getJob(jobId);
+      if (job) {
+        await job.remove();
+        this.logger.log(
+          `[AUCTION] Removed job ${jobId} for cancelled auction ${auctionId}`,
+        );
+      }
+    }
+
+    this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
+
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_CANCELLED,
       new AuctionEvent(auctionId, sellerId),
@@ -1052,6 +1071,22 @@ export class AuctionService {
       return;
     }
 
+    // Reschedule completion job with the new end time.
+    const jobId = `auction-complete_${auction.auctionId}`;
+    const existingJob = await this.auctionQueue.getJob(jobId);
+
+    if (existingJob) {
+      await existingJob.remove();
+      this.logger.log(
+        `[AUCTION] Removed old complete job for auction ${auction.auctionId}`,
+      );
+    }
+
+    await this.emitCompleteAuction(auction.auctionId, auction.endTime);
+    this.logger.log(
+      `[AUCTION] Successfully processed extension for auction ${auctionId}`,
+    );
+
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_EXTENDED,
       new AuctionEvent(auction.auctionId, auction.sellerId),
@@ -1074,7 +1109,12 @@ export class AuctionService {
 
     this.logger.log(`User ${userId} is updating auction ${auctionId}`);
 
-    await this.prisma.$transaction(async (tx) => {
+    let shouldRescheduleOpen = false;
+    let shouldRescheduleComplete = false;
+    let newStartTime: Date;
+    let newEndTime: Date;
+
+    const result = await this.prisma.$transaction(async (tx) => {
       const auction = await tx.auction.findUnique({
         where: { auctionId },
         select: {
@@ -1100,8 +1140,12 @@ export class AuctionService {
       this.auctionPermissionService.canUpdateAuction(auction, userId);
 
       const now = new Date();
-      const newStartTime = startTime ? new Date(startTime) : auction.startTime;
-      const newEndTime = endTime ? new Date(endTime) : auction.endTime;
+      newStartTime = startTime ? new Date(startTime) : auction.startTime;
+      newEndTime = endTime ? new Date(endTime) : auction.endTime;
+      shouldRescheduleOpen =
+        newStartTime.getTime() !== auction.startTime.getTime();
+      shouldRescheduleComplete =
+        newEndTime.getTime() !== auction.endTime.getTime();
 
       if (newStartTime <= now) {
         throw new BadRequestException(ERROR_AUCTION_START_TIME_INVALID);
@@ -1246,7 +1290,34 @@ export class AuctionService {
           ...(minimumBidIncrement !== undefined && { minimumBidIncrement }),
         },
       });
+
+      return {
+        shouldRescheduleOpen,
+        shouldRescheduleComplete,
+        newStartTime,
+        newEndTime,
+      };
     });
+
+    if (result.shouldRescheduleOpen) {
+      const jobId = `auction-open_${auctionId}`;
+      const existingJob = await this.auctionQueue.getJob(jobId);
+      if (existingJob) {
+        await existingJob.remove();
+      }
+
+      await this.emitOpenAuction(auctionId, result.newStartTime);
+    }
+
+    if (result.shouldRescheduleComplete) {
+      const jobId = `auction-complete_${auctionId}`;
+      const existingJob = await this.auctionQueue.getJob(jobId);
+      if (existingJob) {
+        await existingJob.remove();
+      }
+
+      await this.emitCompleteAuction(auctionId, result.newEndTime);
+    }
 
     this.logger.debug(`User ${userId} updated auction ${auctionId}`);
 
