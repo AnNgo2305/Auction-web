@@ -66,13 +66,13 @@ export const ERROR_USER_FORBIDDEN = {
 
 export const ERROR_USER_UNVERIFIED = {
   statusCode: 401,
-  code: 'USER_IS_UNVERIFIED',
+  errorCode: 'USER_IS_UNVERIFIED',
   message: 'Your account has not been verified yet.',
 };
 
 export const ERROR_USER_NOT_EXIST = {
   statusCode: 404,
-  code: 'USER_NOT_EXIST',
+  errorCode: 'USER_NOT_EXIST',
   message: 'User does not exist',
 };
 

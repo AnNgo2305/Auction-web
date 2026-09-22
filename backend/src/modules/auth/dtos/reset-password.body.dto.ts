@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
@@ -7,10 +8,21 @@ import {
 } from 'class-validator';
 
 export class ResetPasswordDto {
+  @ApiProperty({
+    description: 'Temporary token used to reset the password',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @IsNotEmpty({ message: 'Reset password token is required' })
   @IsString({ message: 'Reset password token must be a string' })
   resetPasswordToken!: string;
 
+  @ApiProperty({
+    description:
+      'New password. Must contain at least 6 characters, one uppercase letter, one number, and one special character.',
+    example: 'NewPassword123!',
+    minLength: 6,
+    maxLength: 100,
+  })
   @IsNotEmpty({ message: 'New password is required' })
   @IsString({ message: 'New password must be a string' })
   @MinLength(6, {
@@ -30,6 +42,13 @@ export class ResetPasswordDto {
   })
   newPassword!: string;
 
+  @ApiProperty({
+    description:
+      'Confirmation of the new password. Must contain at least 6 characters, one uppercase letter, one number, and one special character.',
+    example: 'NewPassword123!',
+    minLength: 6,
+    maxLength: 100,
+  })
   @IsNotEmpty({ message: 'Confirm password is required' })
   @IsString({ message: 'Confirm password must be a string' })
   @MinLength(6, {

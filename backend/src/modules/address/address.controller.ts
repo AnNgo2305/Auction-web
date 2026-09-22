@@ -16,7 +16,23 @@ import { AuthType } from '@common/types/auth-type.enum';
 import { ResponsePayload } from '@common/types/response.interface';
 import { Request } from 'express';
 import { Throttle } from '@nestjs/throttler';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCookieAuth,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiSecurity,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
+import { ErrorResponse, SuccessResponse } from '@common/types/response.dto';
 
+@ApiTags('Addresses')
+@ApiExtraModels(SuccessResponse, ErrorResponse, AddressResponseDto)
 @Controller('addresses')
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}
@@ -28,6 +44,52 @@ export class AddressController {
     long: { ttl: 60_000, limit: 200 },
   })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get user addresses',
+    description: 'Retrieves the addresses associated with a user.',
+  })
+  @ApiParam({
+    name: 'userId',
+    type: String,
+    description: 'User ID',
+  })
+  @ApiOkResponse({
+    description: 'Addresses retrieved successfully',
+    schema: {
+      allOf: [
+        {
+          $ref: getSchemaPath(SuccessResponse),
+        },
+        {
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                $ref: getSchemaPath(AddressResponseDto),
+              },
+            },
+          },
+        },
+      ],
+    },
+    example: {
+      statusCode: 200,
+      message: 'Addresses retrieved successfully',
+      data: [
+        {
+          addressId: '550e8400-e29b-41d4-a716-446655440000',
+          streetAddress: '123 Nguyen Trai Street',
+          city: 'Hanoi',
+          state: 'Cau Giay',
+          postalCode: '100000',
+          country: 'Vietnam',
+          addressType: 'HOME',
+          createdAt: '2026-09-22T05:30:00.000Z',
+          updatedAt: '2026-09-22T05:30:00.000Z',
+        },
+      ],
+    },
+  })
   async getUserAddresses(
     @Param('userId') userId: string,
   ): Promise<ResponsePayload> {
@@ -47,6 +109,35 @@ export class AddressController {
     long: { ttl: 60_000, limit: 30 },
   })
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update user addresses',
+    description:
+      'Replaces the current authenticated user addresses with the provided list.',
+  })
+  @ApiBody({
+    type: UpdateAddressesDto,
+    isArray: true,
+    description: 'List of addresses to replace the user addresses with',
+  })
+  @ApiOkResponse({
+    description: 'Addresses updated successfully',
+    type: SuccessResponse,
+    example: {
+      statusCode: 200,
+      message: 'Addresses updated successfully',
+      data: {},
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Too many addresses',
+    type: ErrorResponse,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: ErrorResponse,
+  })
+  @ApiCookieAuth('access_token')
+  @ApiSecurity('csrf-token')
   async updateUserAddresses(
     @Req() req: Request,
     @Body() addresses: UpdateAddressesDto[],
