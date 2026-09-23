@@ -1,7 +1,17 @@
-import type { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';
 
 export class FollowingsResponseDto {
-  sellers: FollowUserDto[];
+  @ApiProperty({
+    description: 'List of sellers followed by the bidder',
+    type: [FollowUserDto],
+  })
+  sellers!: FollowUserDto[];
 
-  nextCursor: string | null;
+  @ApiProperty({
+    description: 'Cursor for the next page',
+    nullable: true,
+    example: 'eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTIzVDA4OjAwOjAwLjAwMFoifQ',
+  })
+  nextCursor!: string | null;
 }

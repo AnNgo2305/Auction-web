@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -10,6 +11,11 @@ import {
 import { MAX_PRODUCT_DOCUMENTS } from '@modules/product/product.constant';
 
 export class ProductDocumentDto {
+  @ApiProperty({
+    description: 'Display name of the product document',
+    example: 'Product Manual.pdf',
+    maxLength: 255,
+  })
   @IsNotEmpty({
     message: 'Document name is required.',
   })
@@ -19,8 +25,14 @@ export class ProductDocumentDto {
   @MaxLength(255, {
     message: 'Document name must not exceed 255 characters.',
   })
-  documentName: string;
+  documentName!: string;
 
+  @ApiProperty({
+    description: 'Storage key of the product document',
+    example:
+      'products/018f3c5e-7b3a-7abc-8def-1234567890ab/documents/manual.pdf',
+    maxLength: 255,
+  })
   @IsNotEmpty({
     message: 'Document key is required.',
   })
@@ -30,10 +42,27 @@ export class ProductDocumentDto {
   @MaxLength(255, {
     message: 'Document key must not exceed 255 characters.',
   })
-  documentKey: string;
+  documentKey!: string;
 }
 
 export class UpdateProductDocumentsDto {
+  @ApiProperty({
+    description: 'Documents to associate with the product',
+    type: [ProductDocumentDto],
+    maxItems: MAX_PRODUCT_DOCUMENTS,
+    example: [
+      {
+        documentName: 'Product Manual.pdf',
+        documentKey:
+          'products/018f3c5e-7b3a-7abc-8def-1234567890ab/documents/manual.pdf',
+      },
+      {
+        documentName: 'Warranty Terms.pdf',
+        documentKey:
+          'products/018f3c5e-7b3a-7abc-8def-1234567890ab/documents/warranty.pdf',
+      },
+    ],
+  })
   @IsArray({
     message: 'Documents must be an array.',
   })
@@ -44,5 +73,5 @@ export class UpdateProductDocumentsDto {
     each: true,
   })
   @Type(() => ProductDocumentDto)
-  documents: ProductDocumentDto[];
+  documents!: ProductDocumentDto[];
 }
