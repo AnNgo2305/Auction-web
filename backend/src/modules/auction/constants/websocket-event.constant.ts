@@ -15,6 +15,10 @@ export const AUCTION_EVENTS = {
   // Server notifies clients that the auction has been closed.
   AUCTION_CLOSED: 'auction:closed',
 
+  // Server emits → All clients in auction room receive
+  // Server notifies clients about the winner of the auction.
+  AUCTION_WINNER: 'auction:winner',
+
   // Client emits → Server receives
   // Client emits this event to join an auction room.
   AUCTION_JOIN: 'auction:join',

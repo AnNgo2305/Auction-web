@@ -133,4 +133,20 @@ export class AuctionGateway
         auctionId,
       });
   }
+
+  emitAuctionWinner(data: {
+    auctionId: string;
+    winnerId: string;
+    username: string;
+    winningBid: number;
+  }): void {
+    this.server
+      .to(WS_ROOMS.AUCTION(data.auctionId))
+      .emit(AUCTION_EVENTS.AUCTION_WINNER, {
+        auctionId: data.auctionId,
+        winnerId: data.winnerId,
+        username: data.username,
+        winningBid: data.winningBid,
+      });
+  }
 }

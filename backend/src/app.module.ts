@@ -28,6 +28,7 @@ import { SchedulerModule } from '@modules/scheduler/scheduler.module';
 import { PresenceModule } from '@modules/presence/presence.module';
 import { AuctionModule } from '@modules/auction/auction.module';
 import { WatchlistModule } from '@modules/watchlist/watchlist.module';
+import { BidModule } from '@modules/bid/bid.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { WatchlistModule } from '@modules/watchlist/watchlist.module';
     PresenceModule,
     AuctionModule,
     WatchlistModule,
+    BidModule,
   ],
   controllers: [AppController],
   providers: [AppService],

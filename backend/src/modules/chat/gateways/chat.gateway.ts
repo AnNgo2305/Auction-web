@@ -105,6 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const data = client.data as SocketData;
     const currentUserId = data.userId;
 
+    // Rate-limit message sending to prevent spam or abuse.
     const allowed = await this.rateLimitService.checkSendMessage(currentUserId);
     if (!allowed) {
       client.emit(CHAT_EVENTS.MESSAGE_ERROR, {
@@ -117,36 +118,52 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
+    // Track whether this request successfully acquired the idempotency key.
+    // Only the request that acquired the key is allowed to remove it on failure.
     let idempotencyAcquired = false;
     try {
+      // Check whether this tempId has already been processed.
+      // The same tempId represents the same client operation, even after retry/reconnect.
       const idempotencyState = await this.messageIdempotencyService.getState(
         currentUserId,
         payload.tempId,
       );
 
-      if (idempotencyState?.status === IDEMPOTENCY_STATUS.PROCESSING) {
-        return;
+      switch (idempotencyState?.status) {
+        // Another request with the same tempId is currently processing.
+        // Ignore the duplicate request instead of creating another message.
+        case IDEMPOTENCY_STATUS.PROCESSING:
+          return;
+
+        // The message was already created successfully.
+        // Return the existing message instead of creating it again.
+        case IDEMPOTENCY_STATUS.COMPLETED: {
+          if (!idempotencyState.messageId) {
+            return;
+          }
+
+          const message = await this.messageService.getMessageById(
+            idempotencyState.messageId,
+          );
+
+          client.emit(CHAT_EVENTS.MESSAGE_ACK, {
+            tempId: payload.tempId,
+            message,
+          });
+
+          return;
+        }
       }
 
-      if (
-        idempotencyState?.status === IDEMPOTENCY_STATUS.COMPLETED &&
-        idempotencyState.messageId
-      ) {
-        const message = await this.messageService.getMessageById(
-          idempotencyState.messageId,
-        );
-        client.emit(CHAT_EVENTS.MESSAGE_ACK, {
-          tempId: payload.tempId,
-          message,
-        });
-        return;
-      }
-
+      // Atomically acquire the idempotency key using Redis SET NX.
+      // Only one concurrent request with the same tempId can become the owner.
       const acquired = await this.messageIdempotencyService.start(
         currentUserId,
         payload.tempId,
       );
       if (!acquired) {
+        // Another request acquired the key between getState() and start().
+        // Check the state again to see whether that request has already completed.
         const state = await this.messageIdempotencyService.getState(
           currentUserId,
           payload.tempId,
@@ -163,6 +180,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
         return;
       }
+
+      // This request is now the owner of the idempotency key.
       idempotencyAcquired = true;
 
       const message = await this.messageService.sendMessage(
@@ -170,6 +189,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload,
       );
 
+      // Store the created message ID so future duplicate requests
+      // can return the existing message instead of creating another one.
       await this.messageIdempotencyService.complete(
         currentUserId,
         payload.tempId,
@@ -211,6 +232,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .to(WS_ROOMS.CONVERSATION(payload.conversationId))
         .emit(CHAT_EVENTS.CONVERSATION_UPDATED);
     } catch (error) {
+      // Only remove the key if this request actually acquired it.
+      // This allows the client to retry after a failed message creation.
       if (idempotencyAcquired) {
         await this.messageIdempotencyService.remove(
           currentUserId,

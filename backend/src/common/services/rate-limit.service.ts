@@ -36,4 +36,17 @@ export class RateLimitService {
 
     return count <= config.LIMIT;
   }
+
+  async checkPlaceBid(userId: string): Promise<boolean> {
+    const config = REDIS_RATE_LIMIT.PLACE_BID;
+    const key = config.KEY(userId);
+
+    const count = await this.redis.incr(key);
+
+    if (count === 1) {
+      await this.redis.expire(key, config.WINDOW);
+    }
+
+    return count <= config.LIMIT;
+  }
 }

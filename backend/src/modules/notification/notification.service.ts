@@ -232,7 +232,7 @@ export class NotificationService {
     payload: NotificationPayload,
   ): Promise<NotificationDto | null> {
     // Build the Redis aggregation key.
-    const { recipientId, type, entityId, entityType } = payload;
+    const { recipientId, type, entityId, entityType, metadata } = payload;
     const aggregationKey = REDIS_KEYS.NOTIFICATION.AGGREGATION(
       recipientId,
       type,
@@ -322,6 +322,24 @@ export class NotificationService {
     const latestActorId = actorIds[actorIds.length - 1];
     const shouldIncrementUnread = !existingNotification;
 
+    const existingMetadata =
+      existingNotification?.metadata &&
+      typeof existingNotification.metadata === 'object' &&
+      !Array.isArray(existingNotification.metadata)
+        ? (existingNotification.metadata as Record<string, unknown>)
+        : {};
+
+    const newMetadata =
+      metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+        ? (metadata as Record<string, unknown>)
+        : {};
+
+    const mergedMetadata = {
+      ...existingMetadata,
+      ...newMetadata,
+      actors: mergedActors,
+    };
+
     const notification = existingNotification
       ? await this.prisma.notification.update({
           where: {
@@ -333,9 +351,7 @@ export class NotificationService {
             isRead: false,
             createdAt: new Date(),
             readAt: null,
-            metadata: {
-              actors: mergedActors,
-            } as unknown as Prisma.InputJsonValue,
+            metadata: mergedMetadata as unknown as Prisma.InputJsonValue,
           },
         })
       : await this.prisma.notification.create({
@@ -347,6 +363,7 @@ export class NotificationService {
             entityId,
             entityType,
             metadata: {
+              ...newMetadata,
               actors: newActors,
             } as unknown as Prisma.InputJsonValue,
           },

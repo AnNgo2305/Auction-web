@@ -88,12 +88,22 @@ export const REDIS_RATE_LIMIT = {
     LIMIT: 10,
     WINDOW: 10,
   },
+  PLACE_BID: {
+    KEY: (userId: string) => `ws:rate-limit:place-bid:${userId}`,
+    LIMIT: 10,
+    WINDOW: 60,
+  },
 } as const;
 
 export const REDIS_IDEMPOTENCY = {
   SEND_MESSAGE: {
     KEY: (userId: string, tempId: string) =>
       `ws:idempotency:send-message:${userId}:${tempId}`,
+    TTL: 60,
+  },
+  PLACE_BID: {
+    KEY: (userId: string, auctionId: string, tempId: string) =>
+      `ws:idempotency:place-bid:${userId}:${auctionId}:${tempId}`,
     TTL: 60,
   },
 } as const;

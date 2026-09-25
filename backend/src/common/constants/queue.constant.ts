@@ -43,3 +43,10 @@ export const AUCTION_NOTIFICATION_QUEUE = {
     AUCTION_CLOSED: 'auction-closed',
   },
 } as const;
+
+export const BID_NOTIFICATION_QUEUE = {
+  NAME: 'notification-bid',
+  JOBS: {
+    BID_PLACED: 'bid-placed',
+  },
+} as const;

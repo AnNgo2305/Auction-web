@@ -31,4 +31,7 @@ export const INTERNAL_EVENTS = {
 
   // Emitted when an auction is fully closed after settlement.
   AUCTION_CLOSED: 'auction.closed',
+
+  // Emitted when a bid is successfully placed and should trigger watchlist notification processing.
+  BID_PLACED: 'bid.placed',
 } as const;

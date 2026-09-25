@@ -35,6 +35,7 @@ import { RedisThrottlerStorageService } from '@common/throttler/redis-throttler-
 import {
   AUCTION_NOTIFICATION_QUEUE,
   AUCTION_QUEUE,
+  BID_NOTIFICATION_QUEUE,
   FOLLOW_NOTIFICATION_QUEUE,
   MAIL_QUEUE,
   MESSAGE_NOTIFICATION_QUEUE,
@@ -156,6 +157,7 @@ const service = [
       { name: FOLLOW_NOTIFICATION_QUEUE.NAME },
       { name: AUCTION_QUEUE.NAME },
       { name: AUCTION_NOTIFICATION_QUEUE.NAME },
+      { name: BID_NOTIFICATION_QUEUE.NAME },
     ),
   ],
   providers: [

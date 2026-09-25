@@ -519,6 +519,7 @@ enum NotificationType {
   AUCTION_COMPLETED
   AUCTION_REOPENED
   AUCTION_CLOSED
+  BID_PLACED
 }
 
 model Notification {
