@@ -24,6 +24,7 @@ import { FileService } from '@common/services/file.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { AUCTION_QUEUE } from '@common/constants/queue.constant';
 import { Queue } from 'bullmq';
+import { HighestBidResponseDto } from '@modules/bid/dtos/highest-bid.response.dto';
 
 @Injectable()
 export class BidService {
@@ -143,7 +144,6 @@ export class BidService {
     );
 
     if (result.extended) {
-      // TODO: Job
       await this.auctionQueue.add(
         AUCTION_QUEUE.JOBS.EXTEND_AUCTION,
         {
@@ -401,6 +401,67 @@ export class BidService {
       auctionId: bid.auctionId,
       auctionTitle: bid.auction.title,
       bidAmount: bid.bidAmount.toNumber(),
+    };
+  }
+
+  async getHighestBid(
+    auctionId: string,
+  ): Promise<HighestBidResponseDto | null> {
+    const auction = await this.prisma.auction.findUnique({
+      where: {
+        auctionId,
+      },
+      select: {
+        auctionId: true,
+      },
+    });
+
+    if (!auction) {
+      this.logger.warn(`Auction ${auctionId} not found`);
+      throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+    }
+
+    const bid = await this.prisma.bid.findFirst({
+      where: {
+        auctionId,
+        isHidden: false,
+      },
+      orderBy: { bidAmount: 'desc' },
+      select: {
+        bidId: true,
+        auctionId: true,
+        bidAmount: true,
+        createdAt: true,
+        user: {
+          select: {
+            username: true,
+            userId: true,
+            profile: {
+              select: { profileImageUrl: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!bid) {
+      return null;
+    }
+
+    this.logger.debug(
+      `Fetched highest bid for auction ${auctionId}: bidId=${bid.bidId}`,
+    );
+
+    return {
+      bidId: bid.bidId,
+      auctionId: bid.auctionId,
+      bidAmount: bid.bidAmount.toNumber(),
+      username: bid.user.username,
+      userId: bid.user.userId,
+      profileImageUrl: bid.user.profile?.profileImageUrl
+        ? this.fileService.getPublicUrl(bid.user.profile.profileImageUrl)
+        : null,
+      createdAt: bid.createdAt,
     };
   }
 }

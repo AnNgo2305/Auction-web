@@ -93,3 +93,9 @@ export const ERROR_AUCTION_CANNOT_CANCEL = {
   errorCode: 'CANNOT_CANCEL_AUCTION',
   message: 'Auction cannot be canceled in its current status',
 };
+
+export const ERROR_AUCTION_NOT_COMPLETED = {
+  statusCode: 400,
+  errorCode: 'AUCTION_NOT_COMPLETED',
+  message: 'Auction is not completed',
+};

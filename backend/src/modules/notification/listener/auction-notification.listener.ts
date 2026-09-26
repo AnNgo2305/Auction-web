@@ -7,6 +7,7 @@ import { AUCTION_NOTIFICATION_QUEUE } from '@common/constants/queue.constant';
 import { AuctionEvent } from '@modules/auction/events/auction.event';
 import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
 import { AuctionExtendedEvent } from '@modules/auction/events/auction-extend.event';
+import { AuctionReopenedEvent } from '@modules/auction/events/auction-reopen.event';
 
 @Injectable()
 export class AuctionNotificationListener {
@@ -106,7 +107,7 @@ export class AuctionNotificationListener {
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_REOPENED)
-  async handleAuctionReopened(payload: AuctionEvent): Promise<void> {
+  async handleAuctionReopened(payload: AuctionReopenedEvent): Promise<void> {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_REOPENED,
       {

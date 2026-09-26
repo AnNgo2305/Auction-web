@@ -5,6 +5,8 @@ import { AuctionGateway } from '@modules/auction/auction.gateway';
 import { AuctionEvent } from '@modules/auction/events/auction.event';
 import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
 import { AuctionExtendedEvent } from '@modules/auction/events/auction-extend.event';
+import { AuctionWinnerEvent } from '@modules/auction/events/auction-winner.event';
+import { AuctionReopenedEvent } from '@modules/auction/events/auction-reopen.event';
 
 @Injectable()
 export class AuctionWebSocketListener {
@@ -35,5 +37,25 @@ export class AuctionWebSocketListener {
   @OnEvent(INTERNAL_EVENTS.AUCTION_CLOSED)
   handleAuctionClosed(payload: AuctionEvent): void {
     this.auctionGateway.emitAuctionClosed(payload.auctionId);
+  }
+
+  @OnEvent(INTERNAL_EVENTS.AUCTION_WINNER)
+  handleAuctionWinner(payload: AuctionWinnerEvent): void {
+    this.auctionGateway.emitAuctionWinner({
+      auctionId: payload.auctionId,
+      winnerId: payload.winnerId,
+      username: payload.username,
+      winningBid: payload.winningBid,
+      profileImageUrl: payload.profileImageUrl,
+    });
+  }
+
+  @OnEvent(INTERNAL_EVENTS.AUCTION_REOPENED)
+  handleAuctionReopened(payload: AuctionReopenedEvent): void {
+    this.auctionGateway.emitAuctionReopened({
+      auctionId: payload.auctionId,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+    });
   }
 }

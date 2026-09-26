@@ -139,6 +139,7 @@ export class AuctionGateway
     winnerId: string;
     username: string;
     winningBid: number;
+    profileImageUrl: string | null;
   }): void {
     this.server
       .to(WS_ROOMS.AUCTION(data.auctionId))
@@ -147,6 +148,21 @@ export class AuctionGateway
         winnerId: data.winnerId,
         username: data.username,
         winningBid: data.winningBid,
+        profileImageUrl: data.profileImageUrl,
+      });
+  }
+
+  emitAuctionReopened(data: {
+    auctionId: string;
+    startTime: Date;
+    endTime: Date;
+  }): void {
+    this.server
+      .to(WS_ROOMS.AUCTION(data.auctionId))
+      .emit(AUCTION_EVENTS.AUCTION_REOPENED, {
+        auctionId: data.auctionId,
+        startTime: data.startTime,
+        endTime: data.endTime,
       });
   }
 }

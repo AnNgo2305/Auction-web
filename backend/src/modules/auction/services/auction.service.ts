@@ -18,10 +18,6 @@ import {
   ERROR_AUCTION_START_TIME_INVALID,
   ERROR_AUCTION_PRODUCT_QUANTITY_INVALID,
   ERROR_AUCTION_NOT_FOUND,
-  ERROR_AUCTION_NOT_READY,
-  ERROR_AUCTION_ALREADY_ENDED,
-  ERROR_AUCTION_NOT_OPEN,
-  ERROR_AUCTION_INVALID_STATUS,
 } from '@modules/auction/constants/auction.constant';
 import { AuctionStatus, ProductStatus } from '@generated/prisma/enums';
 import { GetAuctionByIdResponseDto } from '@modules/auction/dtos/get-auction-by-id.response.dto';
@@ -32,13 +28,10 @@ import { SearchAuctionsResponseDto } from '@modules/auction/dtos/search-auctions
 import { FileService } from '@common/services/file.service';
 import { UpdateAuctionDto } from '@modules/auction/dtos/update-auction.body.dto';
 import { AuctionPermissionService } from '@modules/permission/auction-permission.service';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { AUCTION_QUEUE } from '@common/constants/queue.constant';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { INTERNAL_EVENTS } from '@common/constants/event.constant';
 import { AuctionEvent } from '@modules/auction/events/auction.event';
-import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
+import { AuctionQueueService } from '@modules/auction/services/auction-queue.service';
 
 @Injectable()
 export class AuctionService {
@@ -47,51 +40,9 @@ export class AuctionService {
     private readonly logger: LoggerService,
     private readonly fileService: FileService,
     private readonly auctionPermissionService: AuctionPermissionService,
-
     private readonly eventEmitter: EventEmitter2,
-
-    @InjectQueue(AUCTION_QUEUE.NAME)
-    private readonly auctionQueue: Queue,
+    private readonly auctionQueueService: AuctionQueueService,
   ) {}
-
-  async emitOpenAuction(auctionId: string, startTime: Date): Promise<void> {
-    const delay = Math.max(0, startTime.getTime() - Date.now());
-
-    await this.auctionQueue.add(
-      AUCTION_QUEUE.JOBS.OPEN_AUCTION,
-      {
-        auctionId,
-      },
-      {
-        delay,
-        jobId: `auction-open_${auctionId}`,
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    );
-
-    this.logger.log(`[AUCTION] Open job emitted for auction ${auctionId}`);
-  }
-
-  async emitCompleteAuction(auctionId: string, endTime: Date): Promise<void> {
-    const delay = Math.max(0, endTime.getTime() - Date.now());
-    const jobId = `auction-complete_${auctionId}`;
-
-    await this.auctionQueue.add(
-      AUCTION_QUEUE.JOBS.COMPLETE_AUCTION,
-      {
-        auctionId,
-      },
-      {
-        delay,
-        jobId,
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    );
-
-    this.logger.log(`[AUCTION] Complete job emitted for auction ${auctionId}`);
-  }
 
   async createAuction(sellerId: string, dto: CreateAuctionDto): Promise<void> {
     this.logger.log(`[AUCTION] Creating auction for seller ${sellerId}`);
@@ -201,8 +152,15 @@ export class AuctionService {
       `[AUCTION] Created auction ${auction.auctionId} by seller ${sellerId}`,
     );
 
-    await this.emitOpenAuction(auction.auctionId, auction.startTime);
-    await this.emitCompleteAuction(auction.auctionId, auction.endTime);
+    await this.auctionQueueService.emitOpenAuction(
+      auction.auctionId,
+      auction.startTime,
+    );
+
+    await this.auctionQueueService.emitCompleteAuction(
+      auction.auctionId,
+      auction.endTime,
+    );
   }
 
   async getMyAuctions(
@@ -622,20 +580,7 @@ export class AuctionService {
     this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
 
     // Remove scheduled jobs after transaction succeeds.
-    const jobIds = [
-      `auction-open_${auctionId}`,
-      `auction-complete_${auctionId}`,
-    ];
-
-    for (const jobId of jobIds) {
-      const job = await this.auctionQueue.getJob(jobId);
-      if (job) {
-        await job.remove();
-        this.logger.log(
-          `[AUCTION] Removed job ${jobId} for cancelled auction ${auctionId}`,
-        );
-      }
-    }
+    await this.auctionQueueService.removeAuctionJobs(auctionId);
 
     this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
 
@@ -643,127 +588,6 @@ export class AuctionService {
       INTERNAL_EVENTS.AUCTION_CANCELLED,
       new AuctionEvent(auctionId, sellerId),
     );
-  }
-
-  async openAuction(auctionId: string): Promise<void> {
-    this.logger.log(`[AUCTION] Opening auction ${auctionId}`);
-
-    const auction = await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          status: AuctionStatus;
-          sellerId: string;
-          startTime: Date;
-          endTime: Date;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status,
-        start_time AS startTime,
-        end_time AS endTime
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-      const now = new Date();
-
-      if (auction.status !== AuctionStatus.READY) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} cannot be opened from status ${auction.status}`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_NOT_READY);
-      }
-
-      if (now < auction.startTime) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} has not reached its start time`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_START_TIME_INVALID);
-      }
-
-      if (now >= auction.endTime) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} has already ended`);
-
-        throw new BadRequestException(ERROR_AUCTION_ALREADY_ENDED);
-      }
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: { status: AuctionStatus.OPEN },
-      });
-      this.logger.log(`[AUCTION] Auction ${auctionId} opened successfully`);
-
-      return auction;
-    });
-
-    this.logger.log(`[AUCTION] Auction ${auctionId} opened successfully`);
-
-    this.eventEmitter.emit(
-      INTERNAL_EVENTS.AUCTION_STARTED,
-      new AuctionStartedEvent(
-        auction.auctionId,
-        auction.sellerId,
-        auction.startTime,
-        auction.endTime,
-      ),
-    );
-  }
-
-  async endAuction(sellerId: string, auctionId: string): Promise<void> {
-    this.logger.log(`[AUCTION] Seller ${sellerId} ending auction ${auctionId}`);
-
-    await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          sellerId: string;
-          status: AuctionStatus;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-      this.auctionPermissionService.canEndAuction(auction, sellerId);
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: {
-          status: AuctionStatus.COMPLETED,
-        },
-      });
-
-      this.logger.log(
-        `[AUCTION] Auction ${auctionId} ended manually by seller ${sellerId}`,
-      );
-    });
-
-    // completeAuction() will contain the shared auction completion logic
-    // and will be reused by both manual ending and the BullMQ processor.
-    await this.completeAuction(auctionId);
-
-    this.logger.log(`[AUCTION] Successfully ended auction ${auctionId}`);
   }
 
   async resubmitAuction(sellerId: string, auctionId: string): Promise<void> {
@@ -868,229 +692,6 @@ export class AuctionService {
     });
 
     this.logger.log(`[AUCTION] Successfully reopened auction ${auctionId}`);
-  }
-
-  async confirmAuction(adminId: string, auctionId: string): Promise<void> {
-    this.logger.log(
-      `[AUCTION] Admin ${adminId} confirming auction ${auctionId}`,
-    );
-
-    const auction = await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          sellerId: string;
-          status: AuctionStatus;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-      if (auction.status !== AuctionStatus.PENDING) {
-        throw new BadRequestException(ERROR_AUCTION_INVALID_STATUS);
-      }
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: { status: AuctionStatus.READY },
-      });
-
-      return auction;
-    });
-
-    this.logger.log(
-      `[AUCTION] Admin ${adminId} successfully confirmed auction ${auctionId}`,
-    );
-
-    this.eventEmitter.emit(
-      INTERNAL_EVENTS.AUCTION_CREATED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
-    );
-  }
-
-  async completeAuction(auctionId: string): Promise<void> {
-    this.logger.log(`[AUCTION] Completing auction ${auctionId}`);
-
-    const auction = await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          sellerId: string;
-          status: AuctionStatus;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-
-      if (
-        auction.status !== AuctionStatus.OPEN &&
-        auction.status !== AuctionStatus.EXTENDED
-      ) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} cannot be completed from status ${auction.status}`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_NOT_OPEN);
-      }
-
-      // TODO: Determine the auction winner.
-      // TODO: Create/update winner/bid settlement information.
-      // TODO: Handle payment flow after winner is determined.
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: {
-          status: AuctionStatus.COMPLETED,
-        },
-      });
-
-      return auction;
-    });
-
-    this.logger.log(`[AUCTION] Auction ${auctionId} completed successfully`);
-
-    this.eventEmitter.emit(
-      INTERNAL_EVENTS.AUCTION_ENDED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
-    );
-  }
-
-  // TODO: Implement closeAuction() later.
-  // Handle final settlement: process payment completion and transition the auction to CLOSED.
-
-  // TODO: Implement reopenAuction() later (Controller API).
-  // Handle payment timeout: cancel the pending payment and reopen the auction for a new bidding round.
-
-  async extendAuction(auctionId: string): Promise<void> {
-    this.logger.log(`[AUCTION] Extending auction ${auctionId}`);
-
-    const auction = await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          sellerId: string;
-          status: AuctionStatus;
-          endTime: Date;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status,
-        end_time AS endTime
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-
-      if (
-        auction.status !== AuctionStatus.OPEN &&
-        auction.status !== AuctionStatus.EXTENDED
-      ) {
-        this.logger.warn(
-          `[AUCTION] Auction ${auctionId} cannot be extended from status ${auction.status}`,
-        );
-        throw new BadRequestException(ERROR_AUCTION_NOT_OPEN);
-      }
-
-      const now = new Date();
-      if (now >= auction.endTime) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} has already ended`);
-        throw new BadRequestException(ERROR_AUCTION_ALREADY_ENDED);
-      }
-
-      const remainingTime = auction.endTime.getTime() - now.getTime();
-      const extensionWindow = 2 * 60 * 1000;
-      const extensionDuration = 2 * 60 * 1000;
-
-      if (remainingTime > extensionWindow) {
-        this.logger.debug(
-          `[AUCTION] Auction ${auctionId} does not need extension`,
-        );
-        return;
-      }
-
-      const newEndTime = new Date(
-        auction.endTime.getTime() + extensionDuration,
-      );
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: {
-          endTime: newEndTime,
-          status: AuctionStatus.EXTENDED,
-        },
-      });
-
-      this.logger.log(
-        `[AUCTION] Auction ${auctionId} extended until ${newEndTime.toISOString()}`,
-      );
-
-      return {
-        auctionId: auction.auctionId,
-        sellerId: auction.sellerId,
-        endTime: newEndTime,
-      };
-    });
-
-    this.logger.log(
-      `[AUCTION] Successfully processed extension for auction ${auctionId}`,
-    );
-
-    if (!auction) {
-      return;
-    }
-
-    // Reschedule completion job with the new end time.
-    const jobId = `auction-complete_${auction.auctionId}`;
-    const existingJob = await this.auctionQueue.getJob(jobId);
-
-    if (existingJob) {
-      await existingJob.remove();
-      this.logger.log(
-        `[AUCTION] Removed old complete job for auction ${auction.auctionId}`,
-      );
-    }
-
-    await this.emitCompleteAuction(auction.auctionId, auction.endTime);
-    this.logger.log(
-      `[AUCTION] Successfully processed extension for auction ${auctionId}`,
-    );
-
-    this.eventEmitter.emit(
-      INTERNAL_EVENTS.AUCTION_EXTENDED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
-    );
   }
 
   async updateAuction(
@@ -1300,23 +901,17 @@ export class AuctionService {
     });
 
     if (result.shouldRescheduleOpen) {
-      const jobId = `auction-open_${auctionId}`;
-      const existingJob = await this.auctionQueue.getJob(jobId);
-      if (existingJob) {
-        await existingJob.remove();
-      }
-
-      await this.emitOpenAuction(auctionId, result.newStartTime);
+      await this.auctionQueueService.rescheduleOpenJob(
+        auctionId,
+        result.newStartTime,
+      );
     }
 
     if (result.shouldRescheduleComplete) {
-      const jobId = `auction-complete_${auctionId}`;
-      const existingJob = await this.auctionQueue.getJob(jobId);
-      if (existingJob) {
-        await existingJob.remove();
-      }
-
-      await this.emitCompleteAuction(auctionId, result.newEndTime);
+      await this.auctionQueueService.rescheduleCompleteJob(
+        auctionId,
+        result.newEndTime,
+      );
     }
 
     this.logger.debug(`User ${userId} updated auction ${auctionId}`);

@@ -16,6 +16,10 @@ export const AUCTION_EVENTS = {
   AUCTION_CLOSED: 'auction:closed',
 
   // Server emits → All clients in auction room receive
+  // Server notifies clients that the auction has been reopened for a new bidding round.
+  AUCTION_REOPENED: 'auction:reopened',
+
+  // Server emits → All clients in auction room receive
   // Server notifies clients about the winner of the auction.
   AUCTION_WINNER: 'auction:winner',
 

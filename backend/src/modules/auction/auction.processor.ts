@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { AuctionService } from '@modules/auction/services/auction.service';
 import { AUCTION_QUEUE } from '@common/constants/queue.constant';
+import { AuctionLifecycleService } from '@modules/auction/services/auction-lifecycle.service';
 
 interface AuctionJobData {
   auctionId: string;
@@ -9,26 +9,32 @@ interface AuctionJobData {
 
 @Processor(AUCTION_QUEUE.NAME)
 export class AuctionProcessor extends WorkerHost {
-  constructor(private readonly auctionService: AuctionService) {
+  constructor(
+    private readonly auctionLifeCycleService: AuctionLifecycleService,
+  ) {
     super();
   }
 
   async process(job: Job<AuctionJobData>): Promise<void> {
     switch (job.name) {
       case AUCTION_QUEUE.JOBS.OPEN_AUCTION:
-        await this.auctionService.openAuction(job.data.auctionId);
+        await this.auctionLifeCycleService.openAuction(job.data.auctionId);
         break;
 
       case AUCTION_QUEUE.JOBS.EXTEND_AUCTION:
-        await this.auctionService.extendAuction(job.data.auctionId);
+        await this.auctionLifeCycleService.extendAuction(job.data.auctionId);
         break;
 
       case AUCTION_QUEUE.JOBS.COMPLETE_AUCTION:
-        await this.auctionService.completeAuction(job.data.auctionId);
+        await this.auctionLifeCycleService.completeAuction(job.data.auctionId);
+        break;
+
+      case AUCTION_QUEUE.JOBS.SETTLE_AUCTION:
+        await this.auctionLifeCycleService.settleAuction(job.data.auctionId);
         break;
 
       case AUCTION_QUEUE.JOBS.CLOSE_AUCTION:
-        // TODO: Implement auction closing flow.
+        await this.auctionLifeCycleService.closeAuction(job.data.auctionId);
         break;
 
       default:

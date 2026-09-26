@@ -65,6 +65,7 @@ import {
 import { SearchAuctionsResponseDto } from '@modules/auction/dtos/search-auctions.response.dto';
 import { GetAuctionByIdResponseDto } from '@modules/auction/dtos/get-auction-by-id.response.dto';
 import { PaginationResult } from '@common/types/pagination.interface';
+import { AuctionLifecycleService } from '@modules/auction/services/auction-lifecycle.service';
 
 @ApiTags('Auctions')
 @ApiExtraModels(
@@ -81,7 +82,10 @@ import { PaginationResult } from '@common/types/pagination.interface';
 )
 @Controller('auctions')
 export class AuctionController {
-  constructor(private readonly auctionService: AuctionService) {}
+  constructor(
+    private readonly auctionService: AuctionService,
+    private readonly auctionLifecycleService: AuctionLifecycleService,
+  ) {}
 
   @Auth(AuthType.ACCESS_TOKEN)
   @Roles(Role.SELLER)
@@ -703,7 +707,7 @@ export class AuctionController {
     @Req() req: Request,
     @Param('id') auctionId: string,
   ): Promise<ResponsePayload> {
-    await this.auctionService.endAuction(req.user!.userId, auctionId);
+    await this.auctionLifecycleService.endAuction(req.user!.userId, auctionId);
 
     return {
       message: 'Auction ended successfully',
@@ -756,10 +760,66 @@ export class AuctionController {
     @Req() req: Request,
     @Param('id') auctionId: string,
   ): Promise<ResponsePayload> {
-    await this.auctionService.confirmAuction(req.user!.userId, auctionId);
+    await this.auctionLifecycleService.confirmAuction(
+      req.user!.userId,
+      auctionId,
+    );
 
     return {
       message: 'Auction confirmed successfully',
+      data: {},
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.ADMIN, Role.SELLER)
+  @Patch(':id/reopen')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reopen auction',
+    description:
+      'Reopens a closed auction for a new bidding round: hides previous bids, resets the price and bid count, and schedules a new completion time preserving the original duration.',
+  })
+  @ApiCookieAuth('access_token')
+  @ApiSecurity('csrf-token')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    description: 'Auction ID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiOkResponse({
+    description: 'Auction reopened successfully',
+    type: SuccessResponse,
+    example: {
+      statusCode: 200,
+      message: 'Auction reopened successfully',
+      data: {},
+    },
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_AUCTION_NOT_FOUND.message,
+    type: ErrorResponse,
+    example: ERROR_AUCTION_NOT_FOUND,
+  })
+  @ApiBadRequestResponse({
+    description: 'Auction is not closed',
+    type: ErrorResponse,
+    example: ERROR_AUCTION_INVALID_STATUS,
+  })
+  async reopenAuction(
+    @Param('id') auctionId: string,
+  ): Promise<ResponsePayload> {
+    await this.auctionLifecycleService.reopenAuction(auctionId);
+
+    return {
+      message: 'Auction reopened successfully',
       data: {},
     };
   }

@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { AuctionStatus } from '@generated/prisma/enums';
 import { PrismaService } from '@common/services/prisma.service';
 import { LoggerService } from '@common/services/logger.service';
-import { AuctionService } from '@modules/auction/services/auction.service';
+import { AuctionQueueService } from '@modules/auction/services/auction-queue.service';
 
 @Injectable()
 export class AuctionReconcileService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
-    private readonly auctionService: AuctionService,
+    private readonly auctionQueueService: AuctionQueueService,
   ) {}
 
   async reconcileAuctions(): Promise<void> {
@@ -42,7 +42,7 @@ export class AuctionReconcileService {
     for (const auction of auctions) {
       try {
         if (auction.status === AuctionStatus.READY) {
-          await this.auctionService.emitOpenAuction(
+          await this.auctionQueueService.emitOpenAuction(
             auction.auctionId,
             auction.startTime,
           );
@@ -58,7 +58,7 @@ export class AuctionReconcileService {
           auction.status === AuctionStatus.OPEN ||
           auction.status === AuctionStatus.EXTENDED
         ) {
-          await this.auctionService.emitCompleteAuction(
+          await this.auctionQueueService.emitCompleteAuction(
             auction.auctionId,
             auction.endTime,
           );
