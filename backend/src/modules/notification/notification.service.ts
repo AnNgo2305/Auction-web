@@ -59,6 +59,7 @@ export class NotificationService {
     payload: NotificationPayload,
   ): Promise<NotificationDto | null> {
     const dedupKey = REDIS_KEYS.NOTIFICATION.DEDUP(
+      payload?.eventId ?? '',
       payload.type,
       payload.entityId,
       payload.recipientId,
@@ -96,20 +97,23 @@ export class NotificationService {
         })
       : null;
 
-    const metadata = actor
-      ? {
-          actors: [
-            {
-              userId: actor.userId,
-              fullName: actor.profile?.fullName ?? null,
-              username: actor.username,
-              profileImageUrl: actor.profile?.profileImageUrl
-                ? this.fileService.getPublicUrl(actor.profile.profileImageUrl)
-                : null,
-            },
-          ],
-        }
-      : undefined;
+    const metadata = {
+      ...(payload.metadata ?? {}),
+      ...(actor
+        ? {
+            actors: [
+              {
+                userId: actor.userId,
+                fullName: actor.profile?.fullName ?? null,
+                username: actor.username,
+                profileImageUrl: actor.profile?.profileImageUrl
+                  ? this.fileService.getPublicUrl(actor.profile.profileImageUrl)
+                  : null,
+              },
+            ],
+          }
+        : {}),
+    };
 
     const notification = await this.prisma.notification.create({
       data: {
@@ -246,11 +250,14 @@ export class NotificationService {
       entityId,
     );
 
-    try {
-      await this.redis.rename(aggregationKey, processingKey);
-    } catch {
-      this.logger.warn(`Aggregation buffer not found: ${aggregationKey}`);
-      return null;
+    const hasProcessingKey = await this.redis.exists(processingKey);
+    if (!hasProcessingKey) {
+      try {
+        await this.redis.rename(aggregationKey, processingKey);
+      } catch {
+        this.logger.warn(`Aggregation buffer not found: ${aggregationKey}`);
+        return null;
+      }
     }
 
     // Read all actor IDs from the processing key.

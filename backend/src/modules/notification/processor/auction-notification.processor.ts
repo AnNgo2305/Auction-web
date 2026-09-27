@@ -10,8 +10,12 @@ import { NotificationPayload } from '@modules/notification/constants/notificatio
 import { NotificationType } from '@generated/prisma/enums';
 
 interface AuctionNotificationJobData {
+  eventId: string;
   auctionId: string;
-  sellerId: string;
+  sellerId?: string;
+  title: string;
+  endTime?: Date;
+  isManual?: boolean;
 }
 
 @Processor(AUCTION_NOTIFICATION_QUEUE.NAME)
@@ -70,6 +74,13 @@ export class AuctionNotificationProcessor extends WorkerHost {
         );
         break;
 
+      case AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_RESUBMITTED:
+        await this.handleAuctionNotification(
+          job,
+          NotificationType.AUCTION_RESUBMITTED,
+        );
+        break;
+
       case AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_REOPENED:
         await this.handleAuctionNotification(
           job,
@@ -93,11 +104,27 @@ export class AuctionNotificationProcessor extends WorkerHost {
     job: Job<AuctionNotificationJobData>,
     type: NotificationType,
   ): Promise<void> {
-    const { auctionId, sellerId } = job.data;
+    const {
+      eventId,
+      auctionId,
+      sellerId: payloadSellerId,
+      title,
+      endTime,
+      isManual,
+    } = job.data;
 
     this.logger.log(
       `Processing auction notification ${type} for auction ${auctionId}`,
     );
+
+    const sellerId =
+      payloadSellerId ??
+      (
+        await this.prisma.auction.findUniqueOrThrow({
+          where: { auctionId },
+          select: { sellerId: true },
+        })
+      ).sellerId;
 
     const followers = await this.prisma.follow.findMany({
       where: {
@@ -111,13 +138,26 @@ export class AuctionNotificationProcessor extends WorkerHost {
 
     for (const follower of followers) {
       const payload: NotificationPayload = {
+        eventId,
         recipientId: follower.followerId,
         type,
         actorId: sellerId,
         entityId: auctionId,
         entityType: 'AUCTION',
+        metadata: {
+          title,
+          ...(endTime && {
+            endTime: endTime.toISOString(),
+          }),
+          ...(isManual !== undefined && {
+            isManual,
+          }),
+        },
       };
 
+      // DB failure → throw → BullMQ retry.
+      // eventId prevents duplicate notifications for followers
+      // already processed before the failure.
       const notification =
         await this.notificationService.createNotification(payload);
 
@@ -125,16 +165,24 @@ export class AuctionNotificationProcessor extends WorkerHost {
         continue;
       }
 
-      const unreadCount = await this.notificationService.getUnreadCount(
-        notification.recipientId,
-      );
+      // WebSocket failure should not cause the job to retry.
+      try {
+        const unreadCount = await this.notificationService.getUnreadCount(
+          notification.recipientId,
+        );
 
-      this.notificationsGateway.emitNotification(notification.recipientId);
+        this.notificationsGateway.emitNotification(notification);
 
-      this.notificationsGateway.emitUnreadCount(
-        notification.recipientId,
-        unreadCount,
-      );
+        this.notificationsGateway.emitUnreadCount(
+          notification.recipientId,
+          unreadCount,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to emit auction notification to user ${notification.recipientId}`,
+          error,
+        );
+      }
     }
   }
 }

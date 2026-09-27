@@ -29,6 +29,9 @@ export const INTERNAL_EVENTS = {
   // Emitted when an auction is reopened for a new bidding round.
   AUCTION_REOPENED: 'auction.reopened',
 
+  // Emitted when a seller resubmits a canceled auction.
+  AUCTION_RESUBMITTED: 'auction.resubmitted',
+
   // Emitted when an auction is fully closed after settlement.
   AUCTION_CLOSED: 'auction.closed',
 

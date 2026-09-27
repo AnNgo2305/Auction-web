@@ -31,19 +31,31 @@ export class AuctionPermissionService {
     const isOwner =
       currentUserId !== undefined && auction.sellerId === currentUserId;
 
-    if (
-      !isOwner &&
-      auction.status !== AuctionStatus.READY &&
-      auction.status !== AuctionStatus.OPEN &&
-      auction.status !== AuctionStatus.EXTENDED &&
-      auction.status !== AuctionStatus.CLOSED &&
-      auction.status !== AuctionStatus.COMPLETED
-    ) {
+    if (!isOwner && auction.status === AuctionStatus.PENDING) {
       this.logger.warn(
         `User ${currentUserId ?? 'anonymous'} attempted to access unavailable auction ${auction.auctionId} (status: ${auction.status})`,
       );
 
       throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+    }
+  }
+
+  canDeleteAuction(
+    auction: {
+      auctionId: string;
+      sellerId: string;
+      status: AuctionStatus;
+    },
+    currentUserId: string,
+  ): void {
+    this.canEditAuction(auction, currentUserId);
+
+    if (auction.status !== AuctionStatus.PENDING) {
+      this.logger.warn(
+        `User ${currentUserId} attempted to delete auction ${auction.auctionId} with status ${auction.status}`,
+      );
+
+      throw new BadRequestException(ERROR_AUCTION_INVALID_STATUS);
     }
   }
 
@@ -77,7 +89,8 @@ export class AuctionPermissionService {
 
     if (
       auction.status !== AuctionStatus.PENDING &&
-      auction.status !== AuctionStatus.READY
+      auction.status !== AuctionStatus.READY &&
+      auction.status !== AuctionStatus.CANCELED
     ) {
       this.logger.warn(
         `User ${currentUserId} attempted to update auction ${auction.auctionId} with status ${auction.status}`,
@@ -97,10 +110,7 @@ export class AuctionPermissionService {
   ): void {
     this.canEditAuction(auction, currentUserId);
 
-    if (
-      auction.status !== AuctionStatus.PENDING &&
-      auction.status !== AuctionStatus.READY
-    ) {
+    if (auction.status !== AuctionStatus.READY) {
       this.logger.warn(
         `User ${currentUserId} attempted to cancel auction ${auction.auctionId} with status ${auction.status}`,
       );

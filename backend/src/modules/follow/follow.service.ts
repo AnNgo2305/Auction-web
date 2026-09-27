@@ -113,7 +113,7 @@ export class FollowService {
 
           this.eventEmitter.emit(
             INTERNAL_EVENTS.FOLLOW_REQUESTED,
-            new FollowRequestEvent(bidderId, sellerId),
+            new FollowRequestEvent(crypto.randomUUID(), bidderId, sellerId),
           );
 
           this.logger.log(
@@ -138,7 +138,7 @@ export class FollowService {
 
       this.eventEmitter.emit(
         INTERNAL_EVENTS.FOLLOW_REQUESTED,
-        new FollowRequestEvent(bidderId, sellerId),
+        new FollowRequestEvent(crypto.randomUUID(), bidderId, sellerId),
       );
     } catch (error: unknown) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -262,7 +262,7 @@ export class FollowService {
 
     this.eventEmitter.emit(
       INTERNAL_EVENTS.FOLLOW_ACCEPTED,
-      new FollowAcceptEvent(bidderId, sellerId),
+      new FollowAcceptEvent(crypto.randomUUID(), bidderId, sellerId),
     );
 
     this.logger.log(`[ACCEPT] seller=${sellerId} accepted user=${bidderId}`);

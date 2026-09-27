@@ -35,14 +35,12 @@ export const REDIS_KEYS = {
       entityId: string,
     ) =>
       `notification:aggregation:${recipientId}:${type}:${entityId}:processing`,
-    AGGREGATION_ACTORS_PROCESSING: (
-      recipientId: string,
+    DEDUP: (
+      eventId: string,
       type: string,
       entityId: string,
-    ) =>
-      `notification:aggregation:${recipientId}:${type}:${entityId}:actors:processing`,
-    DEDUP: (type: string, entityId: string, recipientId: string) =>
-      `notification:dedup:${type}:${entityId}:${recipientId}`,
+      recipientId: string,
+    ) => `notification:dedup:${eventId}:${type}:${entityId}:${recipientId}`,
   },
   USER: {
     USER_ID: (userId: string) => `user:${userId}`,

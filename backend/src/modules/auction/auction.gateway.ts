@@ -138,7 +138,7 @@ export class AuctionGateway
     auctionId: string;
     winnerId: string;
     username: string;
-    winningBid: number;
+    bidAmount: number;
     profileImageUrl: string | null;
   }): void {
     this.server
@@ -147,7 +147,7 @@ export class AuctionGateway
         auctionId: data.auctionId,
         winnerId: data.winnerId,
         username: data.username,
-        winningBid: data.winningBid,
+        bidAmount: data.bidAmount,
         profileImageUrl: data.profileImageUrl,
       });
   }

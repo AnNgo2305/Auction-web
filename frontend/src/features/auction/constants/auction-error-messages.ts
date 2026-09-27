@@ -69,3 +69,10 @@ export const RESUBMIT_AUCTION_ERROR_MESSAGES: Record<string, string> = {
     'One or more products are already included in another auction',
   DEFAULT: 'Failed to resubmit auction',
 } as const;
+
+export const DELETE_AUCTION_ERROR_MESSAGES: Record<string, string> = {
+  AUCTION_NOT_FOUND: 'Auction not found',
+  AUCTION_ACCESS_DENIED: 'You do not have permission to access this auction',
+  AUCTION_INVALID_STATUS: 'Auction can only be deleted while it is pending',
+  DEFAULT: 'Failed to delete auction',
+} as const;

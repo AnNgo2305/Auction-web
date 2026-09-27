@@ -13,18 +13,28 @@ import {
   ERROR_AUCTION_NOT_OPEN,
   ERROR_AUCTION_INVALID_STATUS,
   ERROR_AUCTION_NOT_COMPLETED,
+  ERROR_AUCTION_END_TIME_INVALID,
+  ERROR_AUCTION_PRODUCT_QUANTITY_INVALID,
 } from '@modules/auction/constants/auction.constant';
-import { AuctionStatus } from '@generated/prisma/enums';
+import { AuctionStatus, ProductStatus } from '@generated/prisma/enums';
 import { Prisma } from '@generated/prisma/client';
 import { AuctionPermissionService } from '@modules/permission/auction-permission.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { INTERNAL_EVENTS } from '@common/constants/event.constant';
-import { AuctionEvent } from '@modules/auction/events/auction.event';
+import {
+  AuctionCancelledEvent,
+  AuctionClosedEvent,
+  AuctionCreatedEvent,
+  AuctionEndedEvent,
+  AuctionResubmittedEvent,
+} from '@modules/auction/events/auction.event';
 import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
 import { AuctionWinnerEvent } from '@modules/auction/events/auction-winner.event';
 import { AuctionReopenedEvent } from '@modules/auction/events/auction-reopen.event';
 import { BidService } from '@modules/bid/services/bid.service';
 import { AuctionQueueService } from '@modules/auction/services/auction-queue.service';
+import { AuctionService } from '@modules/auction/services/auction.service';
+import { AuctionExtendedEvent } from '@modules/auction/events/auction-extend.event';
 
 /**
  * Owns the auction status state machine: confirm -> open -> (extend) ->
@@ -38,6 +48,7 @@ export class AuctionLifecycleService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     private readonly auctionPermissionService: AuctionPermissionService,
+    private readonly auctionService: AuctionService,
     private readonly bidService: BidService,
     private readonly eventEmitter: EventEmitter2,
     private readonly auctionQueueService: AuctionQueueService,
@@ -54,6 +65,7 @@ export class AuctionLifecycleService {
           sellerId: string;
           startTime: Date;
           endTime: Date;
+          title: string;
         }>
       >`
       SELECT
@@ -61,7 +73,8 @@ export class AuctionLifecycleService {
         seller_id AS sellerId,
         status,
         start_time AS startTime,
-        end_time AS endTime
+        end_time AS endTime,
+        title
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -109,10 +122,12 @@ export class AuctionLifecycleService {
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_STARTED,
       new AuctionStartedEvent(
+        crypto.randomUUID(),
         auction.auctionId,
         auction.sellerId,
         auction.startTime,
         auction.endTime,
+        auction.title,
       ),
     );
   }
@@ -137,7 +152,7 @@ export class AuctionLifecycleService {
     this.auctionPermissionService.canEndAuction(auction, sellerId);
 
     // Reuse the shared completion flow.
-    await this.completeAuction(auctionId);
+    await this.completeAuction(auctionId, true);
 
     this.logger.log(
       `[AUCTION] Successfully ended auction ${auctionId} manually`,
@@ -155,12 +170,14 @@ export class AuctionLifecycleService {
           auctionId: string;
           sellerId: string;
           status: AuctionStatus;
+          title: string;
         }>
       >`
       SELECT
         auction_id AS auctionId,
         seller_id AS sellerId,
-        status
+        status,
+        title
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -189,11 +206,16 @@ export class AuctionLifecycleService {
 
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_CREATED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
+      new AuctionCreatedEvent(
+        crypto.randomUUID(),
+        auction.auctionId,
+        auction.sellerId,
+        auction.title,
+      ),
     );
   }
 
-  async completeAuction(auctionId: string): Promise<void> {
+  async completeAuction(auctionId: string, isManual: boolean): Promise<void> {
     this.logger.log(`[AUCTION] Completing auction ${auctionId}`);
 
     const auction = await this.prisma.$transaction(async (tx) => {
@@ -202,12 +224,14 @@ export class AuctionLifecycleService {
           auctionId: string;
           sellerId: string;
           status: AuctionStatus;
+          title: string;
         }>
       >`
       SELECT
         auction_id AS auctionId,
         seller_id AS sellerId,
-        status
+        status,
+        title
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -248,7 +272,13 @@ export class AuctionLifecycleService {
 
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_ENDED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
+      new AuctionEndedEvent(
+        crypto.randomUUID(),
+        auction.auctionId,
+        auction.sellerId,
+        auction.title,
+        isManual,
+      ),
     );
   }
 
@@ -261,12 +291,14 @@ export class AuctionLifecycleService {
           auctionId: string;
           sellerId: string;
           status: AuctionStatus;
+          title: string;
         }>
       >`
       SELECT
         auction_id AS auctionId,
         seller_id AS sellerId,
-        status
+        status,
+        title
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -302,7 +334,12 @@ export class AuctionLifecycleService {
 
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_CLOSED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
+      new AuctionClosedEvent(
+        crypto.randomUUID(),
+        auction.auctionId,
+        auction.sellerId,
+        auction.title,
+      ),
     );
   }
 
@@ -318,6 +355,7 @@ export class AuctionLifecycleService {
           startingPrice: Prisma.Decimal;
           startTime: Date;
           endTime: Date;
+          title: string;
         }>
       >`
       SELECT
@@ -326,7 +364,8 @@ export class AuctionLifecycleService {
         status,
         starting_price AS "startingPrice",
         start_time AS "startTime",
-        end_time AS "endTime"
+        end_time AS "endTime",
+        title
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -378,6 +417,7 @@ export class AuctionLifecycleService {
         sellerId: auction.sellerId,
         startTime: now,
         endTime: newEndTime,
+        title: auction.title,
       };
     });
 
@@ -395,8 +435,10 @@ export class AuctionLifecycleService {
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_REOPENED,
       new AuctionReopenedEvent(
+        crypto.randomUUID(),
         auction.auctionId,
         auction.sellerId,
+        auction.title,
         auction.startTime,
         auction.endTime,
       ),
@@ -413,13 +455,15 @@ export class AuctionLifecycleService {
           sellerId: string;
           status: AuctionStatus;
           endTime: Date;
+          title: string;
         }>
       >`
       SELECT
         auction_id AS auctionId,
         seller_id AS sellerId,
         status,
-        end_time AS endTime
+        end_time AS endTime,
+        title
       FROM auctions
       WHERE auction_id = ${auctionId}
       FOR UPDATE
@@ -479,6 +523,7 @@ export class AuctionLifecycleService {
         auctionId: auction.auctionId,
         sellerId: auction.sellerId,
         endTime: newEndTime,
+        title: auction.title,
       };
     });
 
@@ -502,7 +547,13 @@ export class AuctionLifecycleService {
 
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_EXTENDED,
-      new AuctionEvent(auction.auctionId, auction.sellerId),
+      new AuctionExtendedEvent(
+        crypto.randomUUID(),
+        auction.auctionId,
+        auction.sellerId,
+        auction.title,
+        auction.endTime,
+      ),
     );
   }
 
@@ -523,6 +574,7 @@ export class AuctionLifecycleService {
     this.eventEmitter.emit(
       INTERNAL_EVENTS.AUCTION_WINNER,
       new AuctionWinnerEvent(
+        crypto.randomUUID(),
         highestBid.auctionId,
         highestBid.userId,
         highestBid.username,
@@ -534,5 +586,236 @@ export class AuctionLifecycleService {
     this.logger.log(
       `[AUCTION] Winner determined for auction ${auctionId}: userId=${highestBid.userId}, bid=${highestBid.bidAmount}`,
     );
+  }
+
+  async cancelAuction(
+    sellerId: string,
+    auctionId: string,
+    cancelReason: string,
+  ): Promise<void> {
+    this.logger.log(
+      `[AUCTION] Cancelling auction ${auctionId} by seller ${sellerId}`,
+    );
+
+    const auctionTitle = await this.prisma.$transaction(async (tx) => {
+      const auctions = await tx.$queryRaw<
+        Array<{
+          auctionId: string;
+          sellerId: string;
+          status: AuctionStatus;
+          title: string;
+        }>
+      >`
+      SELECT
+        auction_id AS auctionId,
+        seller_id AS sellerId,
+        status,
+        title
+      FROM auctions
+      WHERE auction_id = ${auctionId}
+      FOR UPDATE
+    `;
+
+      if (auctions.length === 0) {
+        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      const auction = auctions[0];
+      this.auctionPermissionService.canCancelAuction(auction, sellerId);
+
+      const auctionTitle = auction.title;
+
+      const auctionProducts = await tx.auctionProduct.findMany({
+        where: { auctionId },
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      });
+
+      const productIds = auctionProducts.map((product) => product.productId);
+
+      if (productIds.length > 0) {
+        await tx.$queryRaw`
+        SELECT product_id
+        FROM products
+        WHERE product_id IN (${productIds.join(',')})
+        FOR UPDATE
+      `;
+
+        for (const auctionProduct of auctionProducts) {
+          await tx.product.update({
+            where: { productId: auctionProduct.productId },
+            data: {
+              stockQuantity: {
+                increment: auctionProduct.quantity,
+              },
+              status: ProductStatus.READY,
+            },
+          });
+        }
+      }
+
+      await tx.auction.update({
+        where: { auctionId },
+        data: {
+          status: AuctionStatus.CANCELED,
+          cancelReason,
+        },
+      });
+
+      this.logger.log(
+        `[AUCTION] Auction ${auctionId} cancelled and products restored`,
+      );
+
+      return auctionTitle;
+    });
+
+    this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
+
+    // Remove scheduled jobs after transaction succeeds.
+    await this.auctionQueueService.removeAuctionJobs(auctionId);
+
+    this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_CANCELLED,
+      new AuctionCancelledEvent(
+        crypto.randomUUID(),
+        auctionId,
+        sellerId,
+        auctionTitle,
+      ),
+    );
+  }
+
+  async resubmitAuction(sellerId: string, auctionId: string): Promise<void> {
+    this.logger.log(
+      `[AUCTION] Reopening auction ${auctionId} by seller ${sellerId}`,
+    );
+
+    const auction = await this.prisma.$transaction(async (tx) => {
+      const auctions = await tx.$queryRaw<
+        Array<{
+          auctionId: string;
+          sellerId: string;
+          status: AuctionStatus;
+          startTime: Date;
+          endTime: Date;
+          title: string;
+        }>
+      >`
+      SELECT
+        auction_id AS auctionId,
+        seller_id AS sellerId,
+        status,
+        start_time AS startTime,
+        end_time AS endTime,
+        title
+      FROM auctions
+      WHERE auction_id = ${auctionId}
+      FOR UPDATE
+    `;
+
+      if (auctions.length === 0) {
+        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      const auction = auctions[0];
+      const now = new Date();
+
+      if (auction.startTime <= now) {
+        throw new BadRequestException(ERROR_AUCTION_START_TIME_INVALID);
+      }
+
+      if (auction.endTime <= auction.startTime) {
+        throw new BadRequestException(ERROR_AUCTION_END_TIME_INVALID);
+      }
+
+      this.auctionPermissionService.canResubmitAuction(auction, sellerId);
+
+      const auctionProducts = await tx.auctionProduct.findMany({
+        where: { auctionId },
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      });
+
+      const productIds = auctionProducts.map((product) => product.productId);
+
+      if (productIds.length > 0) {
+        const products =
+          await this.auctionService.getAndValidateAuctionProducts(
+            tx,
+            productIds,
+            auctionId,
+          );
+
+        const productMap = new Map(
+          products.map((product) => [product.productId, product]),
+        );
+
+        const hasInsufficientStock = auctionProducts.some((auctionProduct) => {
+          const product = productMap.get(auctionProduct.productId);
+          return product && auctionProduct.quantity > product.stockQuantity;
+        });
+
+        if (hasInsufficientStock) {
+          this.logger.warn(
+            `[AUCTION] Insufficient product stock for resubmission of auction ${auctionId}`,
+          );
+          throw new BadRequestException(ERROR_AUCTION_PRODUCT_QUANTITY_INVALID);
+        }
+
+        for (const auctionProduct of auctionProducts) {
+          await tx.product.update({
+            where: { productId: auctionProduct.productId },
+            data: {
+              stockQuantity: {
+                decrement: auctionProduct.quantity,
+              },
+              status: ProductStatus.AUCTIONING,
+            },
+          });
+        }
+      }
+
+      await tx.auction.update({
+        where: { auctionId },
+        data: {
+          status: AuctionStatus.READY,
+          cancelReason: null,
+        },
+      });
+
+      this.logger.log(`[AUCTION] Auction ${auctionId} reopened successfully`);
+      return auction;
+    });
+
+    // Recreate lifecycle jobs after the transaction succeeds.
+    await this.auctionQueueService.emitOpenAuction(
+      auction.auctionId,
+      auction.startTime,
+    );
+
+    await this.auctionQueueService.emitCompleteAuction(
+      auction.auctionId,
+      auction.endTime,
+    );
+
+    this.eventEmitter.emit(
+      INTERNAL_EVENTS.AUCTION_RESUBMITTED,
+      new AuctionResubmittedEvent(
+        crypto.randomUUID(),
+        auction.auctionId,
+        sellerId,
+        auction.title,
+      ),
+    );
+
+    this.logger.log(`[AUCTION] Successfully reopened auction ${auctionId}`);
   }
 }

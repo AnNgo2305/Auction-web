@@ -30,7 +30,7 @@ import { UpdateAuctionDto } from '@modules/auction/dtos/update-auction.body.dto'
 import { AuctionPermissionService } from '@modules/permission/auction-permission.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { INTERNAL_EVENTS } from '@common/constants/event.constant';
-import { AuctionEvent } from '@modules/auction/events/auction.event';
+import { AuctionUpdatedEvent } from '@modules/auction/events/auction.event';
 import { AuctionQueueService } from '@modules/auction/services/auction-queue.service';
 
 @Injectable()
@@ -499,201 +499,6 @@ export class AuctionService {
     };
   }
 
-  async cancelAuction(
-    sellerId: string,
-    auctionId: string,
-    cancelReason: string,
-  ): Promise<void> {
-    this.logger.log(
-      `[AUCTION] Cancelling auction ${auctionId} by seller ${sellerId}`,
-    );
-
-    await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          sellerId: string;
-          status: AuctionStatus;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-      this.auctionPermissionService.canCancelAuction(auction, sellerId);
-
-      const auctionProducts = await tx.auctionProduct.findMany({
-        where: { auctionId },
-        select: {
-          productId: true,
-          quantity: true,
-        },
-      });
-
-      const productIds = auctionProducts.map((product) => product.productId);
-
-      if (productIds.length > 0) {
-        await tx.$queryRaw`
-        SELECT product_id
-        FROM products
-        WHERE product_id IN (${productIds.join(',')})
-        FOR UPDATE
-      `;
-
-        for (const auctionProduct of auctionProducts) {
-          await tx.product.update({
-            where: { productId: auctionProduct.productId },
-            data: {
-              stockQuantity: {
-                increment: auctionProduct.quantity,
-              },
-              status: ProductStatus.READY,
-            },
-          });
-        }
-      }
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: {
-          status: AuctionStatus.CANCELED,
-          cancelReason,
-        },
-      });
-
-      this.logger.log(
-        `[AUCTION] Auction ${auctionId} cancelled and products restored`,
-      );
-    });
-
-    this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
-
-    // Remove scheduled jobs after transaction succeeds.
-    await this.auctionQueueService.removeAuctionJobs(auctionId);
-
-    this.logger.log(`[AUCTION] Successfully cancelled auction ${auctionId}`);
-
-    this.eventEmitter.emit(
-      INTERNAL_EVENTS.AUCTION_CANCELLED,
-      new AuctionEvent(auctionId, sellerId),
-    );
-  }
-
-  async resubmitAuction(sellerId: string, auctionId: string): Promise<void> {
-    this.logger.log(
-      `[AUCTION] Reopening auction ${auctionId} by seller ${sellerId}`,
-    );
-
-    await this.prisma.$transaction(async (tx) => {
-      const auctions = await tx.$queryRaw<
-        Array<{
-          auctionId: string;
-          sellerId: string;
-          status: AuctionStatus;
-          startTime: Date;
-          endTime: Date;
-        }>
-      >`
-      SELECT
-        auction_id AS auctionId,
-        seller_id AS sellerId,
-        status,
-        start_time AS startTime,
-        end_time AS endTime
-      FROM auctions
-      WHERE auction_id = ${auctionId}
-      FOR UPDATE
-    `;
-
-      if (auctions.length === 0) {
-        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
-        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
-      }
-
-      const auction = auctions[0];
-      const now = new Date();
-
-      if (auction.startTime <= now) {
-        throw new BadRequestException(ERROR_AUCTION_START_TIME_INVALID);
-      }
-
-      if (auction.endTime <= auction.startTime) {
-        throw new BadRequestException(ERROR_AUCTION_END_TIME_INVALID);
-      }
-
-      this.auctionPermissionService.canResubmitAuction(auction, sellerId);
-
-      const auctionProducts = await tx.auctionProduct.findMany({
-        where: { auctionId },
-        select: {
-          productId: true,
-          quantity: true,
-        },
-      });
-
-      const productIds = auctionProducts.map((product) => product.productId);
-
-      if (productIds.length > 0) {
-        const products = await this.getAndValidateAuctionProducts(
-          tx,
-          productIds,
-          auctionId,
-        );
-
-        const productMap = new Map(
-          products.map((product) => [product.productId, product]),
-        );
-
-        const hasInsufficientStock = auctionProducts.some((auctionProduct) => {
-          const product = productMap.get(auctionProduct.productId);
-          return product && auctionProduct.quantity > product.stockQuantity;
-        });
-
-        if (hasInsufficientStock) {
-          this.logger.warn(
-            `[AUCTION] Insufficient product stock for resubmission of auction ${auctionId}`,
-          );
-          throw new BadRequestException(ERROR_AUCTION_PRODUCT_QUANTITY_INVALID);
-        }
-
-        for (const auctionProduct of auctionProducts) {
-          await tx.product.update({
-            where: { productId: auctionProduct.productId },
-            data: {
-              stockQuantity: {
-                decrement: auctionProduct.quantity,
-              },
-              status: ProductStatus.AUCTIONING,
-            },
-          });
-        }
-      }
-
-      await tx.auction.update({
-        where: { auctionId },
-        data: {
-          status: AuctionStatus.PENDING,
-          cancelReason: null,
-        },
-      });
-
-      this.logger.log(`[AUCTION] Auction ${auctionId} reopened successfully`);
-    });
-
-    this.logger.log(`[AUCTION] Successfully reopened auction ${auctionId}`);
-  }
-
   async updateAuction(
     userId: string,
     auctionId: string,
@@ -739,6 +544,7 @@ export class AuctionService {
       }
 
       this.auctionPermissionService.canUpdateAuction(auction, userId);
+      const auctionStatus = auction.status;
 
       const now = new Date();
       newStartTime = startTime ? new Date(startTime) : auction.startTime;
@@ -897,6 +703,8 @@ export class AuctionService {
         shouldRescheduleComplete,
         newStartTime,
         newEndTime,
+        auctionStatus,
+        title,
       };
     });
 
@@ -916,13 +724,98 @@ export class AuctionService {
 
     this.logger.debug(`User ${userId} updated auction ${auctionId}`);
 
-    this.eventEmitter.emit(
-      INTERNAL_EVENTS.AUCTION_UPDATED,
-      new AuctionEvent(auctionId, userId),
-    );
+    if (result.auctionStatus === AuctionStatus.READY) {
+      this.eventEmitter.emit(
+        INTERNAL_EVENTS.AUCTION_UPDATED,
+        new AuctionUpdatedEvent(
+          crypto.randomUUID(),
+          auctionId,
+          userId,
+          result?.title ?? '',
+        ),
+      );
+    }
   }
 
-  private async getAndValidateAuctionProducts(
+  async deleteAuction(sellerId: string, auctionId: string): Promise<void> {
+    this.logger.log(
+      `[AUCTION] Deleting auction ${auctionId} by seller ${sellerId}`,
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      const auctions = await tx.$queryRaw<
+        Array<{
+          auctionId: string;
+          sellerId: string;
+          status: AuctionStatus;
+        }>
+      >`
+      SELECT
+        auction_id AS auctionId,
+        seller_id AS sellerId,
+        status
+      FROM auctions
+      WHERE auction_id = ${auctionId}
+      FOR UPDATE
+    `;
+
+      if (auctions.length === 0) {
+        this.logger.warn(`[AUCTION] Auction ${auctionId} not found`);
+        throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      const auction = auctions[0];
+
+      this.auctionPermissionService.canDeleteAuction(auction, sellerId);
+
+      const auctionProducts = await tx.auctionProduct.findMany({
+        where: { auctionId },
+        select: {
+          productId: true,
+          quantity: true,
+        },
+      });
+
+      const productIds = auctionProducts.map(
+        (auctionProduct) => auctionProduct.productId,
+      );
+
+      if (productIds.length > 0) {
+        await tx.$queryRaw`
+        SELECT product_id
+        FROM products
+        WHERE product_id IN (${productIds.join(',')})
+        FOR UPDATE
+      `;
+
+        for (const auctionProduct of auctionProducts) {
+          await tx.product.update({
+            where: {
+              productId: auctionProduct.productId,
+            },
+            data: {
+              stockQuantity: { increment: auctionProduct.quantity },
+              status: ProductStatus.READY,
+            },
+          });
+        }
+      }
+
+      await tx.auction.delete({
+        where: { auctionId },
+      });
+
+      this.logger.log(
+        `[AUCTION] Deleted auction ${auctionId} and restored ${auctionProducts.length} products`,
+      );
+    });
+
+    await this.auctionQueueService.removeAuctionJobs(auctionId);
+
+    this.logger.log(`[AUCTION] Successfully deleted auction ${auctionId}`);
+  }
+
+  async getAndValidateAuctionProducts(
     tx: Prisma.TransactionClient,
     productIds: string[],
     currentAuctionId?: string,

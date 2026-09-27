@@ -66,6 +66,16 @@ const service = [
   OtpCacheService,
 ];
 
+const bullMQConfig = {
+  attempts: 3,
+  backoff: {
+    type: 'exponential',
+    delay: 1000,
+  },
+  removeOnComplete: true,
+  removeOnFail: 100,
+};
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -152,12 +162,30 @@ const service = [
       }),
     }),
     BullModule.registerQueue(
-      { name: MAIL_QUEUE.NAME },
-      { name: MESSAGE_NOTIFICATION_QUEUE.NAME },
-      { name: FOLLOW_NOTIFICATION_QUEUE.NAME },
-      { name: AUCTION_QUEUE.NAME },
-      { name: AUCTION_NOTIFICATION_QUEUE.NAME },
-      { name: BID_NOTIFICATION_QUEUE.NAME },
+      {
+        name: MAIL_QUEUE.NAME,
+        defaultJobOptions: bullMQConfig,
+      },
+      {
+        name: MESSAGE_NOTIFICATION_QUEUE.NAME,
+        defaultJobOptions: bullMQConfig,
+      },
+      {
+        name: FOLLOW_NOTIFICATION_QUEUE.NAME,
+        defaultJobOptions: bullMQConfig,
+      },
+      {
+        name: AUCTION_QUEUE.NAME,
+        defaultJobOptions: bullMQConfig,
+      },
+      {
+        name: AUCTION_NOTIFICATION_QUEUE.NAME,
+        defaultJobOptions: bullMQConfig,
+      },
+      {
+        name: BID_NOTIFICATION_QUEUE.NAME,
+        defaultJobOptions: bullMQConfig,
+      },
     ),
   ],
   providers: [

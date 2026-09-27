@@ -9,6 +9,9 @@ export type NotificationActor = {
 
 export type NotificationMetadata = {
   actors: NotificationActor[];
+  title?: string;
+  isManual?: boolean;
+  endTime?: string;
 };
 
 export type NotificationDto = {

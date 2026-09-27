@@ -20,81 +20,73 @@ import {
 } from 'lucide-react';
 
 interface NotificationMeta {
-  message: string;
   Icon: LucideIcon;
   iconBg: string;
 }
 
 const NOTIFICATION_META: Record<string, NotificationMeta> = {
   [NOTIFICATION_TYPE.MESSAGE]: {
-    message: 'You have received a new message',
     Icon: MessageCircle,
     iconBg: 'bg-blue-500',
   },
 
   [NOTIFICATION_TYPE.FOLLOW_REQUEST]: {
-    message: 'sent you a follow request',
     Icon: UserPlus,
     iconBg: 'bg-green-500',
   },
 
   [NOTIFICATION_TYPE.FOLLOW_ACCEPTED]: {
-    message: 'accepted your follow request',
     Icon: UserCheck,
     iconBg: 'bg-green-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_CREATED]: {
-    message: 'created a new auction',
     Icon: Gavel,
     iconBg: 'bg-purple-500',
   },
 
+  [NOTIFICATION_TYPE.AUCTION_RESUBMITTED]: {
+    Icon: RotateCcw,
+    iconBg: 'bg-blue-500',
+  },
+
   [NOTIFICATION_TYPE.AUCTION_UPDATED]: {
-    message: 'updated an auction',
     Icon: Pencil,
     iconBg: 'bg-blue-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_CANCELLED]: {
-    message: 'cancelled an auction',
     Icon: XCircle,
     iconBg: 'bg-red-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_STARTED]: {
-    message: 'auction has started',
     Icon: PlayCircle,
     iconBg: 'bg-green-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_EXTENDED]: {
-    message: 'auction has been extended',
     Icon: Timer,
     iconBg: 'bg-orange-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_COMPLETED]: {
-    message: 'auction has ended',
     Icon: Trophy,
     iconBg: 'bg-yellow-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_REOPENED]: {
-    message: 'reopened an auction',
     Icon: RotateCcw,
     iconBg: 'bg-blue-500',
   },
 
   [NOTIFICATION_TYPE.AUCTION_CLOSED]: {
-    message: 'auction has been closed',
     Icon: CheckCircle,
     iconBg: 'bg-gray-500',
   },
 };
 
 const DEFAULT_NOTIFICATION_META: NotificationMeta = {
-  message: 'You have a new notification',
   Icon: Bell,
   iconBg: 'bg-gray-500',
 };
@@ -182,4 +174,71 @@ export function getNotificationActors(
   }
 
   return actors as NotificationActor[];
+}
+
+export function formatNotificationText(notification: NotificationDto): string {
+  const { type, metadata } = notification;
+  const title = metadata?.title ?? 'auction';
+
+  switch (type) {
+    case NOTIFICATION_TYPE.MESSAGE:
+      return 'You have received a new message';
+
+    case NOTIFICATION_TYPE.FOLLOW_REQUEST:
+      return 'sent you a follow request';
+
+    case NOTIFICATION_TYPE.FOLLOW_ACCEPTED:
+      return 'accepted your follow request';
+
+    case NOTIFICATION_TYPE.AUCTION_CREATED:
+      return `created the [${title}] auction`;
+
+    case NOTIFICATION_TYPE.AUCTION_RESUBMITTED:
+      return `resubmitted the [${title}] auction and made it available again`;
+
+    case NOTIFICATION_TYPE.AUCTION_UPDATED:
+      return `updated the [${title}] auction`;
+
+    case NOTIFICATION_TYPE.AUCTION_CANCELLED:
+      return `cancelled the [${title}] auction`;
+
+    case NOTIFICATION_TYPE.AUCTION_STARTED:
+      return `The [${title}] auction has started`;
+
+    case NOTIFICATION_TYPE.AUCTION_EXTENDED:
+      return metadata?.endTime
+        ? `The [${title}] auction has been extended until ${new Date(
+            metadata.endTime,
+          ).toLocaleString()}`
+        : `The [${title}] auction has been extended`;
+
+    case NOTIFICATION_TYPE.AUCTION_COMPLETED:
+      return metadata?.isManual
+        ? `ended the [${title}] auction`
+        : `The [${title}] auction has ended`;
+
+    case NOTIFICATION_TYPE.AUCTION_REOPENED:
+      return `reopened the [${title}] auction`;
+
+    case NOTIFICATION_TYPE.AUCTION_CLOSED:
+      return `The [${title}] auction has been closed`;
+
+    default:
+      return 'You have a new notification';
+  }
+}
+
+export function shouldShowNotificationActor(notification: NotificationDto): boolean {
+  switch (notification.type) {
+    case NOTIFICATION_TYPE.AUCTION_STARTED:
+    case NOTIFICATION_TYPE.AUCTION_EXTENDED:
+    case NOTIFICATION_TYPE.AUCTION_CLOSED:
+      return false;
+
+    case NOTIFICATION_TYPE.AUCTION_COMPLETED:
+      return notification.metadata?.isManual === true;
+
+    default:
+      return true;
+  }
 }

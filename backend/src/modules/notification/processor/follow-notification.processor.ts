@@ -21,11 +21,8 @@ export class FollowNotificationProcessor extends WorkerHost {
   async process(job: Job<NotificationPayload>): Promise<void> {
     switch (job.name) {
       case FOLLOW_NOTIFICATION_QUEUE.JOBS.FOLLOW_REQUESTED:
-        await this.handleFollowRequested(job);
-        break;
-
       case FOLLOW_NOTIFICATION_QUEUE.JOBS.FOLLOW_ACCEPTED:
-        await this.handleFollowAccepted(job);
+        await this.handleFollowNotification(job);
         break;
 
       default:
@@ -33,13 +30,13 @@ export class FollowNotificationProcessor extends WorkerHost {
     }
   }
 
-  private async handleFollowRequested(
+  private async handleFollowNotification(
     job: Job<NotificationPayload>,
   ): Promise<void> {
     const payload = job.data;
 
     this.logger.log(
-      `Processing follow request notification for user ${payload.recipientId}`,
+      `Processing follow notification for user ${payload.recipientId}`,
     );
 
     const notification =
@@ -49,43 +46,22 @@ export class FollowNotificationProcessor extends WorkerHost {
       return;
     }
 
-    const unreadCount = await this.notificationService.getUnreadCount(
-      notification.recipientId,
-    );
+    try {
+      const unreadCount = await this.notificationService.getUnreadCount(
+        notification.recipientId,
+      );
 
-    this.notificationsGateway.emitNotification(notification.recipientId);
+      this.notificationsGateway.emitNotification(notification);
 
-    this.notificationsGateway.emitUnreadCount(
-      notification.recipientId,
-      unreadCount,
-    );
-  }
-
-  private async handleFollowAccepted(
-    job: Job<NotificationPayload>,
-  ): Promise<void> {
-    const payload = job.data;
-
-    this.logger.log(
-      `Processing follow accepted notification for user ${payload.recipientId}`,
-    );
-
-    const notification =
-      await this.notificationService.createNotification(payload);
-
-    if (!notification) {
-      return;
+      this.notificationsGateway.emitUnreadCount(
+        notification.recipientId,
+        unreadCount,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit follow notification for user ${notification.recipientId}`,
+        error,
+      );
     }
-
-    const unreadCount = await this.notificationService.getUnreadCount(
-      notification.recipientId,
-    );
-
-    this.notificationsGateway.emitNotification(notification.recipientId);
-
-    this.notificationsGateway.emitUnreadCount(
-      notification.recipientId,
-      unreadCount,
-    );
   }
 }

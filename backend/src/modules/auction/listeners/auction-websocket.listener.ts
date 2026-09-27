@@ -45,7 +45,7 @@ export class AuctionWebSocketListener {
       auctionId: payload.auctionId,
       winnerId: payload.winnerId,
       username: payload.username,
-      winningBid: payload.winningBid,
+      bidAmount: payload.bidAmount,
       profileImageUrl: payload.profileImageUrl,
     });
   }

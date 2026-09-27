@@ -24,6 +24,7 @@ type MyAuctionsTableRowProps = {
   onResubmit?: (auctionId: string) => void;
   onEnd?: (auctionId: string) => void;
   onConfirm?: (auctionId: string) => void;
+  onDelete?: (auctionId: string) => void;
 };
 
 export function MyAuctionsTableRow({
@@ -42,6 +43,7 @@ export function MyAuctionsTableRow({
   onResubmit,
   onEnd,
   onConfirm,
+  onDelete,
 }: MyAuctionsTableRowProps) {
   const handleViewDetail = () => {
     onViewDetail?.(auctionId);
@@ -90,6 +92,7 @@ export function MyAuctionsTableRow({
           onResubmit={onResubmit}
           onEnd={onEnd}
           onConfirm={onConfirm}
+          onDelete={onDelete}
         />
       </TableCell>
     </TableRow>

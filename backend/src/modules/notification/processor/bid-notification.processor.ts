@@ -43,13 +43,14 @@ export class BidNotificationProcessor extends WorkerHost {
     this.logger.log(`Processing bid notifications for auction ${auctionId}`);
 
     for (const recipientId of recipientIds) {
+      // Redis/DB failure → throw → BullMQ retry.
       const notification = await this.notificationService.aggregateNotification(
         {
           recipientId,
           type: NotificationType.BID_PLACED,
           entityId: auctionId,
           entityType: 'AUCTION',
-          actorId: actorId,
+          actorId,
         },
       );
 
@@ -57,12 +58,20 @@ export class BidNotificationProcessor extends WorkerHost {
         continue;
       }
 
-      const unreadCount =
-        await this.notificationService.getUnreadCount(recipientId);
+      // WebSocket failure should not cause the whole job to retry.
+      try {
+        const unreadCount =
+          await this.notificationService.getUnreadCount(recipientId);
 
-      this.notificationsGateway.emitNotification(recipientId);
+        this.notificationsGateway.emitNotification(notification);
 
-      this.notificationsGateway.emitUnreadCount(recipientId, unreadCount);
+        this.notificationsGateway.emitUnreadCount(recipientId, unreadCount);
+      } catch (error) {
+        this.logger.error(
+          `Failed to emit bid notification to user ${recipientId}`,
+          error,
+        );
+      }
     }
   }
 }

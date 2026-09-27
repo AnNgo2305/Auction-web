@@ -41,6 +41,7 @@ export const AUCTION_NOTIFICATION_QUEUE = {
     AUCTION_EXTENDED: 'auction-extended',
     AUCTION_COMPLETED: 'auction-completed',
     AUCTION_REOPENED: 'auction-reopened',
+    AUCTION_RESUBMITTED: 'auction-resubmitted',
     AUCTION_CLOSED: 'auction-closed',
   },
 } as const;

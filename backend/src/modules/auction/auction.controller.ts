@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -568,7 +569,7 @@ export class AuctionController {
     @Param('id') auctionId: string,
     @Body() dto: CancelAuctionDto,
   ): Promise<ResponsePayload> {
-    await this.auctionService.cancelAuction(
+    await this.auctionLifecycleService.cancelAuction(
       req.user!.userId,
       auctionId,
       dto.cancelReason,
@@ -648,7 +649,10 @@ export class AuctionController {
     @Req() req: Request,
     @Param('id') auctionId: string,
   ): Promise<ResponsePayload> {
-    await this.auctionService.resubmitAuction(req.user!.userId, auctionId);
+    await this.auctionLifecycleService.resubmitAuction(
+      req.user!.userId,
+      auctionId,
+    );
 
     return {
       message: 'Auction resubmitted successfully',
@@ -820,6 +824,65 @@ export class AuctionController {
 
     return {
       message: 'Auction reopened successfully',
+      data: {},
+    };
+  }
+
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @Delete(':id')
+  @Throttle({
+    short: { ttl: 1_000, limit: 3 },
+    medium: { ttl: 10_000, limit: 10 },
+    long: { ttl: 60_000, limit: 30 },
+  })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Delete auction',
+    description:
+      'Deletes a pending auction, restores the reserved product stock, and removes scheduled auction jobs.',
+  })
+  @ApiCookieAuth('access_token')
+  @ApiSecurity('csrf-token')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    format: 'uuid',
+    description: 'Auction ID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiOkResponse({
+    description: 'Auction deleted successfully',
+    type: SuccessResponse,
+    example: {
+      statusCode: 200,
+      message: 'Auction deleted successfully',
+      data: {},
+    },
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_AUCTION_NOT_FOUND.message,
+    type: ErrorResponse,
+    example: ERROR_AUCTION_NOT_FOUND,
+  })
+  @ApiForbiddenResponse({
+    description: ERROR_AUCTION_ACCESS_DENIED.message,
+    type: ErrorResponse,
+    example: ERROR_AUCTION_ACCESS_DENIED,
+  })
+  @ApiBadRequestResponse({
+    description: ERROR_AUCTION_INVALID_STATUS.message,
+    type: ErrorResponse,
+    example: ERROR_AUCTION_INVALID_STATUS,
+  })
+  async deleteAuction(
+    @Req() req: Request,
+    @Param('id') auctionId: string,
+  ): Promise<ResponsePayload> {
+    await this.auctionService.deleteAuction(req.user!.userId, auctionId);
+
+    return {
+      message: 'Auction deleted successfully',
       data: {},
     };
   }

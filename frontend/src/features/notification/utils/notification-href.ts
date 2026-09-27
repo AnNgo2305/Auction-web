@@ -23,6 +23,7 @@ export function getNotificationHref(notification: NotificationDto): string {
     case NOTIFICATION_TYPE.AUCTION_COMPLETED:
     case NOTIFICATION_TYPE.AUCTION_REOPENED:
     case NOTIFICATION_TYPE.AUCTION_CLOSED:
+    case NOTIFICATION_TYPE.AUCTION_RESUBMITTED:
       return auctionPaths.detail(entityId);
 
     default:

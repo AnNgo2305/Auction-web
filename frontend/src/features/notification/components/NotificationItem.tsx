@@ -11,9 +11,11 @@ import {
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 import {
   formatNotificationActors,
+  formatNotificationText,
   getNotificationActors,
   getNotificationMeta,
   formatNotificationTime,
+  shouldShowNotificationActor,
 } from '@/features/notification/utils/format-notification';
 
 type NotificationItemProps = {
@@ -26,14 +28,18 @@ export function NotificationItem({
   onClick,
 }: NotificationItemProps) {
   const actors = getNotificationActors(notification);
+  const showActor = shouldShowNotificationActor(notification);
+
   const visibleActors = actors.slice(0, 3);
+
   const remainingCount = Math.max(
     notification.actorCount - visibleActors.length,
     0,
   );
 
   const actorText = formatNotificationActors(actors, notification.actorCount);
-  const { message, Icon, iconBg } = getNotificationMeta(notification);
+  const { Icon, iconBg } = getNotificationMeta(notification);
+  const notificationText = formatNotificationText(notification);
   const time = formatNotificationTime(notification.createdAt);
 
   return (
@@ -48,24 +54,34 @@ export function NotificationItem({
       )}
     >
       <div className="relative shrink-0">
-        <AvatarGroup>
-          {visibleActors.map((actor) => (
-            <Avatar key={actor.userId} size="lg">
-              <AvatarImage
-                src={actor.profileImageUrl ?? defaultAvatarImageUrl}
-                alt={actor.username}
-              />
-              <AvatarFallback>
-                {actor.fullName?.[0] ?? actor.username[0]?.toUpperCase() ?? '?'}
-              </AvatarFallback>
-            </Avatar>
-          ))}
+        {showActor ? (
+          <AvatarGroup>
+            {visibleActors.map((actor) => (
+              <Avatar key={actor.userId} size="lg">
+                <AvatarImage
+                  src={actor.profileImageUrl ?? defaultAvatarImageUrl}
+                  alt={actor.username}
+                />
+                <AvatarFallback>
+                  {actor.fullName?.[0] ??
+                    actor.username[0]?.toUpperCase() ??
+                    '?'}
+                </AvatarFallback>
+              </Avatar>
+            ))}
 
-          {remainingCount > 0 && (
-            <AvatarGroupCount>+{remainingCount}</AvatarGroupCount>
-          )}
-        </AvatarGroup>
-
+            {remainingCount > 0 && (
+              <AvatarGroupCount>+{remainingCount}</AvatarGroupCount>
+            )}
+          </AvatarGroup>
+        ) : (
+          <Avatar size="lg">
+            <AvatarImage src={defaultAvatarImageUrl} alt="" />
+            <AvatarFallback>
+              <Icon className="size-5" />
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div
           className={cn(
             'absolute -right-1 -bottom-1',
@@ -78,12 +94,12 @@ export function NotificationItem({
           <Icon className="size-3" />
         </div>
       </div>
-
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] leading-snug text-gray-900">
-          <span className="font-semibold">{actorText}</span>
+        <p className="wrap-break-word text-[13px] leading-snug text-gray-900">
+          {showActor && <span className="font-semibold">{actorText} </span>}
+          <span>{notificationText}</span>
         </p>
-        <p className="mt-1 text-xs text-gray-500">{message}</p>
+
         <p className="mt-1 text-xs text-gray-400">{time}</p>
       </div>
 

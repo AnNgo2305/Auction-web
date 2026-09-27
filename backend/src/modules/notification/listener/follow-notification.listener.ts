@@ -19,6 +19,7 @@ export class FollowNotificationListener {
   @OnEvent(INTERNAL_EVENTS.FOLLOW_REQUESTED)
   async handleFollowRequested(payload: FollowRequestEvent): Promise<void> {
     const notificationPayload: NotificationPayload = {
+      eventId: payload?.eventId,
       recipientId: payload.sellerId,
       actorId: payload.bidderId,
       type: NotificationType.FOLLOW_REQUEST,
@@ -39,6 +40,7 @@ export class FollowNotificationListener {
   @OnEvent(INTERNAL_EVENTS.FOLLOW_ACCEPTED)
   async handleFollowAccepted(payload: FollowAcceptEvent): Promise<void> {
     const notificationPayload: NotificationPayload = {
+      eventId: payload?.eventId,
       recipientId: payload.bidderId,
       actorId: payload.sellerId,
       type: NotificationType.FOLLOW_ACCEPTED,

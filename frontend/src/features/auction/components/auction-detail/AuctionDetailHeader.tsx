@@ -43,14 +43,10 @@ export function AuctionDetailHeader({
 
   const { currentUser, isAuthenticated } = useUser();
 
-  const isOwner = isAuthenticated
-    ? currentUser?.userId === auction.sellerId
-    : false;
-
-  const canEdit =
+  const isOwner =
     isAuthenticated &&
     currentUser?.userId === auction.sellerId &&
-    [AUCTION_STATUSES.PENDING, AUCTION_STATUSES.READY].includes(auction.status);
+    [AUCTION_STATUSES.PENDING, AUCTION_STATUSES.READY, AUCTION_STATUSES.CANCELED].includes(auction.status);
 
   return (
     <div className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">

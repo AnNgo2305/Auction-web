@@ -26,7 +26,10 @@ export class AuctionProcessor extends WorkerHost {
         break;
 
       case AUCTION_QUEUE.JOBS.COMPLETE_AUCTION:
-        await this.auctionLifeCycleService.completeAuction(job.data.auctionId);
+        await this.auctionLifeCycleService.completeAuction(
+          job.data.auctionId,
+          false, // is manually ended
+        );
         break;
 
       case AUCTION_QUEUE.JOBS.SETTLE_AUCTION:

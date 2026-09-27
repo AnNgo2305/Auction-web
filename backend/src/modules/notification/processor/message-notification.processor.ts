@@ -33,10 +33,12 @@ export class MessageNotificationProcessor extends WorkerHost {
     job: Job<NotificationPayload>,
   ): Promise<void> {
     const payload = job.data;
+
     this.logger.log(
       `Processing message notification for conversation ${payload.entityId}`,
     );
 
+    // Redis/DB failure → throw → BullMQ retry.
     const notification =
       await this.notificationService.aggregateNotification(payload);
 
@@ -44,15 +46,23 @@ export class MessageNotificationProcessor extends WorkerHost {
       return;
     }
 
-    const unreadCount = await this.notificationService.getUnreadCount(
-      notification.recipientId,
-    );
+    // WebSocket failure should not cause the job to retry.
+    try {
+      const unreadCount = await this.notificationService.getUnreadCount(
+        notification.recipientId,
+      );
 
-    this.notificationsGateway.emitNotification(notification.recipientId);
+      this.notificationsGateway.emitNotification(notification);
 
-    this.notificationsGateway.emitUnreadCount(
-      notification.recipientId,
-      unreadCount,
-    );
+      this.notificationsGateway.emitUnreadCount(
+        notification.recipientId,
+        unreadCount,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit message notification to user ${notification.recipientId}`,
+        error,
+      );
+    }
   }
 }

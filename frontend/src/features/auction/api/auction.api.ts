@@ -13,6 +13,7 @@ import type { ResubmitAuctionResponse } from '@/features/auction/types/resubmit-
 import type { EndAuctionResponse } from '@/features/auction/types/end-auction.response';
 import type { ConfirmAuctionResponse } from '@/features/auction/types/confirm-auction.response';
 import type { GetMyAuctionsQuery } from '@/features/auction/schemas/get-my-auctions.schema.ts';
+import type { DeleteAuctionResponse } from '@/features/auction/types/delete-auction.response.ts';
 
 const AUCTION_API_PREFIX = '/auctions';
 
@@ -105,6 +106,14 @@ export const auctionApi = {
   ): Promise<ConfirmAuctionResponse> => {
     const res = await api.patch<ConfirmAuctionResponse>(
       `${AUCTION_API_PREFIX}/${auctionId}/confirm`,
+    );
+
+    return res.data;
+  },
+
+  deleteAuction: async (auctionId: string): Promise<DeleteAuctionResponse> => {
+    const res = await api.delete<DeleteAuctionResponse>(
+      `${AUCTION_API_PREFIX}/${auctionId}`,
     );
 
     return res.data;

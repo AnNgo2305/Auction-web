@@ -11,6 +11,7 @@ type MyAuctionsTableActionsProps = {
   onResubmit?: (auctionId: string) => void;
   onEnd?: (auctionId: string) => void;
   onConfirm?: (auctionId: string) => void;
+  onDelete?: (auctionId: string) => void;
 };
 
 export function MyAuctionsTableActions({
@@ -20,16 +21,17 @@ export function MyAuctionsTableActions({
   onResubmit,
   onEnd,
   onConfirm,
+  onDelete,
 }: MyAuctionsTableActionsProps) {
-  const canCancel = [AUCTION_STATUSES.PENDING, AUCTION_STATUSES.READY].includes(
-    status,
-  );
+  const canCancel = [AUCTION_STATUSES.READY].includes(status);
 
   const canResubmit = status === AUCTION_STATUSES.CANCELED;
 
   const canEnd = [AUCTION_STATUSES.OPEN, AUCTION_STATUSES.EXTENDED].includes(
     status,
   );
+
+  const canDelete = status === AUCTION_STATUSES.PENDING;
 
   const canConfirm = status === AUCTION_STATUSES.PENDING;
 
@@ -47,6 +49,10 @@ export function MyAuctionsTableActions({
 
   const handleConfirm = () => {
     onConfirm?.(auctionId);
+  };
+
+  const handleDelete = () => {
+    onDelete?.(auctionId);
   };
 
   return (
@@ -69,6 +75,11 @@ export function MyAuctionsTableActions({
       {canConfirm && (
         <Button variant="outline" size="sm" onClick={handleConfirm}>
           Confirm
+        </Button>
+      )}
+      {canDelete && (
+        <Button variant="outline" size="sm" onClick={handleDelete}>
+          Delete
         </Button>
       )}
     </div>

@@ -9,6 +9,7 @@ import { WebsocketAuthService } from '@common/services/websocket-auth.service';
 import { WS_ROOMS } from '@common/constants/websocket-room.constant';
 import { NOTIFICATION_EVENTS } from '@modules/notification/constants/websocket-event.constant';
 import { Server, Socket } from 'socket.io';
+import { NotificationDto } from '@modules/notification/dtos/notification.dto';
 
 interface SocketData {
   userId: string;
@@ -64,10 +65,10 @@ export class NotificationsGateway
     );
   }
 
-  emitNotification(recipientId: string): void {
+  emitNotification(notification: NotificationDto): void {
     this.server
-      .to(WS_ROOMS.USER(recipientId))
-      .emit(NOTIFICATION_EVENTS.NEW_NOTIFICATION);
+      .to(WS_ROOMS.USER(notification.recipientId))
+      .emit(NOTIFICATION_EVENTS.NEW_NOTIFICATION, notification);
   }
 
   emitUnreadCount(recipientId: string, unreadCount: number): void {

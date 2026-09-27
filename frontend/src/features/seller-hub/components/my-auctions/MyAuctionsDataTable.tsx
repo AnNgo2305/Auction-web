@@ -53,9 +53,15 @@ const ACTION_CONTENT: Record<
     description: 'Confirming the auction will complete the auction process.',
     confirmText: 'Confirm',
   },
+  delete: {
+    title: 'Delete auction?',
+    description:
+      'This action will permanently delete the pending auction and restore the reserved product stock.',
+    confirmText: 'Delete Auction',
+  },
 };
 
-type AuctionAction = 'cancel' | 'resubmit' | 'end' | 'confirm';
+type AuctionAction = 'cancel' | 'resubmit' | 'end' | 'confirm' | 'delete';
 
 type PendingAction = {
   auctionId: string;
@@ -70,6 +76,7 @@ type MyAuctionsDataTableProps = {
   onResubmit: (auctionId: string) => void;
   onEnd: (auctionId: string) => void;
   onConfirm: (auctionId: string) => void;
+  onDelete: (auctionId: string) => void;
 };
 
 export function MyAuctionsDataTable({
@@ -80,6 +87,7 @@ export function MyAuctionsDataTable({
   onResubmit,
   onEnd,
   onConfirm,
+  onDelete,
 }: MyAuctionsDataTableProps) {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
@@ -117,6 +125,10 @@ export function MyAuctionsDataTable({
 
       case 'confirm':
         onConfirm(auctionId);
+        break;
+
+      case 'delete':
+        onDelete(auctionId);
         break;
     }
 
@@ -192,6 +204,12 @@ export function MyAuctionsDataTable({
                       setPendingAction({
                         auctionId,
                         action: 'confirm',
+                      });
+                    }}
+                    onDelete={(auctionId) => {
+                      setPendingAction({
+                        auctionId,
+                        action: 'delete',
                       });
                     }}
                   />

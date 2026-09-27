@@ -4,7 +4,14 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { INTERNAL_EVENTS } from '@common/constants/event.constant';
 import { AUCTION_NOTIFICATION_QUEUE } from '@common/constants/queue.constant';
-import { AuctionEvent } from '@modules/auction/events/auction.event';
+import {
+  AuctionCancelledEvent,
+  AuctionClosedEvent,
+  AuctionCreatedEvent,
+  AuctionEndedEvent,
+  AuctionResubmittedEvent,
+  AuctionUpdatedEvent,
+} from '@modules/auction/events/auction.event';
 import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
 import { AuctionExtendedEvent } from '@modules/auction/events/auction-extend.event';
 import { AuctionReopenedEvent } from '@modules/auction/events/auction-reopen.event';
@@ -17,46 +24,40 @@ export class AuctionNotificationListener {
   ) {}
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_CREATED)
-  async handleAuctionCreated(payload: AuctionEvent): Promise<void> {
+  async handleAuctionCreated(payload: AuctionCreatedEvent): Promise<void> {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_CREATED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
         sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        title: payload.title,
       },
     );
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_UPDATED)
-  async handleAuctionUpdated(payload: AuctionEvent): Promise<void> {
+  async handleAuctionUpdated(payload: AuctionUpdatedEvent): Promise<void> {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_UPDATED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
         sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        title: payload.title,
       },
     );
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_CANCELLED)
-  async handleAuctionCancelled(payload: AuctionEvent): Promise<void> {
+  async handleAuctionCancelled(payload: AuctionCancelledEvent): Promise<void> {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_CANCELLED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
         sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        title: payload.title,
       },
     );
   }
@@ -66,27 +67,24 @@ export class AuctionNotificationListener {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_STARTED,
       {
-        auctionId: payload.auctionId,
         sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        eventId: payload.eventId,
+        auctionId: payload.auctionId,
+        title: payload.title,
       },
     );
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_ENDED)
-  async handleAuctionCompleted(payload: AuctionEvent): Promise<void> {
+  async handleAuctionEnded(payload: AuctionEndedEvent): Promise<void> {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_COMPLETED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
         sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        title: payload.title,
+        isManual: payload.isManual,
       },
     );
   }
@@ -96,12 +94,10 @@ export class AuctionNotificationListener {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_EXTENDED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
-        sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        title: payload.title,
+        endTime: payload.endTime,
       },
     );
   }
@@ -111,27 +107,38 @@ export class AuctionNotificationListener {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_REOPENED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
         sellerId: payload.sellerId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        title: payload.title,
       },
     );
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_CLOSED)
-  async handleAuctionClosed(payload: AuctionEvent): Promise<void> {
+  async handleAuctionClosed(payload: AuctionClosedEvent): Promise<void> {
     await this.notificationQueue.add(
       AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_CLOSED,
       {
+        eventId: payload.eventId,
         auctionId: payload.auctionId,
         sellerId: payload.sellerId,
+        title: payload.title,
       },
+    );
+  }
+
+  @OnEvent(INTERNAL_EVENTS.AUCTION_RESUBMITTED)
+  async handleAuctionResubmitted(
+    payload: AuctionResubmittedEvent,
+  ): Promise<void> {
+    await this.notificationQueue.add(
+      AUCTION_NOTIFICATION_QUEUE.JOBS.AUCTION_RESUBMITTED,
       {
-        removeOnComplete: true,
-        removeOnFail: 100,
+        eventId: payload.eventId,
+        auctionId: payload.auctionId,
+        sellerId: payload.sellerId,
+        title: payload.title,
       },
     );
   }
