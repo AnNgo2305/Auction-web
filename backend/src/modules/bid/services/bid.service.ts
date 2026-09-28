@@ -7,10 +7,8 @@ import { PrismaService } from '@common/services/prisma.service';
 import { LoggerService } from '@common/services/logger.service';
 import { Prisma } from '@generated/prisma/client';
 import { AuctionStatus } from '@generated/prisma/enums';
-import { PaginationResult } from '@common/types/pagination.interface';
 import { GetBidsQueryDto } from '@modules/bid/dtos/get-bids.query.dto';
-import { AuctionBidResponseDto } from '@modules/bid/dtos/get-auction-bids.response';
-import { MyBidResponseDto } from '@modules/bid/dtos/get-my-bids.response.dto';
+import { MyBidsResponseDto } from '@modules/bid/dtos/get-my-bids.response.dto';
 import {
   ERROR_AUCTION_ENDED,
   ERROR_AUCTION_NOT_FOUND,
@@ -25,6 +23,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { AUCTION_QUEUE } from '@common/constants/queue.constant';
 import { Queue } from 'bullmq';
 import { HighestBidResponseDto } from '@modules/bid/dtos/highest-bid.response.dto';
+import { AuctionBidsResponseDto } from '@modules/bid/dtos/get-auction-bids.response';
 
 @Injectable()
 export class BidService {
@@ -242,7 +241,7 @@ export class BidService {
   async getMyBids(
     userId: string,
     query: GetBidsQueryDto,
-  ): Promise<PaginationResult<MyBidResponseDto>> {
+  ): Promise<MyBidsResponseDto> {
     const { cursor, limit } = query;
 
     this.logger.log(
@@ -282,26 +281,21 @@ export class BidService {
     );
 
     return {
-      data: data.map((bid) => ({
+      bids: data.map((bid) => ({
         bidId: bid.bidId,
         auctionId: bid.auctionId,
         auctionTitle: bid.auction.title,
         bidAmount: bid.bidAmount.toNumber(),
         createdAt: bid.createdAt,
       })),
-      meta: {
-        limit,
-        itemCount: data.length,
-        hasNextPage,
-        nextCursor: hasNextPage ? data[data.length - 1].bidId : undefined,
-      },
+      nextCursor: hasNextPage ? data[data.length - 1].bidId : null,
     };
   }
 
   async getBidsByAuction(
     auctionId: string,
     query: GetBidsQueryDto,
-  ): Promise<PaginationResult<AuctionBidResponseDto>> {
+  ): Promise<AuctionBidsResponseDto> {
     const { cursor, limit } = query;
 
     const auction = await this.prisma.auction.findUnique({
@@ -359,7 +353,7 @@ export class BidService {
     );
 
     return {
-      data: data.map((bid) => ({
+      bids: data.map((bid) => ({
         bidId: bid.bidId,
         auctionId: bid.auctionId,
         username: bid.user.username,
@@ -369,12 +363,7 @@ export class BidService {
         bidAmount: bid.bidAmount.toNumber(),
         createdAt: bid.createdAt,
       })),
-      meta: {
-        limit,
-        itemCount: data.length,
-        hasNextPage,
-        nextCursor: hasNextPage ? data[data.length - 1].bidId : undefined,
-      },
+      nextCursor: hasNextPage ? data[data.length - 1].bidId : null,
     };
   }
 
@@ -398,9 +387,11 @@ export class BidService {
     }
 
     return {
+      bidId: bid.bidId,
       auctionId: bid.auctionId,
       auctionTitle: bid.auction.title,
       bidAmount: bid.bidAmount.toNumber(),
+      createdAt: bid.createdAt,
     };
   }
 

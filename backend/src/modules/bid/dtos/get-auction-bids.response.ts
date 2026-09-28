@@ -31,3 +31,18 @@ export class AuctionBidResponseDto {
   })
   createdAt!: Date;
 }
+
+export class AuctionBidsResponseDto {
+  @ApiProperty({
+    description: 'List of bids',
+    type: [AuctionBidResponseDto],
+  })
+  bids!: AuctionBidResponseDto[];
+
+  @ApiProperty({
+    description: 'Cursor for the next page',
+    nullable: true,
+    example: 'eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTIzVDA4OjAwOjAwLjAwMFoifQ',
+  })
+  nextCursor!: string | null;
+}

@@ -31,3 +31,18 @@ export class MyBidResponseDto {
   })
   createdAt!: Date;
 }
+
+export class MyBidsResponseDto {
+  @ApiProperty({
+    description: 'List of bids',
+    type: [MyBidResponseDto],
+  })
+  bids!: MyBidResponseDto[];
+
+  @ApiProperty({
+    description: 'Cursor for the next page',
+    nullable: true,
+    example: 'eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTIzVDA4OjAwOjAwLjAwMFoifQ',
+  })
+  nextCursor!: string | null;
+}

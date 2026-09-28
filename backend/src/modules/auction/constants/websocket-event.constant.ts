@@ -31,7 +31,15 @@ export const AUCTION_EVENTS = {
   // Client emits this event to leave an auction room.
   AUCTION_LEAVE: 'auction:leave',
 
+  // Server emits → Joining client receives
+  // Server sends the current list of unique bidders in the auction room.
+  BIDDER_SNAPSHOT: 'auction:bidder:snapshot',
+
   // Server emits → Other clients in auction room receive
   // Server notifies other clients that a new bidder has joined the auction.
   BIDDER_JOINED: 'auction:bidder:joined',
+
+  // Server emits → Other clients in auction room receive
+  // Server notifies other clients that a bidder has left the auction.
+  BIDDER_LEFT: 'auction:bidder:left',
 } as const;

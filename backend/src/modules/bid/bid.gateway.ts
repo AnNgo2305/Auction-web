@@ -16,7 +16,6 @@ import { WsValidationPipe } from '@common/pipes/ws-validation.pipe';
 import { WsExceptionFilter } from '@common/filters/ws-exception.filter';
 import { BID_EVENTS } from '@modules/bid/constants/websocket-event.constant';
 import { WS_ROOMS } from '@common/constants/websocket-room.constant';
-import { JoinAuctionRoomDto } from '@modules/bid/dtos/join-auction-room.body.dto';
 import { CreateBidDto } from '@modules/bid/dtos/create-bid.body.dto';
 import { BidService } from '@modules/bid/services/bid.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -77,54 +76,6 @@ export class BidGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
-  @SubscribeMessage(BID_EVENTS.AUCTION_JOIN)
-  @UseGuards(WsJwtGuard)
-  @UsePipes(WsValidationPipe)
-  @UseFilters(WsExceptionFilter)
-  async handleJoinAuction(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: JoinAuctionRoomDto,
-  ): Promise<void> {
-    const data = client.data as SocketData;
-    const room = WS_ROOMS.AUCTION(payload.auctionId);
-
-    await client.join(room);
-
-    client.to(room).emit(BID_EVENTS.AUCTION_USER_JOINED, {
-      auctionId: payload.auctionId,
-      userId: data.userId,
-      username: data.username,
-    });
-
-    this.logger.debug(
-      `[BID] User ${data.userId} joined auction room: auctionId=${payload.auctionId}`,
-    );
-  }
-
-  @SubscribeMessage(BID_EVENTS.AUCTION_LEAVE)
-  @UseGuards(WsJwtGuard)
-  @UsePipes(WsValidationPipe)
-  @UseFilters(WsExceptionFilter)
-  async handleLeaveAuction(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: JoinAuctionRoomDto,
-  ): Promise<void> {
-    const data = client.data as SocketData;
-    const room = WS_ROOMS.AUCTION(payload.auctionId);
-
-    await client.leave(room);
-
-    client.to(room).emit(BID_EVENTS.AUCTION_USER_LEFT, {
-      auctionId: payload.auctionId,
-      userId: data.userId,
-      username: data.username,
-    });
-
-    this.logger.debug(
-      `[BID] User ${data.userId} left auction room: auctionId=${payload.auctionId}`,
-    );
-  }
-
   @SubscribeMessage(BID_EVENTS.BID_PLACE)
   @UseGuards(WsJwtGuard)
   @UsePipes(WsValidationPipe)
@@ -180,9 +131,12 @@ export class BidGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
           // Re-send ACK so the client can finish its pending operation.
           client.emit(BID_EVENTS.BID_ACK, {
+            bidId: bid.bidId,
             auctionId: bid.auctionId,
+            auctionTitle: bid.auctionTitle,
             tempId: payload.tempId,
             bidAmount: bid.bidAmount,
+            createdAt: bid.createdAt,
           });
 
           return;
@@ -211,9 +165,12 @@ export class BidGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
           // The original request completed successfully, so ACK the existing bid.
           client.emit(BID_EVENTS.BID_ACK, {
+            bidId: bid.bidId,
             auctionId: bid.auctionId,
+            auctionTitle: bid.auctionTitle,
             tempId: payload.tempId,
             bidAmount: bid.bidAmount,
+            createdAt: bid.createdAt,
           });
         }
 
@@ -241,18 +198,26 @@ export class BidGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // Acknowledge the bid to the bidder.
       client.emit(BID_EVENTS.BID_ACK, {
+        bidId: bid.bidId,
         auctionId: bid.auctionId,
+        auctionTitle: bid.auctionTitle,
         tempId: payload.tempId,
         bidAmount: bid.bidAmount,
+        createdAt: bid.createdAt,
       });
 
-      // Notify other users currently watching this auction.
-      client.to(WS_ROOMS.AUCTION(payload.auctionId)).emit(BID_EVENTS.BID_NEW, {
-        auctionId: bid.auctionId,
-        userId: currentUserId,
-        username: data.username,
-        bidAmount: bid.bidAmount,
-      });
+      // Notify all users currently watching this auction.
+      this.server
+        .to(WS_ROOMS.AUCTION(payload.auctionId))
+        .emit(BID_EVENTS.BID_NEW, {
+          bidId: bid.bidId,
+          auctionId: bid.auctionId,
+          userId: currentUserId,
+          username: data.username,
+          profileImageUrl: bid.profileImageUrl,
+          bidAmount: bid.bidAmount,
+          createdAt: bid.createdAt,
+        });
 
       // Trigger notification processing for users who watch this auction.
       this.eventEmitter.emit(
