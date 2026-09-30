@@ -569,6 +569,13 @@ export class AuctionLifecycleService {
       return;
     }
 
+    await this.prisma.auction.update({
+      where: { auctionId },
+      data: {
+        winnerId: highestBid.userId,
+      },
+    });
+
     // Winner has been determined successfully.
     // Emit the internal event after the winner is identified.
     this.eventEmitter.emit(

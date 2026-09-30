@@ -308,6 +308,17 @@ export class AuctionService {
         status: true,
         createdAt: true,
         updatedAt: true,
+        winner: {
+          select: {
+            userId: true,
+            username: true,
+            profile: {
+              select: {
+                profileImageUrl: true,
+              },
+            },
+          },
+        },
         auctionProducts: {
           select: {
             productId: true,
@@ -361,6 +372,18 @@ export class AuctionService {
       isInWatchlist,
       createdAt: auction.createdAt,
       updatedAt: auction.updatedAt,
+      winner: auction.winner
+        ? {
+            userId: auction.winner.userId,
+            username: auction.winner.username,
+            bidAmount: auction.currentPrice.toNumber(),
+            profileImageUrl: auction.winner.profile?.profileImageUrl
+              ? this.fileService.getPublicUrl(
+                  auction.winner.profile.profileImageUrl,
+                )
+              : null,
+          }
+        : null,
       auctionProducts: auction.auctionProducts.map((auctionProduct) => ({
         productId: auctionProduct.product.productId,
         name: auctionProduct.product.name,

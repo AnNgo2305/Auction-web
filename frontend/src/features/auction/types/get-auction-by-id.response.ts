@@ -13,6 +13,16 @@ export class AuctionProductData {
   stockQuantity!: number;
 }
 
+export class AuctionWinnerData {
+  userId!: string;
+
+  username!: string;
+
+  bidAmount!: number;
+
+  profileImageUrl!: string | null;
+}
+
 export class GetAuctionByIdData {
   auctionId!: string;
 
@@ -35,6 +45,8 @@ export class GetAuctionByIdData {
   bidCount!: number;
 
   status!: AuctionStatus;
+
+  winner!: AuctionWinnerData | null;
 
   auctionProducts!: AuctionProductData[];
 

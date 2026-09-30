@@ -166,4 +166,21 @@ export class UserService {
         : null,
     };
   }
+
+  async getProfileImageUrl(userId: string): Promise<string | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: {
+        profile: {
+          select: {
+            profileImageUrl: true,
+          },
+        },
+      },
+    });
+
+    return user?.profile?.profileImageUrl
+      ? this.fileService.getPublicUrl(user.profile.profileImageUrl)
+      : null;
+  }
 }

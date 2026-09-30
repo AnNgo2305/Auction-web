@@ -13,7 +13,7 @@ type AuctionBidFormProps = {
   currentPrice: number | null;
   minimumBidIncrement: number;
   disabled?: boolean;
-  onSubmit: (data: PlaceBidFormValues) => void;
+  onSubmit: (bidAmount: number) => void;
 };
 
 export function AuctionBidForm({
@@ -44,7 +44,9 @@ export function AuctionBidForm({
   return (
     <form
       onSubmit={(event) => {
-        void handleSubmit(onSubmit)(event);
+        void handleSubmit((data) => {
+          onSubmit(data.bidAmount);
+        })(event);
       }}
       className="space-y-4"
     >

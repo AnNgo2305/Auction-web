@@ -12,9 +12,10 @@ import { BidService } from '@modules/bid/services/bid.service';
 import { BidModule } from '@modules/bid/bid.module';
 import { AuctionQueueService } from '@modules/auction/services/auction-queue.service';
 import { AuctionLifecycleService } from '@modules/auction/services/auction-lifecycle.service';
+import { UserModule } from '@modules/user/user.module';
 
 @Module({
-  imports: [CommonModule, PermissionModule, BidModule],
+  imports: [CommonModule, PermissionModule, BidModule, UserModule],
   providers: [
     AuctionService,
     AuctionQueueService,

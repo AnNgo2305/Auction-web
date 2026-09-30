@@ -1,4 +1,4 @@
-type AuctionBidder = {
+export type AuctionBidder = {
   userId: string;
   profileImageUrl: string | null;
 };

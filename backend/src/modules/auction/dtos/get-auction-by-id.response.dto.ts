@@ -35,6 +35,33 @@ export class AuctionProductResponseDto {
   stockQuantity!: number;
 }
 
+export class AuctionWinnerResponseDto {
+  @ApiProperty({
+    description: 'ID of the winning bidder',
+    example: '550e8400-e29b-41d4-a716-446655440003',
+  })
+  userId!: string;
+
+  @ApiProperty({
+    description: 'Username of the winning bidder',
+    example: 'john_doe',
+  })
+  username!: string;
+
+  @ApiProperty({
+    description: 'Winning bid amount',
+    example: 22500000,
+  })
+  bidAmount!: number;
+
+  @ApiProperty({
+    description: 'Public URL of the winner profile image',
+    nullable: true,
+    example: 'https://example.com/images/avatar.jpg',
+  })
+  profileImageUrl!: string | null;
+}
+
 export class GetAuctionByIdResponseDto {
   @ApiProperty({
     description: 'Auction ID',
@@ -103,6 +130,14 @@ export class GetAuctionByIdResponseDto {
     example: false,
   })
   isInWatchlist!: boolean;
+
+  @ApiProperty({
+    description: 'Winner of the auction',
+    type: AuctionWinnerResponseDto,
+    nullable: true,
+  })
+  @Type(() => AuctionWinnerResponseDto)
+  winner!: AuctionWinnerResponseDto | null;
 
   @ApiProperty({
     description: 'Products included in the auction',

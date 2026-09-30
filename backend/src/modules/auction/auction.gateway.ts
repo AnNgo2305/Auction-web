@@ -15,6 +15,7 @@ import { AUCTION_EVENTS } from '@modules/auction/constants/websocket-event.const
 import { UseFilters, UsePipes } from '@nestjs/common';
 import { WsValidationPipe } from '@common/pipes/ws-validation.pipe';
 import { WsExceptionFilter } from '@common/filters/ws-exception.filter';
+import { UserService } from '@modules/user/user.service';
 
 interface SocketData {
   userId?: string;
@@ -36,6 +37,7 @@ export class AuctionGateway
 
   constructor(
     private readonly websocketAuthService: WebsocketAuthService,
+    private readonly userService: UserService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -45,6 +47,9 @@ export class AuctionGateway
     try {
       const payload = await this.websocketAuthService.authenticate(client);
       data.userId = payload.userId;
+      data.profileImageUrl = await this.userService.getProfileImageUrl(
+        payload.userId,
+      );
 
       this.logger.log(
         `[AUCTION] Socket connected: userId=${payload.userId}, socketId=${client.id}`,
@@ -100,8 +105,9 @@ export class AuctionGateway
   @UseFilters(WsExceptionFilter)
   async handleJoinAuction(
     @ConnectedSocket() client: Socket,
-    @MessageBody() auctionId: string,
+    @MessageBody() payload: { auctionId: string },
   ): Promise<void> {
+    const { auctionId } = payload;
     const room = WS_ROOMS.AUCTION(auctionId);
     const data = client.data as SocketData;
 
@@ -157,8 +163,9 @@ export class AuctionGateway
   @UseFilters(WsExceptionFilter)
   async handleLeaveAuction(
     @ConnectedSocket() client: Socket,
-    @MessageBody() auctionId: string,
+    @MessageBody() payload: { auctionId: string },
   ): Promise<void> {
+    const { auctionId } = payload;
     const room = WS_ROOMS.AUCTION(auctionId);
     const data = client.data as SocketData;
 
