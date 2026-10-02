@@ -22,7 +22,7 @@ import type { GetAuctionByIdResponse } from '@/features/auction/types/get-auctio
 type MyBidsCache = InfiniteData<GetMyBidsResponse>;
 type AuctionBidsCache = InfiniteData<GetAuctionBidsResponse>;
 
-export function useBidSocket() {
+export function useBidSocket(auctionId: string) {
   const socketRef = useRef<Socket | null>(null);
   const { isAuthenticated } = useUser();
   const queryClient = useQueryClient();
@@ -44,6 +44,10 @@ export function useBidSocket() {
     });
 
     socketRef.current = socket;
+
+    socket.on('connect', () => {
+      socket.emit(BID_EVENTS.AUCTION_JOIN, { auctionId });
+    });
 
     socket.on(BID_EVENTS.BID_ACK, (event: BidAckEvent) => {
       const newBid: MyBidData = {
@@ -89,6 +93,7 @@ export function useBidSocket() {
 
       toast.success('Bid placed successfully', {
         description: `Your bid of ${event.bidAmount.toLocaleString()} VND has been placed.`,
+        position: 'bottom-right',
       });
     });
 
@@ -152,6 +157,8 @@ export function useBidSocket() {
               ...currentData.data,
               currentPrice: event.bidAmount,
               bidCount: currentData.data.bidCount + 1,
+              latestBidderId: event.userId,
+              updatedAt: event.createdAt,
             },
           };
         },
@@ -168,7 +175,7 @@ export function useBidSocket() {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [isAuthenticated, queryClient]);
+  }, [auctionId, isAuthenticated, queryClient]);
 
   return socketRef;
 }

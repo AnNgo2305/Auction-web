@@ -304,6 +304,7 @@ export class AuctionService {
         startingPrice: true,
         minimumBidIncrement: true,
         currentPrice: true,
+        latestBidderId: true,
         bidCount: true,
         status: true,
         createdAt: true,
@@ -372,6 +373,7 @@ export class AuctionService {
       isInWatchlist,
       createdAt: auction.createdAt,
       updatedAt: auction.updatedAt,
+      latestBidderId: auction.latestBidderId,
       winner: auction.winner
         ? {
             userId: auction.winner.userId,

@@ -6,4 +6,6 @@ export const BID_EVENTS = {
   BID_ACK: 'bid:ack',
 
   BID_ERROR: 'bid:error',
+
+  AUCTION_JOIN: 'auction:join',
 } as const;

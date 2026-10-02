@@ -56,6 +56,7 @@ export class BidGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const data = client.data as SocketData;
       data.userId = payload.userId;
+      data.username = payload.username;
     } catch {
       client.disconnect(true);
     }
@@ -73,6 +74,22 @@ export class BidGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.logger.log(
       `[BID] Socket disconnected: userId=${data.userId}, socketId=${client.id}`,
+    );
+  }
+
+  @SubscribeMessage(BID_EVENTS.AUCTION_JOIN)
+  @UsePipes(WsValidationPipe)
+  @UseFilters(WsExceptionFilter)
+  async handleJoinAuction(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { auctionId: string },
+  ): Promise<void> {
+    const room = WS_ROOMS.AUCTION(payload.auctionId);
+
+    await client.join(room);
+
+    this.logger.log(
+      `[BID] Socket ${client.id} joined auction ${payload.auctionId}`,
     );
   }
 

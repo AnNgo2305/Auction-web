@@ -21,6 +21,8 @@ import type {
   GetAuctionByIdData,
 } from '@/features/auction/types/get-auction-by-id.response';
 import { format } from 'date-fns';
+import { useCountdown } from '@/features/auction/hooks/useAuctionCountdown.ts';
+import { AUCTION_STATUSES } from '@/shared/types/auction-status.ts';
 
 type AuctionDetailFormProps = {
   auction: GetAuctionByIdData;
@@ -66,6 +68,10 @@ export function AuctionDetailForm({
     control,
     name: 'auctionProducts',
   });
+
+  const { days, hours, minutes, seconds, isExpired } = useCountdown(
+    auction.endTime,
+  );
 
   const auctionProducts = useWatch({ control, name: 'auctionProducts' });
 
@@ -123,6 +129,19 @@ export function AuctionDetailForm({
         }}
         className="space-y-6"
       >
+        {auction.status === AUCTION_STATUSES.OPEN && (
+          <div className="rounded-lg border p-4">
+            <p className="text-muted-foreground text-sm">Time Remaining</p>
+            <p className="text-2xl font-bold tabular-nums">
+              {days}d {hours.toString().padStart(2, '0')}:
+              {minutes.toString().padStart(2, '0')}:
+              {seconds.toString().padStart(2, '0')}
+            </p>
+            {isExpired && (
+              <p className="text-destructive text-sm">Auction ended</p>
+            )}
+          </div>
+        )}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <AuctionDetailInfo isEditing={isEditing} />

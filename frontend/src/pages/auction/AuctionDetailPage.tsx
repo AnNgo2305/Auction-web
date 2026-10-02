@@ -16,11 +16,14 @@ import type { AuctionWinnerEvent } from '@/features/auction/socket/event/auction
 import { Trophy } from 'lucide-react';
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar.tsx';
+import { useBidSocket } from '@/features/bid/hooks/useBidSocket.ts';
+import { useUser } from '@/shared/contexts/UserContext';
 
 export function AuctionDetailPage() {
   const { auctionId } = useParams<{ auctionId: string }>();
   const [isEditing, setIsEditing] = useState(false);
   const [winner, setWinner] = useState<AuctionWinnerEvent | null>(null);
+  const { currentUser } = useUser();
 
   const {
     data: auction,
@@ -33,11 +36,12 @@ export function AuctionDetailPage() {
     setWinner(event);
   }, []);
 
-  const { socketRef, bidders } = useAuctionSocket(
+  const { bidders } = useAuctionSocket(
     auctionId ?? '',
     handleAuctionWinner,
   );
 
+  const socketRef = useBidSocket(auctionId ?? '');
   const { handlePlaceBid } = usePlaceBid(socketRef, auctionId ?? '');
 
   if (isLoading) {
@@ -112,7 +116,7 @@ export function AuctionDetailPage() {
   }
 
   return (
-    <div className="mx-auto mt-6 mb-12 w-full max-w-5xl space-y-6">
+    <div className="mx-auto mt-6 mb-12 w-full max-w-9/12 space-y-6">
       <AuctionDetailHeader
         auction={auction}
         isEditing={isEditing}
@@ -166,16 +170,20 @@ export function AuctionDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           <AuctionWatcherList bidders={bidders} />
-          <AuctionBidForm
-            auctionId={auction.auctionId}
-            currentPrice={auction.currentPrice}
-            minimumBidIncrement={auction.minimumBidIncrement}
-            disabled={
-              auction.status !== AUCTION_STATUSES.OPEN &&
-              auction.status !== AUCTION_STATUSES.EXTENDED
-            }
-            onSubmit={handlePlaceBid}
-          />
+          {currentUser && (
+            <AuctionBidForm
+              key={`${auction.auctionId}-${auction.currentPrice}`}
+              auctionId={auction.auctionId}
+              currentPrice={auction.currentPrice}
+              minimumBidIncrement={auction.minimumBidIncrement}
+              disabled={
+                (auction.status !== AUCTION_STATUSES.OPEN &&
+                  auction.status !== AUCTION_STATUSES.EXTENDED) ||
+                auction.latestBidderId === currentUser.userId
+              }
+              onSubmit={handlePlaceBid}
+            />
+          )}
         </div>
       </div>
 

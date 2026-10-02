@@ -27,3 +27,9 @@ export const ERROR_BID_NOT_FOUND = {
   errorCode: 'BID_NOT_FOUND',
   message: 'Bid not found',
 };
+
+export const ERROR_BID_CONSECUTIVE = {
+  statusCode: 400,
+  errorCode: 'BID_CONSECUTIVE',
+  message: 'You cannot place two consecutive bids',
+};

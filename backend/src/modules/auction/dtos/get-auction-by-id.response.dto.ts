@@ -157,4 +157,11 @@ export class GetAuctionByIdResponseDto {
     example: '2026-09-23T09:00:00.000Z',
   })
   updatedAt!: Date;
+
+  @ApiProperty({
+    description: 'ID of the user who placed the latest bid',
+    nullable: true,
+    example: '550e8400-e29b-41d4-a716-446655440003',
+  })
+  latestBidderId!: string | null;
 }

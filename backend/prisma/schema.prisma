@@ -67,6 +67,7 @@ model User {
 
   notificationsReceived Notification[] @relation("User_Has_Notifications")
   notificationActions   Notification[] @relation("User_Has_NotificationActions")
+  lastBidAuctions       Auction[]      @relation("User_Last_Bid_Auctions")
 
   @@map("users")
 }
@@ -355,6 +356,9 @@ model Auction {
 
   winnerId String? @map("winner_id") @db.Char(36)
   winner   User?   @relation("User_Wins_Auctions", fields: [winnerId], references: [userId], onDelete: SetNull)
+
+  latestBidderId String? @map("latest_bidder_id") @db.Char(36)
+  latestBidder   User?   @relation("User_Last_Bid_Auctions", fields: [latestBidderId], references: [userId], onDelete: SetNull)
 
   status              AuctionStatus @default(PENDING)
   cancelReason        String?       @map("cancel_reason") @db.Text

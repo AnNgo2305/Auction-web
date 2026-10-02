@@ -23,7 +23,7 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
 
   // API returns newest -> oldest.
   // Reverse each page so the UI displays oldest -> newest.
-  const bids = pages.flatMap((page) => [...page.data.bids].reverse()).reverse();
+  const bids = pages.flatMap((page) => [...page.data.bids]);
 
   useEffect(() => {
     const element = loadMoreRef.current;
@@ -34,15 +34,17 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) {
-          const container = scrollContainerRef.current;
-
-          if (container) {
-            previousScrollHeightRef.current = container.scrollHeight;
-          }
-
-          void fetchNextPage();
+        if (!entry?.isIntersecting) {
+          return;
         }
+
+        const container = scrollContainerRef.current;
+
+        if (container) {
+          previousScrollHeightRef.current = container.scrollHeight;
+        }
+
+        void fetchNextPage();
       },
       {
         threshold: 0.1,
@@ -68,8 +70,7 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
     }
 
     const previousScrollHeight = previousScrollHeightRef.current;
-    const newScrollHeight = container.scrollHeight;
-    const heightDifference = newScrollHeight - previousScrollHeight;
+    const heightDifference = container.scrollHeight - previousScrollHeight;
 
     container.scrollTop += heightDifference;
 
@@ -86,17 +87,17 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {Array.from({ length: BID_SKELETON_COUNT }).map((_, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <Skeleton className="h-9 w-9 rounded-full" />
+            <div key={index} className="flex h-12 items-center gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
 
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-4 w-24" />
+              <div className="min-w-0 flex-1 space-y-1">
+                <Skeleton className="h-3.5 w-24" />
                 <Skeleton className="h-3 w-32" />
               </div>
 
-              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-4 w-20" />
             </div>
           ))}
         </div>
@@ -131,7 +132,7 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
       </div>
 
       <div ref={scrollContainerRef} className="max-h-100 overflow-y-auto">
-        <div className="space-y-4">
+        <div className="space-y-2">
           {hasNextPage && (
             <div
               ref={loadMoreRef}
@@ -144,8 +145,8 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
           )}
 
           {bids.map((bid) => (
-            <div key={bid.bidId} className="flex items-center gap-3">
-              <Avatar className="h-9 w-9">
+            <div key={bid.bidId} className="flex h-12 items-center gap-2">
+              <Avatar className="h-8 w-8 shrink-0">
                 <AvatarImage
                   src={bid.profileImageUrl ?? defaultAvatarImageUrl}
                   alt="Bidder avatar"
@@ -154,14 +155,16 @@ export function AuctionBidHistory({ auctionId }: AuctionBidHistoryProps) {
               </Avatar>
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{bid.username}</p>
+                <p className="truncate text-sm font-medium">{bid.username}</p>
 
                 <p className="text-muted-foreground text-xs">
                   {new Date(bid.createdAt).toLocaleString()}
                 </p>
               </div>
 
-              <p className="font-semibold">{bid.bidAmount.toLocaleString()}</p>
+              <p className="shrink-0 text-sm font-semibold">
+                {bid.bidAmount.toLocaleString()}
+              </p>
             </div>
           ))}
         </div>

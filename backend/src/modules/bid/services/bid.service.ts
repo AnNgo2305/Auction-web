@@ -14,6 +14,7 @@ import {
   ERROR_AUCTION_NOT_FOUND,
   ERROR_AUCTION_NOT_OPEN,
   ERROR_BID_AMOUNT_INVALID,
+  ERROR_BID_CONSECUTIVE,
   ERROR_BID_NOT_FOUND,
 } from '@modules/bid/constants/bid.constant';
 import { BidResponseDto } from '@modules/bid/dtos/bid.response.dto';
@@ -47,6 +48,7 @@ export class BidService {
           auctionId: string;
           title: string;
           sellerId: string;
+          latestBidderId: string | null;
           status: AuctionStatus;
           currentPrice: Prisma.Decimal;
           minimumBidIncrement: Prisma.Decimal;
@@ -58,6 +60,7 @@ export class BidService {
           title,
           seller_id AS "sellerId",
           status,
+          latest_bidder_id AS "latestBidderId",
           current_price AS "currentPrice",
           minimum_bid_increment AS "minimumBidIncrement",
           end_time AS "endTime"
@@ -72,6 +75,10 @@ export class BidService {
           `User ${userId} attempted to bid on non-existent auction ${auctionId}`,
         );
         throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+      }
+
+      if (auction.latestBidderId === userId) {
+        throw new BadRequestException(ERROR_BID_CONSECUTIVE);
       }
 
       this.validateAuctionForBid(auction, userId, auctionId);
@@ -115,6 +122,8 @@ export class BidService {
         data: {
           currentPrice: bidAmount,
           bidCount: { increment: 1 },
+          lastBidTime: new Date(),
+          latestBidderId: userId,
           ...(extended && {
             endTime,
             status: AuctionStatus.EXTENDED,
@@ -262,7 +271,7 @@ export class BidService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        bidId: 'desc',
       },
       ...(cursor && {
         cursor: {
@@ -334,7 +343,7 @@ export class BidService {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        bidId: 'desc',
       },
       ...(cursor && {
         cursor: {
