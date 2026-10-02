@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { INTERNAL_EVENTS } from '@common/constants/event.constant';
 import { AuctionGateway } from '@modules/auction/auction.gateway';
-import { AuctionEvent } from '@modules/auction/events/auction.event';
+import {
+  AuctionClosedEvent,
+  AuctionEndedEvent,
+} from '@modules/auction/events/auction.event';
 import { AuctionStartedEvent } from '@modules/auction/events/auction-start.event';
 import { AuctionExtendedEvent } from '@modules/auction/events/auction-extend.event';
 import { AuctionWinnerEvent } from '@modules/auction/events/auction-winner.event';
@@ -13,30 +16,51 @@ export class AuctionWebSocketListener {
   constructor(private readonly auctionGateway: AuctionGateway) {}
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_STARTED)
-  handleAuctionStarted(payload: AuctionStartedEvent): void {
+  async handleAuctionStarted(payload: AuctionStartedEvent): Promise<void> {
     this.auctionGateway.emitAuctionStarted({
       auctionId: payload.auctionId,
       startTime: payload.startTime,
       endTime: payload.endTime,
     });
+
+    await this.auctionGateway.emitAuctionUpdated({
+      auctionId: payload.auctionId,
+      status: payload.status,
+      endTime: payload.endTime,
+    });
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_EXTENDED)
-  handleAuctionExtended(payload: AuctionExtendedEvent): void {
+  async handleAuctionExtended(payload: AuctionExtendedEvent): Promise<void> {
     this.auctionGateway.emitAuctionExtended({
+      auctionId: payload.auctionId,
+      endTime: payload.endTime,
+    });
+
+    await this.auctionGateway.emitAuctionUpdated({
       auctionId: payload.auctionId,
       endTime: payload.endTime,
     });
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_ENDED)
-  handleAuctionCompleted(payload: AuctionEvent): void {
+  async handleAuctionCompleted(payload: AuctionEndedEvent): Promise<void> {
     this.auctionGateway.emitAuctionCompleted(payload.auctionId);
+
+    await this.auctionGateway.emitAuctionUpdated({
+      auctionId: payload.auctionId,
+      status: payload.status,
+    });
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_CLOSED)
-  handleAuctionClosed(payload: AuctionEvent): void {
+  async handleAuctionClosed(payload: AuctionClosedEvent): Promise<void> {
     this.auctionGateway.emitAuctionClosed(payload.auctionId);
+
+    await this.auctionGateway.emitAuctionUpdated({
+      auctionId: payload.auctionId,
+      status: payload.status,
+    });
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_WINNER)
@@ -51,10 +75,16 @@ export class AuctionWebSocketListener {
   }
 
   @OnEvent(INTERNAL_EVENTS.AUCTION_REOPENED)
-  handleAuctionReopened(payload: AuctionReopenedEvent): void {
+  async handleAuctionReopened(payload: AuctionReopenedEvent): Promise<void> {
     this.auctionGateway.emitAuctionReopened({
       auctionId: payload.auctionId,
       startTime: payload.startTime,
+      endTime: payload.endTime,
+    });
+
+    await this.auctionGateway.emitAuctionUpdated({
+      auctionId: payload.auctionId,
+      status: payload.status,
       endTime: payload.endTime,
     });
   }

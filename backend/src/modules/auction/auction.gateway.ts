@@ -16,10 +16,13 @@ import { UseFilters, UsePipes } from '@nestjs/common';
 import { WsValidationPipe } from '@common/pipes/ws-validation.pipe';
 import { WsExceptionFilter } from '@common/filters/ws-exception.filter';
 import { UserService } from '@modules/user/user.service';
+import { AuctionSubscriptionService } from '@modules/auction/services/auction-subscription.service';
+import { AuctionStatus } from '@generated/prisma/enums';
 
 interface SocketData {
   userId?: string;
   profileImageUrl?: string | null;
+  joinedAuctionIds?: Set<string>;
 }
 
 @WebSocketGateway({
@@ -37,6 +40,7 @@ export class AuctionGateway
 
   constructor(
     private readonly websocketAuthService: WebsocketAuthService,
+    private readonly auctionSubscriptionService: AuctionSubscriptionService,
     private readonly userService: UserService,
     private readonly logger: LoggerService,
   ) {}
@@ -50,6 +54,7 @@ export class AuctionGateway
       data.profileImageUrl = await this.userService.getProfileImageUrl(
         payload.userId,
       );
+      data.joinedAuctionIds = new Set();
 
       this.logger.log(
         `[AUCTION] Socket connected: userId=${payload.userId}, socketId=${client.id}`,
@@ -68,6 +73,9 @@ export class AuctionGateway
 
   async handleDisconnect(client: Socket): Promise<void> {
     const data = client.data as SocketData;
+
+    // Remove all gallery subscriptions from Redis.
+    await this.auctionSubscriptionService.removeAllSubscriptions(client.id);
 
     if (!data.userId) {
       this.logger.log(
@@ -195,6 +203,45 @@ export class AuctionGateway
     this.logger.log(`[AUCTION] User ${data.userId} left auction ${auctionId}`);
   }
 
+  @SubscribeMessage(AUCTION_EVENTS.AUCTION_SUBSCRIBE)
+  @UsePipes(WsValidationPipe)
+  @UseFilters(WsExceptionFilter)
+  async handleSubscribeAuctions(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { auctionIds: string[] },
+  ): Promise<void> {
+    const { auctionIds } = payload;
+    if (auctionIds.length === 0) {
+      return;
+    }
+
+    await this.auctionSubscriptionService.subscribe(client.id, auctionIds);
+
+    this.logger.log(
+      `[AUCTION] Socket subscribed: socketId=${client.id}, auctionIds=${auctionIds.join(',')}`,
+    );
+  }
+
+  @SubscribeMessage(AUCTION_EVENTS.AUCTION_UNSUBSCRIBE)
+  @UsePipes(WsValidationPipe)
+  @UseFilters(WsExceptionFilter)
+  async handleUnsubscribeAuctions(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { auctionIds: string[] },
+  ): Promise<void> {
+    const { auctionIds } = payload;
+
+    if (auctionIds.length === 0) {
+      return;
+    }
+
+    await this.auctionSubscriptionService.unsubscribe(client.id, auctionIds);
+
+    this.logger.log(
+      `[AUCTION] Socket unsubscribed: socketId=${client.id}, auctionIds=${auctionIds.join(',')}`,
+    );
+  }
+
   emitAuctionStarted(data: {
     auctionId: string;
     startTime: Date;
@@ -264,5 +311,29 @@ export class AuctionGateway
         startTime: data.startTime,
         endTime: data.endTime,
       });
+  }
+
+  async emitAuctionUpdated(data: {
+    auctionId: string;
+    currentPrice?: number;
+    bidCount?: number;
+    status?: AuctionStatus;
+    endTime?: Date;
+  }): Promise<void> {
+    const socketIds = await this.auctionSubscriptionService.getSubscribers(
+      data.auctionId,
+    );
+
+    if (socketIds.length === 0) {
+      return;
+    }
+
+    this.server.to(socketIds).emit(AUCTION_EVENTS.AUCTION_UPDATED, {
+      auctionId: data.auctionId,
+      currentPrice: data.currentPrice,
+      bidCount: data.bidCount,
+      status: data.status,
+      endTime: data.endTime,
+    });
   }
 }

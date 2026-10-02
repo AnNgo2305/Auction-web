@@ -59,9 +59,21 @@ const ACTION_CONTENT: Record<
       'This action will permanently delete the pending auction and restore the reserved product stock.',
     confirmText: 'Delete Auction',
   },
+  reopen: {
+    title: 'Reopen auction?',
+    description:
+      'This action will reopen the auction for a new bidding round. Previous bids will be hidden and the auction will start again from its starting price.',
+    confirmText: 'Reopen Auction',
+  },
 };
 
-type AuctionAction = 'cancel' | 'resubmit' | 'end' | 'confirm' | 'delete';
+type AuctionAction =
+  | 'cancel'
+  | 'resubmit'
+  | 'end'
+  | 'confirm'
+  | 'delete'
+  | 'reopen';
 
 type PendingAction = {
   auctionId: string;
@@ -77,6 +89,7 @@ type MyAuctionsDataTableProps = {
   onEnd: (auctionId: string) => void;
   onConfirm: (auctionId: string) => void;
   onDelete: (auctionId: string) => void;
+  onReopen: (auctionId: string) => void;
 };
 
 export function MyAuctionsDataTable({
@@ -88,6 +101,7 @@ export function MyAuctionsDataTable({
   onEnd,
   onConfirm,
   onDelete,
+  onReopen,
 }: MyAuctionsDataTableProps) {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
@@ -129,6 +143,10 @@ export function MyAuctionsDataTable({
 
       case 'delete':
         onDelete(auctionId);
+        break;
+
+      case 'reopen':
+        onReopen(auctionId);
         break;
     }
 
@@ -211,6 +229,9 @@ export function MyAuctionsDataTable({
                         auctionId,
                         action: 'delete',
                       });
+                    }}
+                    onReopen={(auctionId) => {
+                      setPendingAction({ auctionId, action: 'reopen' });
                     }}
                   />
                 ))}

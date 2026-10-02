@@ -20,4 +20,10 @@ export const AUCTION_EVENTS = {
   BIDDER_SNAPSHOT: 'auction:bidder:snapshot',
 
   BIDDER_LEFT: 'auction:bidder:left',
+
+  AUCTION_UPDATED: 'auction:updated',
+
+  AUCTION_SUBSCRIBE: 'auction:subscribe',
+
+  AUCTION_UNSUBSCRIBE: 'auction:unsubscribe',
 } as const;

@@ -11,6 +11,7 @@ import {
 } from '@/shared/types/auction';
 import type { PublicAuctionStatus } from '@/shared/types/auction-status';
 import type { DateRange } from 'react-day-picker';
+import { useAuctionSubscriptionSocket } from '@/features/auction/hooks/useAuctionSubscriptionSocket';
 
 type AuctionFilterValues = {
   keyword: string;
@@ -28,8 +29,8 @@ const defaultFilters: AuctionFilterValues = {
   minPrice: undefined,
   maxPrice: undefined,
   dateRange: undefined,
-  sortBy: undefined,
-  sortOrder: undefined,
+  sortBy: AuctionSortBy.CREATED_AT,
+  sortOrder: AuctionSortOrder.DESC,
 };
 
 export function AuctionGalleryPage() {
@@ -68,7 +69,17 @@ export function AuctionGalleryPage() {
 
   const loadedPageCount = data?.pages.length ?? 0;
 
-  const auctions = data?.pages[page - 1]?.data.data ?? [];
+  const auctions = useMemo(
+    () => data?.pages[page - 1]?.data.data ?? [],
+    [data, page],
+  );
+
+  const auctionIds = useMemo(
+    () => auctions.map((auction) => auction.auctionId),
+    [auctions],
+  );
+
+  useAuctionSubscriptionSocket({ auctionIds });
 
   const handleFilterChange = <
     K extends keyof AuctionFilterValues,

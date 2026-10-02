@@ -33,6 +33,7 @@ export const csrfConfig = (): DoubleCsrfUtilities => {
         '/auth/verify-email-otp',
         '/auth/verify-reset-password-otp',
         '/auth/resend-otp',
+        '/auth/refresh-token',
       ];
       return publicRoutes.includes(req.path);
     },

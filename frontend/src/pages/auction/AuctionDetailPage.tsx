@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/shared/ui/button.tsx';
 import { Skeleton } from '@/shared/ui/skeleton.tsx';
@@ -9,7 +9,7 @@ import { useAuctionSocket } from '@/features/auction/hooks/useAuctionSocket.ts';
 import { usePlaceBid } from '@/features/bid/hooks/usePlaceBid.ts';
 import { AuctionBidHistory } from '@/features/bid/components/auction-bid/AuctionBidHistory.tsx';
 import { AuctionWinnerDialog } from '@/features/auction/components/auction-detail/AuctionWinnerDialog.tsx';
-import { AuctionBidderList } from '@/features/bid/components/auction-bid/AuctionBidderLIst.tsx';
+import { AuctionWatcherList } from '@/features/bid/components/auction-bid/AuctionWatcherList.tsx';
 import { AuctionBidForm } from '@/features/bid/components/auction-bid/AuctionBidForm.tsx';
 import { AUCTION_STATUSES } from '@/shared/types/auction-status.ts';
 import type { AuctionWinnerEvent } from '@/features/auction/socket/event/auction-winner.event.ts';
@@ -29,9 +29,14 @@ export function AuctionDetailPage() {
     refetch,
   } = useGetAuctionById(auctionId ?? '');
 
-  const { socketRef, bidders } = useAuctionSocket(auctionId ?? '', (event) => {
+  const handleAuctionWinner = useCallback((event: AuctionWinnerEvent) => {
     setWinner(event);
-  });
+  }, []);
+
+  const { socketRef, bidders } = useAuctionSocket(
+    auctionId ?? '',
+    handleAuctionWinner,
+  );
 
   const { handlePlaceBid } = usePlaceBid(socketRef, auctionId ?? '');
 
@@ -160,7 +165,7 @@ export function AuctionDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <AuctionBidderList bidders={bidders} />
+          <AuctionWatcherList bidders={bidders} />
           <AuctionBidForm
             auctionId={auction.auctionId}
             currentPrice={auction.currentPrice}

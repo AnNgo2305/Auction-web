@@ -2,18 +2,18 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar.tsx';
 import defaultAvatarImageUrl from '@/assets/images/default-avatar.jpg';
 
-type AuctionBidder = {
+type AuctionWatcher = {
   userId: string;
   profileImageUrl?: string | null;
 };
 
-type AuctionBidderListProps = {
-  bidders: AuctionBidder[];
+type AuctionWatcherListProps = {
+  bidders: AuctionWatcher[];
 };
 
 const MAX_VISIBLE_AVATARS = 5;
 
-export function AuctionBidderList({ bidders }: AuctionBidderListProps) {
+export function AuctionWatcherList({ bidders }: AuctionWatcherListProps) {
   const navigate = useNavigate();
 
   const visibleBidders = bidders.slice(0, MAX_VISIBLE_AVATARS);
@@ -27,9 +27,9 @@ export function AuctionBidderList({ bidders }: AuctionBidderListProps) {
     <div className="bg-card rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold">Active Bidders</h3>
+          <h3 className="font-semibold">Watchers</h3>
           <p className="text-muted-foreground text-sm">
-            {bidders.length} bidders
+            {bidders.length} watchers
           </p>
         </div>
 

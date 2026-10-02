@@ -42,4 +42,16 @@ export const AUCTION_EVENTS = {
   // Server emits → Other clients in auction room receive
   // Server notifies other clients that a bidder has left the auction.
   BIDDER_LEFT: 'auction:bidder:left',
+
+  // Client emits → Server receives
+  // Client emits this event to subscribe to multiple auctions for realtime updates.
+  AUCTION_SUBSCRIBE: 'auction:subscribe',
+
+  // Client emits → Server receives
+  // Client emits this event to unsubscribe from multiple auctions.
+  AUCTION_UNSUBSCRIBE: 'auction:unsubscribe',
+
+  // Server emits → Subscribed clients receive
+  // Server sends lightweight auction updates to clients subscribed to the auction.
+  AUCTION_UPDATED: 'auction:updated',
 } as const;

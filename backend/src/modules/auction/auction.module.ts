@@ -8,11 +8,11 @@ import { AuctionScheduler } from '@modules/auction/auction.scheduler';
 import { AuctionReconcileService } from '@modules/auction/services/auction-reconcile.service';
 import { AuctionGateway } from '@modules/auction/auction.gateway';
 import { AuctionWebSocketListener } from '@modules/auction/listeners/auction-websocket.listener';
-import { BidService } from '@modules/bid/services/bid.service';
 import { BidModule } from '@modules/bid/bid.module';
 import { AuctionQueueService } from '@modules/auction/services/auction-queue.service';
 import { AuctionLifecycleService } from '@modules/auction/services/auction-lifecycle.service';
 import { UserModule } from '@modules/user/user.module';
+import { AuctionSubscriptionService } from '@modules/auction/services/auction-subscription.service';
 
 @Module({
   imports: [CommonModule, PermissionModule, BidModule, UserModule],
@@ -20,7 +20,7 @@ import { UserModule } from '@modules/user/user.module';
     AuctionService,
     AuctionQueueService,
     AuctionLifecycleService,
-    BidService,
+    AuctionSubscriptionService,
     AuctionReconcileService,
     AuctionProcessor,
     AuctionScheduler,

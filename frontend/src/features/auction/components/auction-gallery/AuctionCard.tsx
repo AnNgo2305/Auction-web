@@ -10,6 +10,14 @@ type AuctionCardProps = {
 };
 
 export function AuctionCard({ auction }: AuctionCardProps) {
+  const endTime = new Date(auction.endTime).toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   return (
     <Card className="overflow-hidden">
       <Link to={auctionPaths.detail(auction.auctionId)}>
@@ -46,7 +54,7 @@ export function AuctionCard({ auction }: AuctionCardProps) {
           <div className="text-muted-foreground flex items-center justify-between text-sm">
             <span>{auction.bidCount} bids</span>
 
-            <span>Ends {new Date(auction.endTime).toLocaleDateString()}</span>
+            <span>End: {endTime}</span>
           </div>
         </CardContent>
       </Link>

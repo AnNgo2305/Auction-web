@@ -15,6 +15,7 @@ import { useEndAuction } from '@/features/auction/hooks/useEndAuction.ts';
 import { useGetMyAuctions } from '@/features/auction/hooks/useGetMyAuctions.ts';
 import { useResubmitAuction } from '@/features/auction/hooks/useResubmitAuction.ts';
 import { useDeleteAuction } from '@/features/auction/hooks/useDeleteAuction.ts';
+import { useReopenAuction } from '@/features/auction/hooks/useReopenAuction.ts';
 import type { CancelAuctionBody } from '@/features/auction/schemas/cancel-auction.schema';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
@@ -57,9 +58,16 @@ export function MyAuctionsPage() {
   const { mutate: confirmAuction, isPending: isConfirming } =
     useConfirmAuction();
   const { mutate: deleteAuction, isPending: isDeleting } = useDeleteAuction();
+  const { mutate: reopenAuction, isPending: isReopening } = useReopenAuction();
+
 
   const isActionLoading =
-    isCanceling || isResubmitting || isEnding || isConfirming || isDeleting;
+    isCanceling ||
+    isResubmitting ||
+    isEnding ||
+    isConfirming ||
+    isDeleting ||
+    isReopening;
 
   const {
     data,
@@ -116,6 +124,10 @@ export function MyAuctionsPage() {
     deleteAuction(auctionId);
   };
 
+  const handleReopen = (auctionId: string) => {
+    reopenAuction(auctionId);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -161,6 +173,7 @@ export function MyAuctionsPage() {
         onEnd={handleEnd}
         onConfirm={handleConfirm}
         onDelete={handleDelete}
+        onReopen={handleReopen}
       />
 
       {auctions.length > 0 && (

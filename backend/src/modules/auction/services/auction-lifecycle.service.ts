@@ -123,11 +123,12 @@ export class AuctionLifecycleService {
       INTERNAL_EVENTS.AUCTION_STARTED,
       new AuctionStartedEvent(
         crypto.randomUUID(),
-        auction.auctionId,
         auction.sellerId,
+        auction.auctionId,
         auction.startTime,
         auction.endTime,
         auction.title,
+        AuctionStatus.OPEN,
       ),
     );
   }
@@ -278,6 +279,7 @@ export class AuctionLifecycleService {
         auction.sellerId,
         auction.title,
         isManual,
+        AuctionStatus.COMPLETED,
       ),
     );
   }
@@ -339,6 +341,7 @@ export class AuctionLifecycleService {
         auction.auctionId,
         auction.sellerId,
         auction.title,
+        AuctionStatus.CLOSED,
       ),
     );
   }
@@ -377,7 +380,7 @@ export class AuctionLifecycleService {
       }
 
       const auction = auctions[0];
-      if (auction.status !== AuctionStatus.CLOSED) {
+      if (auction.status !== AuctionStatus.COMPLETED) {
         this.logger.warn(
           `[AUCTION] Auction ${auctionId} cannot be reopened from status ${auction.status}`,
         );
@@ -441,6 +444,7 @@ export class AuctionLifecycleService {
         auction.title,
         auction.startTime,
         auction.endTime,
+        AuctionStatus.OPEN,
       ),
     );
   }
@@ -553,6 +557,7 @@ export class AuctionLifecycleService {
         auction.sellerId,
         auction.title,
         auction.endTime,
+        AuctionStatus.EXTENDED,
       ),
     );
   }

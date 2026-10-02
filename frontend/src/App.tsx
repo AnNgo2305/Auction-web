@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AuthRoutes from '@/routes/AuthRoute';
 import AboutRoutes from '@/routes/AboutRoute';
 import ProfileRoutes from '@/routes/ProfileRoute';
@@ -14,12 +14,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/auctions" replace />} />
         <Route path="/auth/*" element={<AuthRoutes />} />
         <Route path="/about/*" element={<AboutRoutes />} />
         <Route path="/profile/*" element={<ProfileRoutes />} />
         <Route path="/setting/*" element={<SettingRoutes />} />
         <Route path="/sellerhub/*" element={<SellerHubRoutes />} />
-        <Route path="products/*" element={<ProductRoutes />} />
+        <Route path="/products/*" element={<ProductRoutes />} />
         <Route path="/auctions/*" element={<AuctionRoutes />} />
         <Route path="/chat/*" element={<ChatRoutes />} />
         <Route path="/403" element={<ForbiddenPage />} />

@@ -1,3 +1,5 @@
+import type { AuctionStatus } from '@generated/prisma/enums';
+
 export class AuctionEvent {
   constructor(
     public readonly eventId: string,
@@ -13,7 +15,17 @@ export class AuctionUpdatedEvent extends AuctionEvent {}
 
 export class AuctionCancelledEvent extends AuctionEvent {}
 
-export class AuctionClosedEvent extends AuctionEvent {}
+export class AuctionClosedEvent extends AuctionEvent {
+  constructor(
+    eventId: string,
+    auctionId: string,
+    sellerId: string,
+    title: string,
+    public readonly status: AuctionStatus,
+  ) {
+    super(eventId, auctionId, sellerId, title);
+  }
+}
 
 export class AuctionResubmittedEvent extends AuctionEvent {}
 
@@ -24,6 +36,7 @@ export class AuctionEndedEvent extends AuctionEvent {
     sellerId: string,
     title: string,
     public readonly isManual: boolean,
+    public readonly status: AuctionStatus,
   ) {
     super(eventId, auctionId, sellerId, title);
   }

@@ -52,6 +52,10 @@ export const REDIS_KEYS = {
     VERIFY_EMAIL: (userId: string) => `otp:verify-email:${userId}`,
     RESET_PASSWORD: (userId: string) => `otp:reset-password:${userId}`,
   },
+  AUCTION: {
+    SUBSCRIBERS: (auctionId: string) => `auction:subscribers:${auctionId}`,
+    SUBSCRIPTIONS: (socketId: string) => `auction:subscriptions:${socketId}`,
+  },
 } as const;
 
 export const REDIS_TTL = {

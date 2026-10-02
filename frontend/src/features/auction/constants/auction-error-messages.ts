@@ -76,3 +76,10 @@ export const DELETE_AUCTION_ERROR_MESSAGES: Record<string, string> = {
   AUCTION_INVALID_STATUS: 'Auction can only be deleted while it is pending',
   DEFAULT: 'Failed to delete auction',
 } as const;
+
+export const REOPEN_AUCTION_ERROR_MESSAGES: Record<string, string> = {
+  AUCTION_NOT_FOUND: 'Auction not found',
+  AUCTION_ACCESS_DENIED: 'You do not have permission to access this auction',
+  AUCTION_INVALID_STATUS: 'Auction status is invalid for this operation',
+  DEFAULT: 'Failed to reopen auction',
+} as const;
