@@ -108,6 +108,15 @@ export const REDIS_IDEMPOTENCY = {
       `ws:idempotency:place-bid:${userId}:${auctionId}:${tempId}`,
     TTL: 60,
   },
+  PAYMENT_CALLBACK: {
+    KEY: (paymentId: string) => `payment:idempotency:callback:${paymentId}`,
+    TTL: 60,
+  },
+  PAYMENT_CREATION: {
+    KEY: (userId: string, orderId: string, idempotencyKey: string) =>
+      `payment:idempotency:create:${userId}:${orderId}:${idempotencyKey}`,
+    TTL: 300,
+  },
 } as const;
 
 export const IDEMPOTENCY_STATUS = {

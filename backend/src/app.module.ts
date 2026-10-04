@@ -29,6 +29,8 @@ import { PresenceModule } from '@modules/presence/presence.module';
 import { AuctionModule } from '@modules/auction/auction.module';
 import { WatchlistModule } from '@modules/watchlist/watchlist.module';
 import { BidModule } from '@modules/bid/bid.module';
+import { OrderModule } from '@modules/order/order.module';
+import { PaymentModule } from '@modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -53,6 +55,8 @@ import { BidModule } from '@modules/bid/bid.module';
     AuctionModule,
     WatchlistModule,
     BidModule,
+    OrderModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

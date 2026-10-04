@@ -23,6 +23,7 @@ import passwordConfig from '@common/config/password.config';
 import mailConfig from '@common/config/mail.config';
 import s3Config from '@common/config/s3.config';
 import redisConfig from '@common/config/redis.config';
+import vnpayConfig from '@common/config/vnpay.config';
 import bullmqConfig from '@common/config/bullmq.config';
 import { REDIS_CLIENT } from '@common/constants/redis.constant';
 import Redis from 'ioredis';
@@ -89,6 +90,7 @@ const bullMQConfig = {
         bullmqConfig,
         rateLimitConfig,
         csrfConfig,
+        vnpayConfig,
       ],
     }),
     JwtModule,

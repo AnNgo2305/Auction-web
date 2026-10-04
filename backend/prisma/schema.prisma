@@ -69,6 +69,8 @@ model User {
   notificationActions   Notification[] @relation("User_Has_NotificationActions")
   lastBidAuctions       Auction[]      @relation("User_Last_Bid_Auctions")
 
+  orders Order[] @relation("User_Has_Orders")
+
   @@map("users")
 }
 
@@ -372,6 +374,8 @@ model Auction {
 
   watchlist Watchlist[] @relation("Auction_In_Watchlist")
 
+  order Order? @relation("Auction_Has_Order")
+
   @@map("auctions")
 }
 
@@ -552,4 +556,62 @@ model Notification {
   @@index([recipientId, createdAt])
   @@index([recipientId, isRead, createdAt])
   @@map("notifications")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPING
+  COMPLETED
+  CANCELED
+}
+
+model Order {
+  orderId   String @id @default(uuid(7)) @map("order_id") @db.Char(36)
+  orderCode String @unique @map("order_code") @db.VarChar(100)
+
+  auctionId String  @unique @map("auction_id") @db.Char(36)
+  auction   Auction @relation("Auction_Has_Order", fields: [auctionId], references: [auctionId], onDelete: Restrict)
+
+  buyerId String @map("buyer_id") @db.Char(36)
+  buyer   User   @relation("User_Has_Orders", fields: [buyerId], references: [userId], onDelete: Restrict)
+
+  totalAmount Decimal @map("total_amount") @db.Decimal(10, 2)
+
+  status OrderStatus @default(PENDING)
+
+  payments Payment[] @relation("Order_Has_Payments")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("orders")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+model Payment {
+  paymentId String @id @default(uuid(7)) @map("payment_id") @db.Char(36)
+
+  orderId String @map("order_id") @db.Char(36)
+  order   Order  @relation("Order_Has_Payments", fields: [orderId], references: [orderId], onDelete: Cascade)
+
+  status PaymentStatus @default(PENDING)
+  amount Decimal       @db.Decimal(10, 2)
+
+  transactionRef String? @unique @map("transaction_ref") @db.VarChar(100)
+  transactionNo  String? @map("transaction_no") @db.VarChar(100)
+  responseCode   String? @map("response_code") @db.VarChar(20)
+
+  paidAt    DateTime? @map("paid_at") @db.Timestamp(0)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("payments")
 }

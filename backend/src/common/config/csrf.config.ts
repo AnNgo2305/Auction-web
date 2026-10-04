@@ -34,6 +34,7 @@ export const csrfConfig = (): DoubleCsrfUtilities => {
         '/auth/verify-reset-password-otp',
         '/auth/resend-otp',
         '/auth/refresh-token',
+        '/payments/vnpay/ipn',
       ];
       return publicRoutes.includes(req.path);
     },
