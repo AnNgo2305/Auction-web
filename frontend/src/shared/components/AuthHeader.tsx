@@ -3,7 +3,7 @@ import {
   LogOut,
   Settings,
   User,
-  History,
+  ShoppingBag,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/images/bid-market.png';
@@ -32,6 +32,7 @@ import { NotificationBell } from '@/features/notification/components/Notificatio
 import { auctionPaths } from '@/features/auction/constants/auction.routes.ts';
 import { WatchlistButton } from '@/features/watchlist/components/WatchlistButton.tsx';
 import { MyBidGavel } from '@/features/bid/components/my-bid/MyBidGavel.tsx';
+import { orderPaths } from '@/features/order/constant/order.routes.ts';
 
 export default function AuthHeader() {
   const location = useLocation();
@@ -178,9 +179,12 @@ export default function AuthHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/my-activity" className="flex items-center gap-2">
-                  <History className="h-4 w-4" />
-                  <span>My Activity</span>
+                <Link
+                  to={orderPaths.list()}
+                  className="flex items-center gap-2"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>My Orders</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

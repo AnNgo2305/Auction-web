@@ -1,0 +1,11 @@
+export enum ORDER_STATUSES {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  PROCESSING = 'PROCESSING',
+  SHIPPING = 'SHIPPING',
+  COMPLETED = 'COMPLETED',
+  CANCELED = 'CANCELED',
+}
+
+export type OrderStatus =
+  (typeof ORDER_STATUSES)[keyof typeof ORDER_STATUSES];

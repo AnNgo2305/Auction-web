@@ -47,9 +47,12 @@ export class OrderController {
         {
           properties: {
             data: {
-              type: 'array',
-              items: {
-                $ref: getSchemaPath(MyOrderResponseDto),
+              type: 'object',
+              properties: {
+                orders: {
+                  type: 'array',
+                  items: { $ref: getSchemaPath(MyOrderResponseDto) },
+                },
               },
             },
           },
@@ -59,18 +62,20 @@ export class OrderController {
     example: {
       statusCode: 200,
       message: 'Orders retrieved successfully',
-      data: [
-        {
-          orderId: '550e8400-e29b-41d4-a716-446655440005',
-          orderCode: 'ORD-1727000000-A1B2C3',
-          auctionId: '550e8400-e29b-41d4-a716-446655440000',
-          auctionTitle: 'MacBook Pro M4',
-          totalAmount: 22500000,
-          status: 'PENDING',
-          createdAt: '2026-09-27T08:00:00.000Z',
-          updatedAt: '2026-09-27T08:30:00.000Z',
-        },
-      ],
+      data: {
+        orders: [
+          {
+            orderId: '550e8400-e29b-41d4-a716-446655440005',
+            orderCode: 'ORD-1727000000-A1B2C3',
+            auctionId: '550e8400-e29b-41d4-a716-446655440000',
+            auctionTitle: 'MacBook Pro M4',
+            totalAmount: 22500000,
+            status: 'PENDING',
+            createdAt: '2026-09-27T08:00:00.000Z',
+            updatedAt: '2026-09-27T08:30:00.000Z',
+          },
+        ],
+      },
     },
   })
   @ApiCookieAuth('access_token')
@@ -81,7 +86,7 @@ export class OrderController {
 
     return {
       message: 'Orders retrieved successfully',
-      data: result,
+      data: { orders: result },
     };
   }
 

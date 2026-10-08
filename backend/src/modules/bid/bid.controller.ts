@@ -114,7 +114,6 @@ export class BidController {
   }
 
   @Get('auction/:auctionId')
-  @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get bids by auction',
