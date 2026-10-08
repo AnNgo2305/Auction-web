@@ -8,6 +8,7 @@ import ProductRoutes from '@/routes/ProductRoute';
 import ChatRoutes from '@/routes/ChatRoute';
 import AuctionRoutes from '@/routes/AuctionRoute';
 import OrderRoutes from '@/routes/OrderRoute';
+import PaymentRoutes from '@/routes/PaymentRoute';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/auctions/*" element={<AuctionRoutes />} />
         <Route path="/chat/*" element={<ChatRoutes />} />
         <Route path="/orders/*" element={<OrderRoutes />} />
+        <Route path="/payments/*" element={<PaymentRoutes />} />
         <Route path="/403" element={<ForbiddenPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

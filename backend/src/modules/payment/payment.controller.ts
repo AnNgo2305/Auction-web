@@ -55,9 +55,14 @@ export class PaymentController {
         {
           properties: {
             data: {
-              type: 'array',
-              items: {
-                $ref: getSchemaPath(MyPaymentsResponseDto),
+              type: 'object',
+              properties: {
+                payments: {
+                  type: 'array',
+                  items: {
+                    $ref: getSchemaPath(MyPaymentsResponseDto),
+                  },
+                },
               },
             },
           },
@@ -67,31 +72,35 @@ export class PaymentController {
     example: {
       statusCode: 200,
       message: 'Payments retrieved successfully',
-      data: [
-        {
-          paymentId: '550e8400-e29b-41d4-a716-446655440005',
-          orderId: '550e8400-e29b-41d4-a716-446655440006',
-          amount: 22500000,
-          status: 'SUCCESS',
-          transactionRef: '550e8400-e29b-41d4-a716-446655440005',
-          transactionNo: '14979514',
-          responseCode: '00',
-          paidAt: '2026-09-27T08:30:00.000Z',
-          createdAt: '2026-09-27T08:00:00.000Z',
-          updatedAt: '2026-09-27T08:30:00.000Z',
-        },
-      ],
+      data: {
+        payments: [
+          {
+            paymentId: '550e8400-e29b-41d4-a716-446655440005',
+            orderId: '550e8400-e29b-41d4-a716-446655440006',
+            amount: 22500000,
+            status: 'SUCCESS',
+            transactionRef: '550e8400-e29b-41d4-a716-446655440005',
+            transactionNo: '14979514',
+            responseCode: '00',
+            paidAt: '2026-09-27T08:30:00.000Z',
+            createdAt: '2026-09-27T08:00:00.000Z',
+            updatedAt: '2026-09-27T08:30:00.000Z',
+          },
+        ],
+      },
     },
   })
   @ApiCookieAuth('access_token')
   async getMyPayments(@Req() req: Request): Promise<ResponsePayload> {
     const userId = req.user?.userId;
 
-    const result = await this.paymentService.getMyPayments(userId as string);
+    const payments = await this.paymentService.getMyPayments(userId as string);
 
     return {
       message: 'Payments retrieved successfully',
-      data: result,
+      data: {
+        payments,
+      },
     };
   }
 
