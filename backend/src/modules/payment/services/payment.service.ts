@@ -22,6 +22,7 @@ import { PaymentIdempotencyService } from '@modules/payment/services/payment-ide
 import { IDEMPOTENCY_STATUS } from '@common/constants/redis.constant';
 import { Prisma } from '@generated/prisma/client';
 import { PaymentResult } from '@modules/payment/dtos/payment.response.dto';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PaymentService {
@@ -99,7 +100,7 @@ export class PaymentService {
       );
 
       const paymentUrl = this.vnpayService.createPaymentUrl({
-        txnRef: payment.paymentId,
+        txnRef: payment.transactionRef!,
         amount: Number(payment.amount),
         orderInfo: `Paying for ${order.orderCode} order`,
         ipAddress,
@@ -294,31 +295,49 @@ export class PaymentService {
         select: {
           paymentId: true,
           amount: true,
+          transactionRef: true,
         },
       });
 
       if (existingPayment) {
+        const transactionRef =
+          existingPayment.transactionRef ??
+          crypto.randomUUID().replace(/-/g, '');
+
+        if (!existingPayment.transactionRef) {
+          await tx.payment.update({
+            where: { paymentId: existingPayment.paymentId },
+            data: { transactionRef },
+          });
+        }
+
         return {
           paymentId: existingPayment.paymentId,
           amount: existingPayment.amount.toNumber(),
+          transactionRef,
         };
       }
+
+      const transactionRef = crypto.randomUUID().replace(/-/g, '');
 
       const payment = await tx.payment.create({
         data: {
           orderId,
           amount,
           status: PaymentStatus.PENDING,
+          transactionRef,
         },
         select: {
           paymentId: true,
           amount: true,
+          transactionRef: true,
         },
       });
 
       return {
         paymentId: payment.paymentId,
         amount: payment.amount.toNumber(),
+        transactionRef: payment.transactionRef!,
       };
     });
   }

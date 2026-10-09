@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import qs from 'qs';
 import { QueryTransactionResult } from '@modules/payment/dtos/query-transaction.response.dto';
 import { VnpayPaymentReturnResult } from '../dtos/vnpay-payment-return.response.dto';
 
@@ -22,12 +21,19 @@ export class VnpayService {
       vnp_Version: this.configService.get<string>('vnpay.version'),
       vnp_Command: this.configService.get<string>('vnpay.command'),
       vnp_TmnCode: this.configService.get<string>('vnpay.tmnCode'),
-      vnp_Amount: params.amount * 100,
+      vnp_Amount: Math.round(params.amount * 100),
       vnp_CreateDate: this.formatDate(now),
       vnp_CurrCode: this.configService.get<string>('vnpay.currCode'),
       vnp_IpAddr: params.ipAddress,
       vnp_Locale: this.configService.get<string>('vnpay.locale'),
-      vnp_OrderInfo: params.orderInfo,
+      vnp_OrderInfo: params.orderInfo
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^a-zA-Z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
       vnp_OrderType: this.configService.get<string>('vnpay.orderType'),
       vnp_ReturnUrl: this.configService.get<string>('vnpay.returnUrl'),
       vnp_ExpireDate: this.formatDate(expireDate),
@@ -35,12 +41,11 @@ export class VnpayService {
     };
 
     const sortedParams = this.sortObject(vnpParams);
-    const signData = qs.stringify(sortedParams);
+    const signData = this.encodeParams(sortedParams);
+    const secureHash = this.generateSignature(signData);
 
-    sortedParams.vnp_SecureHash = this.generateSignature(signData);
     const paymentUrl = this.configService.get<string>('vnpay.paymentUrl');
-
-    return `${paymentUrl}?${qs.stringify(sortedParams)}`;
+    return `${paymentUrl}?${signData}&vnp_SecureHash=${secureHash}`;
   }
 
   async queryTransaction(params: {
@@ -167,26 +172,28 @@ export class VnpayService {
       return false;
     }
 
-    const paramsToVerify: Record<string, string> = {
-      vnp_TmnCode: params.vnp_TmnCode,
-      vnp_Amount: params.vnp_Amount,
-      vnp_BankCode: params.vnp_BankCode,
-      vnp_BankTranNo: params.vnp_BankTranNo,
-      vnp_CardType: params.vnp_CardType,
-      vnp_PayDate: params.vnp_PayDate,
-      vnp_OrderInfo: params.vnp_OrderInfo,
-      vnp_TransactionNo: params.vnp_TransactionNo,
-      vnp_ResponseCode: params.vnp_ResponseCode,
-      vnp_TransactionStatus: params.vnp_TransactionStatus,
-      vnp_TxnRef: params.vnp_TxnRef,
-    };
+    const paramsToVerify: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params)) {
+      if (
+        key.startsWith('vnp_') &&
+        key !== 'vnp_SecureHash' &&
+        key !== 'vnp_SecureHashType'
+      ) {
+        paramsToVerify[key] = value;
+      }
+    }
 
     const sortedParams = this.sortObject(paramsToVerify);
-    const signData = qs.stringify(sortedParams, { encode: false });
+    const signData = this.encodeParams(sortedParams);
 
     const calculatedHash = this.generateSignature(signData);
-
-    return calculatedHash === secureHash;
+    return (
+      calculatedHash.length === secureHash.length &&
+      crypto.timingSafeEqual(
+        Buffer.from(calculatedHash, 'utf8'),
+        Buffer.from(secureHash, 'utf8'),
+      )
+    );
   }
 
   processPaymentReturn(
@@ -218,5 +225,14 @@ export class VnpayService {
       transactionNo,
       orderInfo,
     };
+  }
+
+  private encodeParams(params: Record<string, string>): string {
+    return Object.keys(params)
+      .map(
+        (key) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(params[key]).replace(/%20/g, '+')}`,
+      )
+      .join('&');
   }
 }
