@@ -1,0 +1,56 @@
+# Vite build output
+dist
+dist-ssr
+
+# Dependencies
+node_modules/
+.npm
+
+# Version control
+.git
+.gitignore
+
+# IDE and editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Documentation
+*.md
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Test and coverage output
+coverage
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+__tests__
+tests
+e2e
+playwright-report
+test-results
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.local

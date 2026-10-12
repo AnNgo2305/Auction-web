@@ -1,0 +1,186 @@
+#  ============================================
+#  Auction-web - Development Docker Compose
+#  ============================================
+#
+#  Purpose:
+#    Define services and configuration required to run Auction-web locally.
+#
+#  Responsibilities:
+#    - Run MySQL as the development database.
+#    - Run Redis for caching, idempotency, and BullMQ.
+#    - Run the NestJS backend.
+#    - Run the React frontend.
+#    - Configure development networks, persistent volumes, and service healthchecks.
+#
+#  Environment:
+#    - Uses local Docker containers for MySQL and Redis.
+#    - Uses environment variables from deployment/.env.
+#    - Uses development-specific settings such as port mappings and source code mounts.
+#
+#  Usage:
+#    docker compose --env-file deployment/.env \
+#      -f deployment/docker-compose-dev.yml up -d --build
+#
+#  Note:
+#    This configuration is intended for local development.
+#    Production uses AWS managed services where appropriate, such as RDS and ElastiCache,
+#    instead of running MySQL and Redis containers.
+#
+#  ============================================
+
+name: auction
+
+services:
+  # ==========================================
+  # MySQL - Development Database
+  # ==========================================
+  mysql:
+    image: mysql:8.4
+    container_name: auction-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB_DATABASE_NAME:-auction_db}
+      MYSQL_USER: ${MYSQL_DB_USERNAME:-auction}
+      MYSQL_PASSWORD: ${MYSQL_DB_PASSWORD:?MYSQL_DB_PASSWORD must be set}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD must be set}
+    ports:
+      - "${MYSQL_DB_PORT:-3306}:3306"
+    command:
+      - --mysql-native-password=ON
+      - --authentication-policy=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - auction
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
+  # ==========================================
+  # Redis - Cache, Idempotency & BullMQ
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: auction-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    command: [ redis-server, --appendonly, "yes", --requirepass, "${REDIS_PASSWORD:?REDIS_PASSWORD must be set}" ]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - auction
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ==========================================
+  # Backend - NestJS API
+  # ==========================================
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      args:
+        NODE_VERSION: ${BACKEND_NODE_VERSION:-22}
+    container_name: auction-backend
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env
+    environment:
+      NODE_ENV: ${BACKEND_NODE_ENV:-development}
+      PORT: 3000
+      HOST: 0.0.0.0
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL must be set}
+      MYSQL_DB_HOST: mysql
+      MYSQL_DB_PORT: 3306
+      MYSQL_DB_USERNAME: ${MYSQL_DB_USERNAME:-auction}
+      MYSQL_DB_PASSWORD: ${MYSQL_DB_PASSWORD:?MYSQL_DB_PASSWORD must be set}
+      MYSQL_DB_DATABASE_NAME: ${MYSQL_DB_DATABASE_NAME:-auction_db}
+      DATABASE_URL: mysql://${MYSQL_DB_USERNAME:-auction}:${MYSQL_DB_PASSWORD:?MYSQL_DB_PASSWORD must be set}@mysql:3306/${MYSQL_DB_DATABASE_NAME:-auction_db}?allowPublicKeyRetrieval=true
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    networks:
+      - auction
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ==========================================
+  # Frontend - ReactJS App
+  # ==========================================
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-22}
+        NGINX_VERSION: ${NGINX_VERSION:-alpine}
+        VITE_API_URL: ${VITE_API_URL:?VITE_API_URL must be set}
+    container_name: auction-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    networks:
+      - auction
+    depends_on:
+      backend:
+        condition: service_healthy
+
+
+  # ==========================================
+  # Migrate database and seed initial data
+  # ==========================================
+  migrate:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: builder
+      args:
+        NODE_VERSION: ${BACKEND_NODE_VERSION:-22}
+    container_name: auction-migrate
+    restart: "no"
+    env_file:
+      - ../backend/.env
+    environment:
+      DATABASE_URL: mysql://${MYSQL_DB_USERNAME:-auction}:${MYSQL_DB_PASSWORD:?MYSQL_DB_PASSWORD must be set}@mysql:3306/${MYSQL_DB_DATABASE_NAME:-auction_db}?allowPublicKeyRetrieval=true
+      MYSQL_DB_HOST: mysql
+      MYSQL_DB_PORT: 3306
+    command:
+      - sh
+      - -c
+      - |
+        npx prisma migrate deploy &&
+        npm run prisma:seed
+    networks:
+      - auction
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+networks:
+  auction:
+    name: auction-network
+
+volumes:
+  mysql_data:
+    name: auction-mysql-data
+  redis_data:
+    name: auction-redis-data

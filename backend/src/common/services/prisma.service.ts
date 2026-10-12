@@ -20,6 +20,7 @@ export class PrismaService
       user: process.env.MYSQL_DB_USERNAME,
       password: process.env.MYSQL_DB_PASSWORD,
       database: process.env.MYSQL_DB_DATABASE_NAME,
+      allowPublicKeyRetrieval: true,
       connectionLimit: 10,
       connectTimeout: 10000,
       acquireTimeout: 10000,

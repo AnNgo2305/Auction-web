@@ -1,0 +1,56 @@
+# Build output
+dist/
+dist-ssr/
+generated/
+
+# Dependencies
+node_modules/
+.npm/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Documentation
+*.md
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Tests and coverage
+coverage/
+test/
+tests/
+e2e/
+__tests__/
+playwright-report/
+test-results/
+**/*.test.ts
+**/*.spec.ts
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.local
